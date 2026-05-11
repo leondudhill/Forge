@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MrForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f3ff;
+    --surface2: #ede9fe;
+    --border: #ddd6fe;
+    --text: #1e0a3e;
+    --text-muted: #6b45a0;
+    --accent: #7c3aed;
+    --accent2: #f5a623;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 14px 24px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; letter-spacing: 2px; color: var(--text);
+    line-height: 1; text-decoration: none;
+  }
+  .logo .logo-main { color: var(--text); }
+  .logo .logo-forge { color: var(--accent); }
+  .byline { font-size: 11px; color: #111111; letter-spacing: 0.5px; font-weight: 400; text-align: right; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar {
+    display: none;
+    background: var(--surface); border-bottom: 1.5px solid var(--border);
+    padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0;
+  }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 210px 1fr 210px;
+    flex: 1; min-height: 0;
+  }
+
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 44px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--surface); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    transition: all 0.15s ease; user-select: none; padding: 0 14px;
+  }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 10px; height: 10px; background: var(--accent2);
+    border-radius: 50%; border: 1.5px solid #fff; display: none;
+  }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+
+  .toggle-all-btn {
+    margin-top: 12px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn {
+    margin-top: 8px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid #f2c4bb; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .reset-btn:hover { background: #fff0ed; }
+
+  /* Periodic table reference panel */
+  .ref-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 2px;
+    color: var(--text-muted); margin-bottom: 10px; margin-top: 20px;
+  }
+  .ref-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  }
+  .ref-item {
+    background: var(--surface2); border-radius: 5px; padding: 4px 6px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px;
+  }
+  .ref-sym { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--accent); }
+  .ref-mass { color: var(--text-muted); font-weight: 600; }
+
+  .main {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 40px 20px; gap: 22px;
+  }
+
+  /* Formula display card */
+  .formula-card {
+    min-width: 180px; min-height: 130px;
+    padding: 24px 36px;
+    border: 3px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .formula-card.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .formula-card.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+
+  .formula-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .formula-text {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1.1;
+    text-align: center;
+  }
+  .formula-text sub { font-size: 0.6em; vertical-align: sub; color: var(--text-muted); }
+  .formula-name {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .question-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; min-height: 20px; text-align: center; }
+
+  /* Working out hint */
+  .working-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--text-muted);
+    background: var(--surface2);
+    border-radius: 8px; padding: 8px 14px;
+    min-height: 28px; text-align: center;
+    letter-spacing: 0.3px; line-height: 1.6;
+    max-width: min(360px, 90vw);
+    transition: opacity 0.2s;
+  }
+
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
+  .timer-bar.urgent         { background: var(--wrong); }
+
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(18px, 5vw, 32px);
+    font-weight: 500; width: 130px; text-align: center;
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; outline: none;
+    background: var(--surface); color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+    letter-spacing: 1px;
+    -moz-appearance: textfield;
+  }
+  .answer-input::-webkit-outer-spin-button,
+  .answer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .answer-input:focus         { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+
+  .submit-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    padding: 12px 22px; border: none; border-radius: 10px;
+    background: var(--accent); color: #fff; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.3px;
+    min-height: 48px; min-width: 64px;
+  }
+  .submit-btn:hover  { filter: brightness(1.1); }
+  .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
+  .feedback-msg.mastered { color: var(--accent2); }
+
+  /* Right sidebar stats */
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; }
+
+  .mobile-drawer-toggle {
+    display: none; width: 100%; padding: 12px 20px;
+    background: var(--surface); border: none; border-top: 1.5px solid var(--border);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px;
+    align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn,
+  .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+    padding: 12px 24px; border-radius: 30px; pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  footer {
+    border-top: 1.5px solid var(--border); padding: 11px 24px;
+    font-size: 11.5px; color: #111111;
+    background: var(--surface); line-height: 1.5; flex-shrink: 0;
+  }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 200px 1fr; }
+    .sidebar-right { display: none; }
+    .score-bar { display: flex; }
+  }
+  @media (max-width: 580px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .score-bar { display: flex; }
+    .mobile-drawer-toggle { display: flex; }
+    .main { padding: 28px 16px; gap: 18px; }
+    header { padding: 12px 16px; }
+    .byline { display: none; }
+    footer { padding: 10px 16px; font-size: 10.5px; }
+    .formula-card { min-width: 140px; min-height: 100px; padding: 18px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="chemistry.html" class="logo"><span class="logo-main">M<span style="font-size:0.6em;vertical-align:0.05em">r</span></span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A website by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item">
+    <span class="score-bar-label">Correct</span>
+    <span class="score-bar-value" id="sbCorrect">0</span>
+  </div>
+  <div class="score-bar-item">
+    <span class="score-bar-label">Total</span>
+    <span class="score-bar-value" id="sbTotal">0</span>
+  </div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="score-bar-label">Accuracy</span>
+      <span class="score-bar-pct-label" id="sbPct">—</span>
+    </div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item">
+    <span class="score-bar-label">Mastered</span>
+    <span class="score-bar-value" id="sbMastered">0</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+
+  <div class="main">
+    <div class="formula-card" id="formulaCard">
+      <div class="formula-label">Find M<sub>r</sub> of</div>
+      <div class="formula-text" id="formulaText">—</div>
+      <div class="formula-name" id="formulaName"></div>
+    </div>
+    <div class="question-sub" id="questionSub">Enable a level to begin</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="number" class="answer-input" id="answerInput"
+             placeholder="?" autocomplete="off" inputmode="numeric" min="1">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value">
+        <span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList">
+        <div style="font-size:12px;color:var(--text-muted)">None yet</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle">
+  <span>⚙ Options</span>
+  <span class="arrow">▼</span>
+</button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ATOMIC MASSES (rounded to nearest whole number for GCSE)
+// ============================================================
+const ATOMIC_MASSES = {
+  H: 1,  He: 4,  Li: 7,  Be: 9,  B: 11,
+  C: 12, N: 14,  O: 16,  F: 19,  Ne: 20,
+  Na: 23, Mg: 24, Al: 27, Si: 28, P: 31,
+  S: 32,  Cl: 35.5, Ar: 40, K: 39, Ca: 40,
+  Fe: 56, Cu: 64, Zn: 65, Ag: 108, Au: 197,
+  Pb: 207, Sn: 119, Hg: 201, Cr: 52, Mn: 55,
+  Ni: 58, Pt: 195, Co: 59, Ba: 137, I: 127,
+  Br: 80, N2: 14,
+};
+
+// ============================================================
+// COMPOUND DATA
+// formula: HTML display string
+// key: unique id
+// name: compound name
+// Mr: relative formula mass
+// working: step-by-step string shown as hint
+// level: 1=simple, 2=medium, 3=complex
+// ============================================================
+const COMPOUNDS = [
+  // Level 1 — Simple, 2-3 atoms
+  {
+    key: 'H2O', formula: 'H<sub>2</sub>O', name: 'Water', level: 1,
+    Mr: 18,
+    working: '(2 × H) + O = (2×1) + 16 = 18',
+  },
+  {
+    key: 'CO2', formula: 'CO<sub>2</sub>', name: 'Carbon Dioxide', level: 1,
+    Mr: 44,
+    working: 'C + (2 × O) = 12 + (2×16) = 44',
+  },
+  {
+    key: 'HCl', formula: 'HCl', name: 'Hydrochloric Acid', level: 1,
+    Mr: 36.5,
+    working: 'H + Cl = 1 + 35.5 = 36.5',
+  },
+  {
+    key: 'NaCl', formula: 'NaCl', name: 'Sodium Chloride', level: 1,
+    Mr: 58.5,
+    working: 'Na + Cl = 23 + 35.5 = 58.5',
+  },
+  {
+    key: 'MgO', formula: 'MgO', name: 'Magnesium Oxide', level: 1,
+    Mr: 40,
+    working: 'Mg + O = 24 + 16 = 40',
+  },
+  {
+    key: 'CO', formula: 'CO', name: 'Carbon Monoxide', level: 1,
+    Mr: 28,
+    working: 'C + O = 12 + 16 = 28',
+  },
+  {
+    key: 'NH3', formula: 'NH<sub>3</sub>', name: 'Ammonia', level: 1,
+    Mr: 17,
+    working: 'N + (3 × H) = 14 + (3×1) = 17',
+  },
+  {
+    key: 'CH4', formula: 'CH<sub>4</sub>', name: 'Methane', level: 1,
+    Mr: 16,
+    working: 'C + (4 × H) = 12 + (4×1) = 16',
+  },
+  {
+    key: 'O2', formula: 'O<sub>2</sub>', name: 'Oxygen Gas', level: 1,
+    Mr: 32,
+    working: '2 × O = 2 × 16 = 32',
+  },
+  {
+    key: 'N2', formula: 'N<sub>2</sub>', name: 'Nitrogen Gas', level: 1,
+    Mr: 28,
+    working: '2 × N = 2 × 14 = 28',
+  },
+
+  // Level 2 — Medium complexity
+  {
+    key: 'H2SO4', formula: 'H<sub>2</sub>SO<sub>4</sub>', name: 'Sulfuric Acid', level: 2,
+    Mr: 98,
+    working: '(2×H) + S + (4×O) = 2 + 32 + 64 = 98',
+  },
+  {
+    key: 'NaOH', formula: 'NaOH', name: 'Sodium Hydroxide', level: 2,
+    Mr: 40,
+    working: 'Na + O + H = 23 + 16 + 1 = 40',
+  },
+  {
+    key: 'HNO3', formula: 'HNO<sub>3</sub>', name: 'Nitric Acid', level: 2,
+    Mr: 63,
+    working: 'H + N + (3×O) = 1 + 14 + 48 = 63',
+  },
+  {
+    key: 'CaCO3', formula: 'CaCO<sub>3</sub>', name: 'Calcium Carbonate', level: 2,
+    Mr: 100,
+    working: 'Ca + C + (3×O) = 40 + 12 + 48 = 100',
+  },
+  {
+    key: 'KOH', formula: 'KOH', name: 'Potassium Hydroxide', level: 2,
+    Mr: 56,
+    working: 'K + O + H = 39 + 16 + 1 = 56',
+  },
+  {
+    key: 'Na2CO3', formula: 'Na<sub>2</sub>CO<sub>3</sub>', name: 'Sodium Carbonate', level: 2,
+    Mr: 106,
+    working: '(2×Na) + C + (3×O) = 46 + 12 + 48 = 106',
+  },
+  {
+    key: 'MgCl2', formula: 'MgCl<sub>2</sub>', name: 'Magnesium Chloride', level: 2,
+    Mr: 95,
+    working: 'Mg + (2×Cl) = 24 + 71 = 95',
+  },
+  {
+    key: 'CuO', formula: 'CuO', name: 'Copper(II) Oxide', level: 2,
+    Mr: 80,
+    working: 'Cu + O = 64 + 16 = 80',
+  },
+  {
+    key: 'SO2', formula: 'SO<sub>2</sub>', name: 'Sulfur Dioxide', level: 2,
+    Mr: 64,
+    working: 'S + (2×O) = 32 + 32 = 64',
+  },
+  {
+    key: 'SO3', formula: 'SO<sub>3</sub>', name: 'Sulfur Trioxide', level: 2,
+    Mr: 80,
+    working: 'S + (3×O) = 32 + 48 = 80',
+  },
+  {
+    key: 'Al2O3', formula: 'Al<sub>2</sub>O<sub>3</sub>', name: 'Aluminium Oxide', level: 2,
+    Mr: 102,
+    working: '(2×Al) + (3×O) = 54 + 48 = 102',
+  },
+
+  // Level 3 — Complex / larger molecules
+  {
+    key: 'CuSO4', formula: 'CuSO<sub>4</sub>', name: 'Copper Sulfate', level: 3,
+    Mr: 160,
+    working: 'Cu + S + (4×O) = 64 + 32 + 64 = 160',
+  },
+  {
+    key: 'Fe2O3', formula: 'Fe<sub>2</sub>O<sub>3</sub>', name: 'Iron(III) Oxide', level: 3,
+    Mr: 160,
+    working: '(2×Fe) + (3×O) = 112 + 48 = 160',
+  },
+  {
+    key: 'Ca(OH)2', formula: 'Ca(OH)<sub>2</sub>', name: 'Calcium Hydroxide', level: 3,
+    Mr: 74,
+    working: 'Ca + (2×O) + (2×H) = 40 + 32 + 2 = 74',
+  },
+  {
+    key: 'Mg(OH)2', formula: 'Mg(OH)<sub>2</sub>', name: 'Magnesium Hydroxide', level: 3,
+    Mr: 58,
+    working: 'Mg + (2×O) + (2×H) = 24 + 32 + 2 = 58',
+  },
+  {
+    key: 'H2CO3', formula: 'H<sub>2</sub>CO<sub>3</sub>', name: 'Carbonic Acid', level: 3,
+    Mr: 62,
+    working: '(2×H) + C + (3×O) = 2 + 12 + 48 = 62',
+  },
+  {
+    key: 'Na2SO4', formula: 'Na<sub>2</sub>SO<sub>4</sub>', name: 'Sodium Sulfate', level: 3,
+    Mr: 142,
+    working: '(2×Na) + S + (4×O) = 46 + 32 + 64 = 142',
+  },
+  {
+    key: 'KNO3', formula: 'KNO<sub>3</sub>', name: 'Potassium Nitrate', level: 3,
+    Mr: 101,
+    working: 'K + N + (3×O) = 39 + 14 + 48 = 101',
+  },
+  {
+    key: 'FeCl3', formula: 'FeCl<sub>3</sub>', name: 'Iron(III) Chloride', level: 3,
+    Mr: 162.5,
+    working: 'Fe + (3×Cl) = 56 + 106.5 = 162.5',
+  },
+  {
+    key: 'C6H12O6', formula: 'C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>', name: 'Glucose', level: 3,
+    Mr: 180,
+    working: '(6×C)+(12×H)+(6×O) = 72+12+96 = 180',
+  },
+  {
+    key: 'H3PO4', formula: 'H<sub>3</sub>PO<sub>4</sub>', name: 'Phosphoric Acid', level: 3,
+    Mr: 98,
+    working: '(3×H) + P + (4×O) = 3 + 31 + 64 = 98',
+  },
+];
+
+const LEVELS = [
+  { id: 1, name: 'Simple Formulae'  },
+  { id: 2, name: 'Medium Formulae'  },
+  { id: 3, name: 'Complex Formulae' },
+  { id: 4, name: 'All Formulae'     },
+];
+
+// ============================================================
+// REFERENCE TABLE (shown in left sidebar)
+// ============================================================
+const REF_ELEMENTS = [
+  { sym: 'H', mass: 1 }, { sym: 'C', mass: 12 }, { sym: 'N', mass: 14 },
+  { sym: 'O', mass: 16 }, { sym: 'Na', mass: 23 }, { sym: 'Mg', mass: 24 },
+  { sym: 'Al', mass: 27 }, { sym: 'S', mass: 32 }, { sym: 'Cl', mass: 35.5 },
+  { sym: 'K', mass: 39 }, { sym: 'Ca', mass: 40 }, { sym: 'Fe', mass: 56 },
+  { sym: 'Cu', mass: 64 }, { sym: 'Zn', mass: 65 }, { sym: 'Br', mass: 80 },
+  { sym: 'P', mass: 31 },
+];
+
+function renderRefGrid() {
+  const grid = document.getElementById('refGrid');
+  grid.innerHTML = REF_ELEMENTS.map(e =>
+    `<div class="ref-item"><span class="ref-sym">${e.sym}</span><span class="ref-mass">${e.mass}</span></div>`
+  ).join('');
+}
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'mrforge_v1';
+
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return null;
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabledLevels, mastered: [...mastered], stats, streaks }));
+}
+
+const saved = loadState();
+let enabledLevels = saved?.enabledLevels || { 1: true, 2: false, 3: false, 4: false };
+let mastered  = new Set(Array.isArray(saved?.mastered) ? saved.mastered : []);
+let stats     = (saved?.stats && typeof saved.stats === 'object') ? saved.stats : { correct: 0, total: 0, sessionStreak: 0 };
+let streaks   = (saved?.streaks && typeof saved.streaks === 'object' && !Array.isArray(saved.streaks)) ? saved.streaks : {};
+
+LEVELS.forEach(l => { if (enabledLevels[l.id] === undefined) enabledLevels[l.id] = false; });
+
+function getEnabledCompounds() {
+  if (enabledLevels[4]) return COMPOUNDS.filter(c => !mastered.has(c.key));
+  const ids = [1,2,3].filter(id => enabledLevels[id]);
+  return COMPOUNDS.filter(c => ids.includes(c.level) && !mastered.has(c.key));
+}
+
+function buildQuestion(previous) {
+  const pool = getEnabledCompounds();
+  if (pool.length === 0) return null;
+  let candidates = pool.filter(c => !previous || c.key !== previous.key);
+  if (candidates.length === 0) candidates = pool;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// ============================================================
+// DOM
+// ============================================================
+const formulaText   = document.getElementById('formulaText');
+const formulaName   = document.getElementById('formulaName');
+const formulaCard   = document.getElementById('formulaCard');
+const questionSub   = document.getElementById('questionSub');
+const answerInput   = document.getElementById('answerInput');
+const submitBtn     = document.getElementById('submitBtn');
+const feedbackMsg   = document.getElementById('feedbackMsg');
+const timerBar      = document.getElementById('timerBar');
+const streakDotsEl  = document.getElementById('streakDots');
+const statCorrect   = document.getElementById('statCorrect');
+const statTotal     = document.getElementById('statTotal');
+const statPct       = document.getElementById('statPct');
+const pctBar        = document.getElementById('pctBar');
+const statStreak    = document.getElementById('statStreak');
+const masteredList  = document.getElementById('masteredList');
+const masteredCount = document.getElementById('masteredCount');
+const sbCorrect     = document.getElementById('sbCorrect');
+const sbTotal       = document.getElementById('sbTotal');
+const sbPct         = document.getElementById('sbPct');
+const sbPctBar      = document.getElementById('sbPctBar');
+const sbMastered    = document.getElementById('sbMastered');
+const levelGridDesktop = document.getElementById('levelGridDesktop');
+const levelGridMobile  = document.getElementById('levelGridMobile');
+const toast         = document.getElementById('toast');
+const drawerToggle  = document.getElementById('drawerToggle');
+const mobileDrawer  = document.getElementById('mobileDrawer');
+
+// ============================================================
+// RENDER LEVEL TOGGLES
+// ============================================================
+function renderLevelGrid(gridEl) {
+  gridEl.innerHTML = '';
+  LEVELS.forEach(l => {
+    const hasMastered = [...mastered].some(key => {
+      const c = COMPOUNDS.find(x => x.key === key);
+      return c && c.level === l.id;
+    });
+    const wrapper = document.createElement('label');
+    wrapper.className = 'lv-toggle' + (hasMastered ? ' has-mastered' : '');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!enabledLevels[l.id];
+    input.addEventListener('change', () => {
+      enabledLevels[l.id] = input.checked;
+      syncLevelToggles(l.id, input.checked);
+      saveState(); nextQuestion();
+    });
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.innerHTML = `<span>${l.name}</span>`;
+    const badge = document.createElement('div');
+    badge.className = 'mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge);
+    gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles() { renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncLevelToggles(levelId, checked) {
+  [levelGridDesktop, levelGridMobile].forEach(grid => {
+    const inputs = grid.querySelectorAll('input[type=checkbox]');
+    const idx = LEVELS.findIndex(l => l.id === levelId);
+    if (inputs[idx]) inputs[idx].checked = checked;
+  });
+}
+
+// ============================================================
+// STREAK DOTS
+// ============================================================
+function renderStreakDots(count) {
+  streakDotsEl.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot' + (i < count ? ' filled' : '');
+    streakDotsEl.appendChild(dot);
+  }
+}
+
+// ============================================================
+// TIMER — longer limit for calculations (12 seconds)
+// ============================================================
+let currentQ = null, timerInterval = null, timerStart = null, timedOut = false;
+const TIME_LIMIT = 12000;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerStart = Date.now();
+  timerBar.style.transition = 'none';
+  timerBar.style.width = '100%';
+  timerBar.className = 'timer-bar';
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    timerBar.style.transition = 'width 0.1s linear';
+    timerBar.style.width = pct + '%';
+    if (pct <= 0) { stopTimer(); handleTimeout(); }
+    else if (pct <= 16)      timerBar.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBar.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBar.className = 'timer-bar warning';
+    else                timerBar.className = 'timer-bar';
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+// ============================================================
+// TIMEOUT — question stays alive, no mastery credit
+// ============================================================
+function handleTimeout() {
+  if (!currentQ) return;
+  timedOut = true;
+  streaks[currentQ.key] = 0;
+  renderStreakDots(0);
+
+  feedbackMsg.textContent = 'Too slow — still try!';
+  feedbackMsg.className = 'feedback-msg wrong';
+  formulaCard.classList.add('wrong-flash');
+  setTimeout(() => {
+    formulaCard.className = 'formula-card';
+    feedbackMsg.textContent = '';
+    feedbackMsg.className = 'feedback-msg';
+  }, 800);
+}
+
+// ============================================================
+// NEXT QUESTION
+// ============================================================
+function nextQuestion() {
+  stopTimer();
+  timedOut = false;
+  feedbackMsg.textContent = '';
+  feedbackMsg.className = 'feedback-msg';
+  formulaCard.className = 'formula-card';
+  answerInput.value = '';
+  answerInput.className = 'answer-input';
+  answerInput.disabled = false;
+  submitBtn.disabled = false;
+
+  const anyEnabled = LEVELS.some(l => enabledLevels[l.id]);
+  if (!anyEnabled) {
+    formulaText.textContent = '—';
+    formulaName.textContent = '';
+    questionSub.textContent = 'Enable a level to begin.';
+    answerInput.disabled = true; submitBtn.disabled = true;
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0);
+    return;
+  }
+
+  const q = buildQuestion(currentQ);
+  if (!q) {
+    formulaText.textContent = '🎉';
+    formulaName.textContent = '';
+    questionSub.textContent = 'All compounds mastered! Enable more levels.';
+    answerInput.disabled = true; submitBtn.disabled = true;
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0);
+    return;
+  }
+
+  currentQ = q;
+  formulaText.innerHTML = q.formula;
+  formulaName.textContent = q.name;
+  const streak = streaks[q.key] || 0;
+  renderStreakDots(streak);
+  questionSub.textContent = streak > 0 ? `${streak}/6 mastery streak` : 'Type the relative formula mass';
+
+  startTimer();
+  if (!('ontouchstart' in window)) answerInput.focus();
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitAnswer() {
+  if (!currentQ || answerInput.disabled) return;
+  const val = parseFloat(answerInput.value);
+  if (isNaN(val)) { answerInput.focus(); return; }
+
+  stopTimer();
+  stats.total++;
+  answerInput.disabled = true;
+  submitBtn.disabled = true;
+
+  // Accept within ±0.1 to handle rounding (e.g. Cl = 35.5)
+  const correct = Math.abs(val - currentQ.Mr) < 0.11;
+
+  if (correct) {
+    stats.correct++;
+    stats.sessionStreak = (stats.sessionStreak || 0) + 1;
+    answerInput.className = 'answer-input correct-flash';
+    formulaCard.classList.add('correct-flash');
+
+    if (timedOut) {
+      feedbackMsg.textContent = 'Correct — but too slow!';
+      feedbackMsg.className = 'feedback-msg correct';
+    } else {
+      streaks[currentQ.key] = (streaks[currentQ.key] || 0) + 1;
+      const streak = streaks[currentQ.key];
+      renderStreakDots(streak);
+      if (streak >= 6) {
+        mastered.add(currentQ.key);
+        streaks[currentQ.key] = 0;
+        feedbackMsg.textContent = '★ MASTERED!';
+        feedbackMsg.className = 'feedback-msg mastered';
+        showToast(`${currentQ.name} mastered! 🔥`, true);
+        renderToggles(); renderMastered();
+      } else {
+        const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+        feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+        feedbackMsg.className = 'feedback-msg correct';
+      }
+    }
+  } else {
+    stats.sessionStreak = 0;
+    streaks[currentQ.key] = 0;
+    renderStreakDots(0);
+    answerInput.className = 'answer-input wrong-flash';
+    formulaCard.classList.add('wrong-flash');
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.Mr}`;
+    feedbackMsg.className = 'feedback-msg wrong';
+  }
+
+  updateStats(); saveState();
+  setTimeout(() => nextQuestion(), 1400);
+}
+
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const c = stats.correct, t = stats.total;
+  const pct = t > 0 ? Math.round((c / t) * 100) : null;
+  const pctStr = pct !== null ? pct + '%' : '—';
+  const pctW   = pct !== null ? pct + '%' : '0%';
+  statCorrect.textContent = c; statTotal.textContent = t;
+  statPct.textContent = pctStr; pctBar.style.width = pctW;
+  sbCorrect.textContent = c; sbTotal.textContent = t;
+  sbPct.textContent = pctStr; sbPctBar.style.width = pctW;
+  sbMastered.textContent = mastered.size;
+  const barColor = pct === null ? 'var(--correct)' : pct <= 25 ? '#e84c1e' : pct <= 50 ? '#f07d20' : pct <= 70 ? '#f5c518' : 'var(--correct)';
+  pctBar.style.background = barColor; sbPctBar.style.background = barColor;
+  const ss = stats.sessionStreak || 0;
+  statStreak.textContent = ss >= 5 ? '🔥'.repeat(Math.floor(ss / 5)) + ' ' + ss + ' in a row' : '';
+}
+
+function renderMastered() {
+  masteredCount.textContent = mastered.size;
+  sbMastered.textContent = mastered.size;
+  if (mastered.size === 0) { masteredList.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">None yet</div>'; return; }
+  masteredList.innerHTML = [...mastered].map(key => {
+    const c = COMPOUNDS.find(x => x.key === key);
+    return `<div class="mastered-item">★ ${c?.name} = ${c?.Mr}</div>`;
+  }).join('');
+}
+
+let toastTimeout;
+function showToast(msg, isMastered = false) {
+  toast.textContent = msg;
+  toast.className = 'toast' + (isMastered ? ' mastered-toast' : '') + ' show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast' + (isMastered ? ' mastered-toast' : ''); }, 2500);
+}
+
+let allOn = false;
+function toggleAll() {
+  allOn = !allOn;
+  LEVELS.forEach(l => enabledLevels[l.id] = allOn);
+  saveState(); renderToggles(); nextQuestion();
+}
+function doReset() {
+  if (!confirm('Reset all mastery progress and stats? This cannot be undone.')) return;
+  mastered = new Set(); streaks = {};
+  stats = { correct: 0, total: 0, sessionStreak: 0 };
+  LEVELS.forEach(l => enabledLevels[l.id] = l.id === 1);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion();
+  showToast('Progress reset.');
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click', toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click', doReset);
+document.getElementById('resetBtnMobile').addEventListener('click', doReset);
+drawerToggle.addEventListener('click', () => {
+  const open = mobileDrawer.classList.toggle('open');
+  drawerToggle.classList.toggle('open', open);
+});
+
+renderToggles();
+renderMastered();
+updateStats();
+nextQuestion();
+</script>
+</body>
+</html>

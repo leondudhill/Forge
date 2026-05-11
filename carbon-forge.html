@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarbonForge — Leon Dudhill</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f4fbf6;
+    --surface2: #d1fae5;
+    --border: #b6e4ca;
+    --text: #052e16;
+    --text-muted: #2d6a4a;
+    --accent: #16a34a;
+    --correct: #16a34a;
+    --wrong: #e84c1e;
+    --warn-yellow: #f5c518;
+    --warn-orange: #f07d20;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .info-block { margin-bottom: 18px; }
+  .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .info-block p + p { margin-top: 5px; }
+
+  .process-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .process-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
+  .process-list li strong { color: var(--text); display: block; font-family: 'DM Mono', monospace; font-size: 11px; }
+
+  .info-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); padding: 2px 9px; margin: 3px 2px 0; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 16px 0; }
+
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
+  .question-card { text-align: center; max-width: 480px; width: 100%; }
+  .q-type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 3.5vw, 32px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
+  .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
+
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning        { background: var(--warn-yellow); }
+  .timer-bar.warning-orange { background: var(--warn-orange); }
+  .timer-bar.urgent         { background: var(--wrong); }
+
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(420px, 100%); }
+  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.35; }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
+  .mc-btn:active:not(:disabled) { transform: scale(0.97); }
+  .mc-btn.correct-flash { border-color: var(--correct); background: #dcfce7; color: var(--correct); }
+  .mc-btn.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; color: var(--wrong); }
+  .mc-btn:disabled { cursor: default; }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(15px, 3vw, 20px); font-weight: 500; width: 220px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input:focus         { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
+  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.6; }
+
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover  { filter: brightness(1.1); }
+  .submit-btn:active { transform: scale(0.97); }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
+  .feedback-msg.correct { color: var(--correct); }
+  .feedback-msg.wrong   { color: var(--wrong); }
+  .feedback-msg.timeout { color: var(--warn-orange); }
+
+  .stat-block { margin-bottom: 22px; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .mobile-drawer p + p { margin-top: 6px; }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: var(--text-muted); background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+  @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Carbon<span>Forge</span></div>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="score-bar-label">Accuracy</span>
+      <span class="score-bar-pct-label" id="sbPct">—</span>
+    </div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Streak</span><span class="score-bar-value" id="sbStreak">0</span></div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Key Processes</div>
+
+    <div class="info-block">
+      <ul class="process-list">
+        <li><strong>Photosynthesis</strong>Plants absorb CO₂ from atmosphere, convert to organic compounds using light energy.</li>
+        <li><strong>Respiration</strong>All living organisms release CO₂ back into the atmosphere.</li>
+        <li><strong>Combustion</strong>Burning fossil fuels and wood releases stored carbon as CO₂.</li>
+        <li><strong>Decomposition</strong>Decomposers break down dead matter, releasing CO₂ through respiration.</li>
+        <li><strong>Feeding</strong>Carbon passes along food chains when organisms consume each other.</li>
+        <li><strong>Fossilisation</strong>Dead organisms become fossil fuels over millions of years — carbon locked away.</li>
+      </ul>
+    </div>
+
+    <hr class="divider">
+
+    <div class="info-block">
+      <div class="info-block-title">Carbon stores</div>
+      <p>Atmosphere · Plants · Animals · Soil · Oceans · Fossil fuels</p>
+    </div>
+
+    <hr class="divider">
+
+    <div class="info-block">
+      <div class="info-block-title">Question types</div>
+      <span class="info-pill">Multiple Choice</span>
+      <span class="info-pill">Typed Answer</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="question-card">
+      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub">6 seconds per question</div>
+    </div>
+
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots">
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div>
+    </div>
+
+    <div class="mc-grid hidden" id="mcGrid"></div>
+
+    <div class="input-row hidden" id="typedRow">
+      <input class="answer-input" id="answerInput" type="text" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value">
+        <span id="statCorrect">0</span>
+        <span style="font-size:20px;color:var(--border)">/</span>
+        <span id="statTotal">0</span>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Session Streak</div>
+      <div class="stat-value" id="statStreak">0</div>
+      <div class="stat-sub" id="streakMsg"></div>
+    </div>
+  </div>
+
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle">
+  <span>ℹ Key processes</span>
+  <span class="arrow">▼</span>
+</button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <p><strong>Into atmosphere:</strong> respiration, combustion, decomposition.</p>
+  <p><strong>Out of atmosphere:</strong> photosynthesis.</p>
+  <p><strong>Along food chain:</strong> feeding / consumption.</p>
+  <p><strong>Locked away:</strong> fossilisation → fossil fuels.</p>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — Leon Dudhill
+</footer>
+
+<script>
+const TIME_LIMIT = 6000;
+
+const bank = [
+  // ── PHOTOSYNTHESIS IN THE CYCLE ──
+  { type: 'mc', q: 'Which process removes CO₂ from the atmosphere?',
+    correct: 'Photosynthesis',
+    options: ['Respiration', 'Photosynthesis', 'Combustion', 'Decomposition'] },
+  { type: 'mc', q: 'How do plants absorb carbon from the atmosphere?',
+    correct: 'By photosynthesis — absorbing CO₂',
+    options: ['By respiration', 'By photosynthesis — absorbing CO₂', 'By decomposition', 'By feeding'] },
+  { type: 'mc', q: 'What gas do plants absorb during photosynthesis?',
+    correct: 'Carbon dioxide (CO₂)',
+    options: ['Oxygen', 'Carbon dioxide (CO₂)', 'Nitrogen', 'Methane'] },
+
+  // ── RESPIRATION IN THE CYCLE ──
+  { type: 'mc', q: 'Which process releases CO₂ back into the atmosphere from living organisms?',
+    correct: 'Respiration',
+    options: ['Photosynthesis', 'Respiration', 'Feeding', 'Fossilisation'] },
+  { type: 'mc', q: 'Do plants respire?',
+    correct: 'Yes — all living organisms respire',
+    options: ['No — only animals respire', 'Yes — all living organisms respire', 'Only at night', 'Only when not photosynthesising'] },
+
+  // ── COMBUSTION ──
+  { type: 'mc', q: 'What process releases carbon locked in fossil fuels?',
+    correct: 'Combustion (burning)',
+    options: ['Decomposition', 'Respiration', 'Combustion (burning)', 'Photosynthesis'] },
+  { type: 'mc', q: 'What gas is released when fossil fuels are burned?',
+    correct: 'Carbon dioxide (CO₂)',
+    options: ['Oxygen', 'Nitrogen', 'Carbon dioxide (CO₂)', 'Hydrogen'] },
+  { type: 'mc', q: 'Which human activity adds the most CO₂ to the atmosphere?',
+    correct: 'Burning fossil fuels',
+    options: ['Farming', 'Burning fossil fuels', 'Decomposition', 'Photosynthesis'] },
+
+  // ── DECOMPOSITION ──
+  { type: 'mc', q: 'What do decomposers do in the carbon cycle?',
+    correct: 'Break down dead organisms, releasing CO₂ through respiration',
+    options: ['Absorb CO₂ from the air', 'Convert carbon into fossil fuels', 'Break down dead organisms, releasing CO₂ through respiration', 'Carry carbon up food chains'] },
+  { type: 'mc', q: 'Name two examples of decomposers.',
+    correct: 'Bacteria and fungi',
+    options: ['Plants and animals', 'Bacteria and fungi', 'Insects and worms', 'Algae and mosses'] },
+  { type: 'mc', q: 'What process do decomposers use to release CO₂?',
+    correct: 'Respiration',
+    options: ['Photosynthesis', 'Combustion', 'Respiration', 'Fermentation'] },
+
+  // ── FEEDING / FOOD CHAINS ──
+  { type: 'mc', q: 'How does carbon pass from plants to animals?',
+    correct: 'Through feeding / consumption',
+    options: ['Through respiration', 'Through feeding / consumption', 'Through decomposition', 'Through photosynthesis'] },
+  { type: 'mc', q: 'Carbon in an animal\'s body originally came from…',
+    correct: 'Plants absorbing CO₂ via photosynthesis',
+    options: ['The soil directly', 'Rainfall', 'Plants absorbing CO₂ via photosynthesis', 'Decomposing animals'] },
+
+  // ── FOSSIL FUELS ──
+  { type: 'mc', q: 'How are fossil fuels formed?',
+    correct: 'Dead organisms compressed over millions of years',
+    options: ['Plants absorbing sunlight', 'Dead organisms compressed over millions of years', 'Decomposers breaking down rock', 'Animals respiring underground'] },
+  { type: 'mc', q: 'Why do fossil fuels release large amounts of CO₂ when burned?',
+    correct: 'They contain carbon that was locked away for millions of years',
+    options: ['They contain no oxygen', 'They contain carbon that was locked away for millions of years', 'They are made of nitrogen', 'They were formed by photosynthesis recently'] },
+  { type: 'mc', q: 'What term describes carbon being stored in fossil fuels for millions of years?',
+    correct: 'Carbon sink / locked carbon',
+    options: ['Carbon flux', 'Carbon sink / locked carbon', 'Carbon flow', 'Carbon release'] },
+
+  // ── WHICH PROCESS? ──
+  { type: 'mc', q: 'Which TWO processes add CO₂ to the atmosphere?',
+    correct: 'Respiration and combustion',
+    options: ['Photosynthesis and respiration', 'Respiration and combustion', 'Combustion and photosynthesis', 'Decomposition and photosynthesis'] },
+  { type: 'mc', q: 'Which process is the ONLY one that removes CO₂ from the atmosphere?',
+    correct: 'Photosynthesis',
+    options: ['Decomposition', 'Respiration', 'Photosynthesis', 'Combustion'] },
+  { type: 'mc', q: 'Deforestation affects the carbon cycle mainly by…',
+    correct: 'Reducing photosynthesis so less CO₂ is absorbed',
+    options: ['Increasing decomposition', 'Reducing photosynthesis so less CO₂ is absorbed', 'Stopping respiration', 'Increasing fossilisation'] },
+
+  // ── TYPED ──
+  { type: 'typed', q: 'Name the process that removes CO₂ from the atmosphere.',
+    correct: ['photosynthesis'], display: 'Photosynthesis' },
+  { type: 'typed', q: 'Name the process by which all living organisms release CO₂.',
+    correct: ['respiration'], display: 'Respiration' },
+  { type: 'typed', q: 'Name the process that releases CO₂ when fossil fuels are burned.',
+    correct: ['combustion'], display: 'Combustion' },
+  { type: 'typed', q: 'Name the process where bacteria and fungi break down dead matter.',
+    correct: ['decomposition'], display: 'Decomposition' },
+  { type: 'typed', q: 'How does carbon move from plants to animals in the carbon cycle?',
+    correct: ['feeding', 'eating', 'consumption'], display: 'Feeding' },
+  { type: 'typed', q: 'What are organisms that break down dead material called?',
+    correct: ['decomposers'], display: 'Decomposers' },
+  { type: 'typed', q: 'Name one type of decomposer.',
+    correct: ['bacteria', 'fungi', 'fungus'], display: 'Bacteria / Fungi' },
+  { type: 'typed', q: 'What carbon-containing gas is released by respiration and combustion?',
+    correct: ['carbon dioxide', 'co2', 'co₂'], display: 'Carbon dioxide' },
+  { type: 'typed', q: 'What process over millions of years turns dead organisms into fossil fuels?',
+    correct: ['fossilisation', 'fossilization'], display: 'Fossilisation' },
+  { type: 'typed', q: 'Name THREE processes that return CO₂ to the atmosphere.',
+    correct: ['respiration combustion decomposition', 'combustion respiration decomposition', 'decomposition respiration combustion'],
+    display: 'Respiration, combustion, decomposition' },
+];
+
+// ── STATE ──
+let stats = { correct: 0, total: 0, sessionStreak: 0 };
+let currentQ = null, answered = false, timerExpired = false;
+let timerInterval = null, timerStart = null;
+let shuffled = [], shuffleIdx = 0, localStreak = 0;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function getNextQ() {
+  if (shuffleIdx >= shuffled.length) {
+    shuffled = shuffle(bank); shuffleIdx = 0;
+    if (shuffled.length > 1 && currentQ && shuffled[0].q === currentQ.q) [shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];
+  }
+  return shuffled[shuffleIdx++];
+}
+
+const timerBarEl   = document.getElementById('timerBar');
+const qTypeBadge   = document.getElementById('qTypeBadge');
+const questionText = document.getElementById('questionText');
+const questionSub  = document.getElementById('questionSub');
+const mcGrid       = document.getElementById('mcGrid');
+const typedRow     = document.getElementById('typedRow');
+const answerInput  = document.getElementById('answerInput');
+const submitBtn    = document.getElementById('submitBtn');
+const feedbackMsg  = document.getElementById('feedbackMsg');
+const streakDotsEl = document.getElementById('streakDots');
+const statCorrect  = document.getElementById('statCorrect');
+const statTotal    = document.getElementById('statTotal');
+const statPct      = document.getElementById('statPct');
+const pctBar       = document.getElementById('pctBar');
+const statStreak   = document.getElementById('statStreak');
+const streakMsg    = document.getElementById('streakMsg');
+const sbCorrect    = document.getElementById('sbCorrect');
+const sbTotal      = document.getElementById('sbTotal');
+const sbPct        = document.getElementById('sbPct');
+const sbPctBar     = document.getElementById('sbPctBar');
+const sbStreak     = document.getElementById('sbStreak');
+
+function renderStreakDots(n) {
+  streakDotsEl.querySelectorAll('.streak-dot').forEach((d,i) => d.classList.toggle('filled', i < n));
+}
+
+function nextQuestion() {
+  stopTimer();
+  answered = false; timerExpired = false;
+  feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
+  currentQ = getNextQ();
+  if (currentQ.type === 'mc') {
+    qTypeBadge.textContent = 'Multiple Choice';
+    mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
+    renderMC(currentQ);
+  } else {
+    qTypeBadge.textContent = 'Typed Answer';
+    mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
+    answerInput.value = ''; answerInput.className = 'answer-input';
+    answerInput.disabled = false; submitBtn.disabled = false;
+    if (!('ontouchstart' in window)) answerInput.focus();
+  }
+  questionText.textContent = currentQ.q;
+  questionSub.textContent  = '6 seconds per question';
+  startTimer();
+}
+
+function renderMC(q) {
+  mcGrid.innerHTML = '';
+  shuffle(q.options).forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'mc-btn'; btn.textContent = opt;
+    btn.onclick = () => handleMC(opt, btn);
+    mcGrid.appendChild(btn);
+  });
+}
+function handleMC(chosen, btn) {
+  if (answered) return;
+  answered = true; stopTimer(); stats.total++;
+  document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
+  if (chosen === currentQ.correct) {
+    btn.classList.add('correct-flash'); recordCorrect();
+  } else {
+    btn.classList.add('wrong-flash');
+    document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
+    recordWrong('Answer: ' + currentQ.correct);
+  }
+  setTimeout(nextQuestion, 1100);
+}
+
+function submitAnswer() {
+  if (answered || answerInput.disabled) return;
+  const val = answerInput.value.trim();
+  if (!val) { answerInput.focus(); return; }
+  answered = true; stopTimer(); stats.total++;
+  answerInput.disabled = true; submitBtn.disabled = true;
+  if (isCorrect(val, currentQ.correct)) {
+    answerInput.className = 'answer-input correct-flash'; recordCorrect();
+  } else {
+    answerInput.className = 'answer-input wrong-flash'; recordWrong('Answer: ' + currentQ.display);
+  }
+  setTimeout(nextQuestion, 1100);
+}
+function isCorrect(input, accepted) {
+  const norm = s => s.toLowerCase().trim().replace(/\s+/g,' ');
+  const inp = norm(input);
+  if (accepted.some(a => norm(a) === inp)) return true;
+  return accepted.some(a => { const na = norm(a); return na.length > 4 && levenshtein(inp,na) <= 2; });
+}
+function levenshtein(a,b) {
+  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function recordCorrect() {
+  stats.correct++; stats.sessionStreak++;
+  localStreak = Math.min(localStreak+1,5); renderStreakDots(localStreak);
+  const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!','Nailed it!'];
+  feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+  feedbackMsg.className = 'feedback-msg correct'; updateStats();
+}
+function recordWrong(msg) {
+  stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
+  feedbackMsg.textContent = '✗  ' + msg;
+  feedbackMsg.className = 'feedback-msg wrong'; updateStats();
+}
+
+function startTimer() {
+  timerStart = Date.now();
+  timerBarEl.style.transition = 'none'; timerBarEl.style.width = '100%'; timerBarEl.className = 'timer-bar';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now()-timerStart)/TIME_LIMIT)*100);
+    timerBarEl.style.transition = 'width 0.1s linear, background 0.3s';
+    timerBarEl.style.width = pct + '%';
+    if      (pct <= 16) timerBarEl.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBarEl.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBarEl.className = 'timer-bar warning';
+    else                timerBarEl.className = 'timer-bar';
+    if (pct <= 0 && !timerExpired) {
+      timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
+      if (!answered) {
+        questionSub.textContent = '⏱  Time\'s up — still answer!';
+        feedbackMsg.textContent = 'Time up — what is it?';
+        feedbackMsg.className = 'feedback-msg timeout';
+        if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
+      }
+    }
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+function updateStats() {
+  const c=stats.correct,t=stats.total,ss=stats.sessionStreak;
+  const pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
+  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
+  pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
+  sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col; sbPctBar.style.background=col;
+}
+
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
+document.getElementById('drawerToggle').addEventListener('click', () => {
+  const d=document.getElementById('mobileDrawer'),t=document.getElementById('drawerToggle');
+  const open=d.classList.toggle('open'); t.classList.toggle('open',open);
+});
+
+updateStats();
+nextQuestion();
+</script>
+</body>
+</html>

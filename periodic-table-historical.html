@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Periodic Table: Historical &amp; International — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#ffffff;--surface:#f8f4ff;--surface2:#ede9fe;--border:#ddd6fe;
+  --text:#1e0a3e;--text-muted:#6b45a0;--accent:#7c3aed;
+}
+body.dark {
+  --bg:#0f0f14;--surface:#16161f;--surface2:#1e1e2a;--border:#2a2a3d;
+  --text:#e8e6f0;--text-muted:#7a7a9a;--accent:#a78bfa;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+header{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface);}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;text-decoration:none;line-height:1;}
+.logo .lm{color:var(--text);}.logo .lf{color:var(--accent);}
+.byline{font-size:11px;color:var(--text-muted);text-align:right;}
+.byline strong{color:var(--accent);font-weight:700;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.theme-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border:1.5px solid var(--border);border-radius:6px;background:none;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+.theme-btn:hover{border-color:var(--accent);color:var(--text);}
+
+.view-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;}
+.view-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:none;color:var(--text-muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.view-btn:hover{border-color:var(--accent);color:var(--accent);}
+.view-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* Context banner shown per view */
+.context-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:16px;align-items:flex-start;flex-shrink:0;}
+.ctx-year{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--accent);flex-shrink:0;line-height:1;}
+.ctx-info{display:flex;flex-direction:column;gap:2px;}
+.ctx-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);}
+.ctx-desc{font-size:11.5px;color:var(--text-muted);line-height:1.5;max-width:700px;}
+
+.table-outer{flex:1;overflow:auto;padding:12px 16px 20px;}
+
+/* ── STANDARD 18-col grid (reused for most views) ── */
+.grid-18{display:grid;grid-template-columns:repeat(18,minmax(46px,56px));grid-auto-rows:minmax(46px,56px);gap:3px;width:max-content;margin:0 auto;}
+/* ── 8-col short form ── */
+.grid-8{display:grid;grid-template-columns:repeat(8,minmax(52px,64px));grid-auto-rows:minmax(52px,64px);gap:3px;width:max-content;margin:0 auto;}
+/* ── 32-col long form ── */
+.grid-32{display:grid;grid-template-columns:repeat(32,minmax(38px,44px));grid-auto-rows:minmax(44px,52px);gap:2px;width:max-content;margin:0 auto;}
+/* ── Left-step (Janet) ── */
+.grid-janet{display:grid;grid-template-columns:repeat(32,minmax(38px,44px));grid-auto-rows:minmax(44px,52px);gap:2px;width:max-content;margin:0 auto;}
+/* ── Mendeleev ── */
+.grid-mendeleev{display:grid;grid-template-columns:repeat(12,minmax(54px,66px));grid-auto-rows:minmax(52px,64px);gap:3px;width:max-content;margin:0 auto;}
+/* ── Spiral placeholder ── */
+.spiral-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:20px;}
+
+.el{border-radius:5px;border:1.5px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform 0.12s,box-shadow 0.12s;padding:2px;overflow:hidden;}
+.el:hover{transform:scale(1.18);z-index:10;box-shadow:0 6px 24px rgba(124,58,237,0.25);}
+.el-z{font-family:'DM Mono',monospace;font-size:7.5px;line-height:1;opacity:0.65;}
+.el-sym{font-family:'Bebas Neue',sans-serif;font-size:clamp(12px,1.6vw,18px);letter-spacing:0.5px;line-height:1;}
+.el-sub{font-size:6.5px;font-weight:500;opacity:0.75;line-height:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px;}
+.gap{background:transparent;border:none;pointer-events:none;}
+.row-label{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--text-muted);}
+.col-label{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;color:var(--text-muted);}
+
+/* Tooltip */
+.tooltip{position:fixed;z-index:200;pointer-events:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,0.2);opacity:0;transition:opacity 0.15s;font-size:11.5px;}
+.tooltip.visible{opacity:1;}
+.tt-sym{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;line-height:1;color:var(--accent);}
+.tt-name{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;}
+.tt-row{display:flex;justify-content:space-between;margin-top:3px;}
+.tt-label{color:var(--text-muted);}
+.tt-val{font-family:'DM Mono',monospace;color:var(--text);}
+
+footer{border-top:1px solid var(--border);padding:10px 24px;font-size:11px;color:var(--text-muted);background:var(--surface);line-height:1.6;flex-shrink:0;}
+.footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo"><span class="lm">Periodic</span><span class="lf">Forge</span> <span style="font-size:18px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:1px;">HISTORICAL &amp; INTERNATIONAL</span></a>
+  <div class="header-right">
+    <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+    <button class="theme-btn" id="themeBtn">🌙 Dark Mode</button>
+  </div>
+</header>
+
+<div class="view-bar">
+  <button class="view-btn active" data-view="mendeleev">Mendeleev 1869</button>
+  <button class="view-btn" data-view="shortform">Short Form (8-group)</button>
+  <button class="view-btn" data-view="longform">Long Form (32-column)</button>
+  <button class="view-btn" data-view="janet">Left-Step (Janet)</button>
+  <button class="view-btn" data-view="iupac_old">Old IUPAC Groups (IA–VIII)</button>
+  <button class="view-btn" data-view="cas">CAS Group Numbering</button>
+  <button class="view-btn" data-view="h_group1">H above Li (Group 1)</button>
+  <button class="view-btn" data-view="h_group17">H above F (Group 17)</button>
+  <button class="view-btn" data-view="he_group2">He in Group 2 (Janet)</button>
+  <button class="view-btn" data-view="spiral">Spiral Concept</button>
+</div>
+
+<div class="context-bar" id="contextBar">
+  <div class="ctx-year" id="ctxYear">1869</div>
+  <div class="ctx-info">
+    <div class="ctx-title" id="ctxTitle">Mendeleev's Original Table</div>
+    <div class="ctx-desc" id="ctxDesc">Loading…</div>
+  </div>
+</div>
+
+<div class="table-outer" id="tableOuter">
+  <div id="tableContainer"></div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-sym" id="ttSym"></div>
+  <div class="tt-name" id="ttName"></div>
+  <div id="ttRows"></div>
+</div>
+
+<footer>
+  <span class="footer-label">NOTE</span>
+  Historical layouts are approximations for educational purposes. Mendeleev's original table used atomic mass ordering and had gaps for undiscovered elements — these are shown as placeholders. The Janet left-step table is considered by some chemists to be the most logically consistent arrangement. Group numbering systems vary by country and era.
+  <br><br>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+</footer>
+
+<script>
+// ══════════════════════════════════════
+// ELEMENT DATA (same as modern file)
+// ══════════════════════════════════════
+const E = [
+  {z:1,  s:'H',  n:'Hydrogen',     am:1.008,  t:'NM',  g18:1,  p:1},
+  {z:2,  s:'He', n:'Helium',       am:4.003,  t:'NG',  g18:18, p:1},
+  {z:3,  s:'Li', n:'Lithium',      am:6.941,  t:'AM',  g18:1,  p:2},
+  {z:4,  s:'Be', n:'Beryllium',    am:9.012,  t:'AEM', g18:2,  p:2},
+  {z:5,  s:'B',  n:'Boron',        am:10.811, t:'MET', g18:13, p:2},
+  {z:6,  s:'C',  n:'Carbon',       am:12.011, t:'NM',  g18:14, p:2},
+  {z:7,  s:'N',  n:'Nitrogen',     am:14.007, t:'NM',  g18:15, p:2},
+  {z:8,  s:'O',  n:'Oxygen',       am:15.999, t:'NM',  g18:16, p:2},
+  {z:9,  s:'F',  n:'Fluorine',     am:18.998, t:'HAL', g18:17, p:2},
+  {z:10, s:'Ne', n:'Neon',         am:20.180, t:'NG',  g18:18, p:2},
+  {z:11, s:'Na', n:'Sodium',       am:22.990, t:'AM',  g18:1,  p:3},
+  {z:12, s:'Mg', n:'Magnesium',    am:24.305, t:'AEM', g18:2,  p:3},
+  {z:13, s:'Al', n:'Aluminium',    am:26.982, t:'PTM', g18:13, p:3},
+  {z:14, s:'Si', n:'Silicon',      am:28.086, t:'MET', g18:14, p:3},
+  {z:15, s:'P',  n:'Phosphorus',   am:30.974, t:'NM',  g18:15, p:3},
+  {z:16, s:'S',  n:'Sulfur',       am:32.065, t:'NM',  g18:16, p:3},
+  {z:17, s:'Cl', n:'Chlorine',     am:35.453, t:'HAL', g18:17, p:3},
+  {z:18, s:'Ar', n:'Argon',        am:39.948, t:'NG',  g18:18, p:3},
+  {z:19, s:'K',  n:'Potassium',    am:39.098, t:'AM',  g18:1,  p:4},
+  {z:20, s:'Ca', n:'Calcium',      am:40.078, t:'AEM', g18:2,  p:4},
+  {z:21, s:'Sc', n:'Scandium',     am:44.956, t:'TM',  g18:3,  p:4},
+  {z:22, s:'Ti', n:'Titanium',     am:47.867, t:'TM',  g18:4,  p:4},
+  {z:23, s:'V',  n:'Vanadium',     am:50.942, t:'TM',  g18:5,  p:4},
+  {z:24, s:'Cr', n:'Chromium',     am:51.996, t:'TM',  g18:6,  p:4},
+  {z:25, s:'Mn', n:'Manganese',    am:54.938, t:'TM',  g18:7,  p:4},
+  {z:26, s:'Fe', n:'Iron',         am:55.845, t:'TM',  g18:8,  p:4},
+  {z:27, s:'Co', n:'Cobalt',       am:58.933, t:'TM',  g18:9,  p:4},
+  {z:28, s:'Ni', n:'Nickel',       am:58.693, t:'TM',  g18:10, p:4},
+  {z:29, s:'Cu', n:'Copper',       am:63.546, t:'TM',  g18:11, p:4},
+  {z:30, s:'Zn', n:'Zinc',         am:65.38,  t:'PTM', g18:12, p:4},
+  {z:31, s:'Ga', n:'Gallium',      am:69.723, t:'PTM', g18:13, p:4},
+  {z:32, s:'Ge', n:'Germanium',    am:72.630, t:'MET', g18:14, p:4},
+  {z:33, s:'As', n:'Arsenic',      am:74.922, t:'MET', g18:15, p:4},
+  {z:34, s:'Se', n:'Selenium',     am:78.971, t:'NM',  g18:16, p:4},
+  {z:35, s:'Br', n:'Bromine',      am:79.904, t:'HAL', g18:17, p:4},
+  {z:36, s:'Kr', n:'Krypton',      am:83.798, t:'NG',  g18:18, p:4},
+  {z:37, s:'Rb', n:'Rubidium',     am:85.468, t:'AM',  g18:1,  p:5},
+  {z:38, s:'Sr', n:'Strontium',    am:87.62,  t:'AEM', g18:2,  p:5},
+  {z:39, s:'Y',  n:'Yttrium',      am:88.906, t:'TM',  g18:3,  p:5},
+  {z:40, s:'Zr', n:'Zirconium',    am:91.224, t:'TM',  g18:4,  p:5},
+  {z:41, s:'Nb', n:'Niobium',      am:92.906, t:'TM',  g18:5,  p:5},
+  {z:42, s:'Mo', n:'Molybdenum',   am:95.96,  t:'TM',  g18:6,  p:5},
+  {z:43, s:'Tc', n:'Technetium',   am:98,     t:'TM',  g18:7,  p:5},
+  {z:44, s:'Ru', n:'Ruthenium',    am:101.07, t:'TM',  g18:8,  p:5},
+  {z:45, s:'Rh', n:'Rhodium',      am:102.906,t:'TM',  g18:9,  p:5},
+  {z:46, s:'Pd', n:'Palladium',    am:106.42, t:'TM',  g18:10, p:5},
+  {z:47, s:'Ag', n:'Silver',       am:107.868,t:'TM',  g18:11, p:5},
+  {z:48, s:'Cd', n:'Cadmium',      am:112.414,t:'PTM', g18:12, p:5},
+  {z:49, s:'In', n:'Indium',       am:114.818,t:'PTM', g18:13, p:5},
+  {z:50, s:'Sn', n:'Tin',          am:118.710,t:'PTM', g18:14, p:5},
+  {z:51, s:'Sb', n:'Antimony',     am:121.760,t:'MET', g18:15, p:5},
+  {z:52, s:'Te', n:'Tellurium',    am:127.60, t:'MET', g18:16, p:5},
+  {z:53, s:'I',  n:'Iodine',       am:126.904,t:'HAL', g18:17, p:5},
+  {z:54, s:'Xe', n:'Xenon',        am:131.293,t:'NG',  g18:18, p:5},
+  {z:55, s:'Cs', n:'Caesium',      am:132.905,t:'AM',  g18:1,  p:6},
+  {z:56, s:'Ba', n:'Barium',       am:137.327,t:'AEM', g18:2,  p:6},
+  {z:57, s:'La', n:'Lanthanum',    am:138.905,t:'LAN', g18:3,  p:6},
+  {z:58, s:'Ce', n:'Cerium',       am:140.116,t:'LAN', g18:null,p:null},
+  {z:59, s:'Pr', n:'Praseodymium', am:140.908,t:'LAN', g18:null,p:null},
+  {z:60, s:'Nd', n:'Neodymium',    am:144.242,t:'LAN', g18:null,p:null},
+  {z:61, s:'Pm', n:'Promethium',   am:145,    t:'LAN', g18:null,p:null},
+  {z:62, s:'Sm', n:'Samarium',     am:150.36, t:'LAN', g18:null,p:null},
+  {z:63, s:'Eu', n:'Europium',     am:151.964,t:'LAN', g18:null,p:null},
+  {z:64, s:'Gd', n:'Gadolinium',   am:157.25, t:'LAN', g18:null,p:null},
+  {z:65, s:'Tb', n:'Terbium',      am:158.925,t:'LAN', g18:null,p:null},
+  {z:66, s:'Dy', n:'Dysprosium',   am:162.500,t:'LAN', g18:null,p:null},
+  {z:67, s:'Ho', n:'Holmium',      am:164.930,t:'LAN', g18:null,p:null},
+  {z:68, s:'Er', n:'Erbium',       am:167.259,t:'LAN', g18:null,p:null},
+  {z:69, s:'Tm', n:'Thulium',      am:168.934,t:'LAN', g18:null,p:null},
+  {z:70, s:'Yb', n:'Ytterbium',    am:173.045,t:'LAN', g18:null,p:null},
+  {z:71, s:'Lu', n:'Lutetium',     am:174.967,t:'LAN', g18:null,p:null},
+  {z:72, s:'Hf', n:'Hafnium',      am:178.49, t:'TM',  g18:4,  p:6},
+  {z:73, s:'Ta', n:'Tantalum',     am:180.948,t:'TM',  g18:5,  p:6},
+  {z:74, s:'W',  n:'Tungsten',     am:183.84, t:'TM',  g18:6,  p:6},
+  {z:75, s:'Re', n:'Rhenium',      am:186.207,t:'TM',  g18:7,  p:6},
+  {z:76, s:'Os', n:'Osmium',       am:190.23, t:'TM',  g18:8,  p:6},
+  {z:77, s:'Ir', n:'Iridium',      am:192.217,t:'TM',  g18:9,  p:6},
+  {z:78, s:'Pt', n:'Platinum',     am:195.084,t:'TM',  g18:10, p:6},
+  {z:79, s:'Au', n:'Gold',         am:196.967,t:'TM',  g18:11, p:6},
+  {z:80, s:'Hg', n:'Mercury',      am:200.592,t:'PTM', g18:12, p:6},
+  {z:81, s:'Tl', n:'Thallium',     am:204.383,t:'PTM', g18:13, p:6},
+  {z:82, s:'Pb', n:'Lead',         am:207.2,  t:'PTM', g18:14, p:6},
+  {z:83, s:'Bi', n:'Bismuth',      am:208.980,t:'PTM', g18:15, p:6},
+  {z:84, s:'Po', n:'Polonium',     am:209,    t:'PTM', g18:16, p:6},
+  {z:85, s:'At', n:'Astatine',     am:210,    t:'HAL', g18:17, p:6},
+  {z:86, s:'Rn', n:'Radon',        am:222,    t:'NG',  g18:18, p:6},
+  {z:87, s:'Fr', n:'Francium',     am:223,    t:'AM',  g18:1,  p:7},
+  {z:88, s:'Ra', n:'Radium',       am:226,    t:'AEM', g18:2,  p:7},
+  {z:89, s:'Ac', n:'Actinium',     am:227,    t:'ACT', g18:3,  p:7},
+  {z:90, s:'Th', n:'Thorium',      am:232.038,t:'ACT', g18:null,p:null},
+  {z:91, s:'Pa', n:'Protactinium', am:231.036,t:'ACT', g18:null,p:null},
+  {z:92, s:'U',  n:'Uranium',      am:238.029,t:'ACT', g18:null,p:null},
+  {z:93, s:'Np', n:'Neptunium',    am:237,    t:'ACT', g18:null,p:null},
+  {z:94, s:'Pu', n:'Plutonium',    am:244,    t:'ACT', g18:null,p:null},
+  {z:95, s:'Am', n:'Americium',    am:243,    t:'ACT', g18:null,p:null},
+  {z:96, s:'Cm', n:'Curium',       am:247,    t:'ACT', g18:null,p:null},
+  {z:97, s:'Bk', n:'Berkelium',    am:247,    t:'ACT', g18:null,p:null},
+  {z:98, s:'Cf', n:'Californium',  am:251,    t:'ACT', g18:null,p:null},
+  {z:99, s:'Es', n:'Einsteinium',  am:252,    t:'ACT', g18:null,p:null},
+  {z:100,s:'Fm', n:'Fermium',      am:257,    t:'ACT', g18:null,p:null},
+  {z:101,s:'Md', n:'Mendelevium',  am:258,    t:'ACT', g18:null,p:null},
+  {z:102,s:'No', n:'Nobelium',     am:259,    t:'ACT', g18:null,p:null},
+  {z:103,s:'Lr', n:'Lawrencium',   am:266,    t:'ACT', g18:null,p:null},
+  {z:104,s:'Rf', n:'Rutherfordium',am:267,    t:'TM',  g18:4,  p:7},
+  {z:105,s:'Db', n:'Dubnium',      am:268,    t:'TM',  g18:5,  p:7},
+  {z:106,s:'Sg', n:'Seaborgium',   am:269,    t:'TM',  g18:6,  p:7},
+  {z:107,s:'Bh', n:'Bohrium',      am:270,    t:'TM',  g18:7,  p:7},
+  {z:108,s:'Hs', n:'Hassium',      am:277,    t:'TM',  g18:8,  p:7},
+  {z:109,s:'Mt', n:'Meitnerium',   am:278,    t:'TM',  g18:9,  p:7},
+  {z:110,s:'Ds', n:'Darmstadtium', am:281,    t:'TM',  g18:10, p:7},
+  {z:111,s:'Rg', n:'Roentgenium',  am:282,    t:'TM',  g18:11, p:7},
+  {z:112,s:'Cn', n:'Copernicium',  am:285,    t:'PTM', g18:12, p:7},
+  {z:113,s:'Nh', n:'Nihonium',     am:286,    t:'PTM', g18:13, p:7},
+  {z:114,s:'Fl', n:'Flerovium',    am:289,    t:'PTM', g18:14, p:7},
+  {z:115,s:'Mc', n:'Moscovium',    am:290,    t:'PTM', g18:15, p:7},
+  {z:116,s:'Lv', n:'Livermorium',  am:293,    t:'PTM', g18:16, p:7},
+  {z:117,s:'Ts', n:'Tennessine',   am:294,    t:'HAL', g18:17, p:7},
+  {z:118,s:'Og', n:'Oganesson',    am:294,    t:'NG',  g18:18, p:7},
+];
+
+// Type colours (light mode)
+const TC = {
+  AM: {bg:'#fce7f3',bd:'#db2777',tx:'#831843'},
+  AEM:{bg:'#fef3c7',bd:'#d97706',tx:'#78350f'},
+  TM: {bg:'#dbeafe',bd:'#2563eb',tx:'#1e3a8a'},
+  PTM:{bg:'#e0e7ff',bd:'#4f46e5',tx:'#312e81'},
+  MET:{bg:'#d1fae5',bd:'#059669',tx:'#064e3b'},
+  NM: {bg:'#fef9c3',bd:'#ca8a04',tx:'#713f12'},
+  HAL:{bg:'#ffe4e6',bd:'#e11d48',tx:'#881337'},
+  NG: {bg:'#f3e8ff',bd:'#9333ea',tx:'#581c87'},
+  LAN:{bg:'#ccfbf1',bd:'#0d9488',tx:'#134e4a'},
+  ACT:{bg:'#fde8d8',bd:'#ea580c',tx:'#7c2d12'},
+};
+function tc(t){return TC[t]||{bg:'#f1f0f5',bd:'#c4b5fd',tx:'#6b7280'};}
+
+function fmtSym(s){
+  if(!s)return'';
+  if(s.length===1)return s;
+  let r=s[0];
+  for(let i=1;i<s.length;i++) r+=`<span style="font-size:0.62em;vertical-align:0.05em">${s[i].toLowerCase()}</span>`;
+  return r;
+}
+
+// ══════════════════════════════════════
+// VIEW METADATA
+// ══════════════════════════════════════
+const VIEWS = {
+  mendeleev: {
+    year:'1869', title:"Mendeleev's Original Table",
+    desc:'Mendeleev arranged elements by atomic mass (not atomic number) in 1869. Groups ran left-to-right; periods ran top-to-bottom — the opposite of today. He left gaps (shown as ?) for undiscovered elements (Ga, Ge, Sc) — a bold prediction later vindicated. Noble gases were unknown. Tellurium and Iodine appear in reversed mass order here, as Mendeleev correctly placed them by chemical properties.',
+  },
+  shortform: {
+    year:'~1940s', title:'Short Form Table (8-Group System)',
+    desc:'Used in UK schools until the 1960s–70s. Only 8 groups, with transition metals squeezed into the middle. Groups were labelled I–VIII and sometimes split into A and B sub-groups. Noble gases (Group 0) were added on the right after their discovery. This layout makes periodic trends harder to see but was simpler to print.',
+  },
+  longform: {
+    year:'1980s+', title:'Long Form / 32-Column Table',
+    desc:'Keeps lanthanides and actinides in the main body of the table rather than as a footnote. Shows the true continuous nature of the periodic table. Used in many university chemistry textbooks. Very wide — 32 columns — which is why most schools use the 18-column version with the f-block pulled out.',
+  },
+  janet: {
+    year:'1928', title:'Left-Step Table (Charles Janet)',
+    desc:'Proposed by French engineer Charles Janet in 1928. Considered by many chemists to be the most logically consistent layout. Helium is placed next to Beryllium in Group 2 (based on electron configuration, not reactivity). Periods build right-to-left. The f-block appears on the left. Hydrogen appears alone. Never adopted in mainstream education but respected in theoretical chemistry.',
+  },
+  iupac_old: {
+    year:'pre-1990', title:'Old IUPAC Group Numbering (IA–VIII)',
+    desc:'Before IUPAC standardised 1–18 in 1990, groups were labelled IA, IIA, IIIB…VIIB, VIII (three columns), IB, IIB, IIIA…VIIA, 0. The A/B split caused confusion because European and American chemists used opposite conventions — what the US called Group IA, Europeans called Group IA too but the B groups were swapped. Still seen in older UK and US textbooks.',
+  },
+  cas: {
+    year:'mid-20th C', title:'CAS Group Numbering System',
+    desc:'The Chemical Abstracts Service (CAS) used a different A/B numbering where Groups IA–VIIIA covered the main group elements and IB–VIIB covered the transition metals — the reverse of the European convention. This caused significant confusion in international chemistry until IUPAC\'s 1–18 system was widely adopted.',
+  },
+  h_group1: {
+    year:'standard', title:'Hydrogen Placed in Group 1',
+    desc:'The most common placement — hydrogen sits above lithium in Group 1. Justified because H has one electron like alkali metals and forms H⁺ ions. However hydrogen is a gas, not a metal, and behaves very differently from lithium. This is the placement used in most UK school tables including AQA, Edexcel and OCR.',
+  },
+  h_group17: {
+    year:'alternative', title:'Hydrogen Placed in Group 17',
+    desc:'Some chemists argue hydrogen belongs above fluorine in Group 17 (halogens) because it needs one electron to complete its shell, forms H⁻ ions (hydride), and has a similar electronegativity to iodine. Used in some European and US university-level textbooks. Less common in schools.',
+  },
+  he_group2: {
+    year:'1928/theoretical', title:'Helium in Group 2 (Janet Left-Step)',
+    desc:'In the Janet left-step table, helium is placed in Group 2 next to beryllium — because both have a full s-subshell (He: 1s², Be: 2s²). Chemically this seems wrong (He is inert, Be is reactive) but electron-configuration-wise it is consistent. IUPAC keeps He in Group 18 but acknowledges this as a legitimate alternative.',
+  },
+  spiral: {
+    year:'various', title:'Spiral / Circular Periodic Tables',
+    desc:'Various chemists have proposed spiral arrangements since the 1860s (Newlands, 1863; Benfey, 1964; Dufour, 1990s). A spiral shows periodicity as a continuous sequence rather than rows and columns, emphasising that the "jumps" between rows are artificial. The Benfey spiral is the most famous. These are used as conceptual tools rather than reference tables.',
+  },
+};
+
+// ══════════════════════════════════════
+// CELL FACTORY
+// ══════════════════════════════════════
+function cell(e, subText, cls) {
+  const c=tc(e.t);
+  const d=document.createElement('div');
+  d.className='el'+(cls?' '+cls:'');
+  d.style.cssText=`background:${c.bg};border-color:${c.bd};`;
+  d.innerHTML=`<div class="el-z" style="color:${c.tx}">${e.z}</div><div class="el-sym" style="color:${c.tx}">${fmtSym(e.s)}</div><div class="el-sub" style="color:${c.tx}">${subText||e.n}</div>`;
+  d.addEventListener('mouseenter',ev=>showTT(e,ev));
+  d.addEventListener('mousemove',ev=>moveTT(ev));
+  d.addEventListener('mouseleave',hideTT);
+  return d;
+}
+function gap(){const d=document.createElement('div');d.className='gap';return d;}
+function placeholder(label){
+  const d=document.createElement('div');d.className='el';
+  d.style.cssText='background:#f1f0f5;border-color:#c4b5fd;opacity:0.6;';
+  d.innerHTML=`<div class="el-sym" style="font-size:14px;color:#6b7280">?</div><div class="el-sub" style="color:#6b7280">${label}</div>`;
+  return d;
+}
+function labelCell(txt, style='') {
+  const d=document.createElement('div');d.className='col-label';
+  if(style)d.style.cssText=style;
+  d.textContent=txt;return d;
+}
+
+// ══════════════════════════════════════
+// VIEW RENDERERS
+// ══════════════════════════════════════
+
+function renderMendeleev() {
+  // Simplified Mendeleev 1869: periods as rows (8 cols + noble gas), sorted by mass
+  // We show first 6 periods in original style (no noble gases, mass order)
+  // Col labels: I II III IV V VI VII VIII
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:700px;line-height:1.6;';
+  note.innerHTML='<strong>Simplified educational representation.</strong> Mendeleev\'s original 1869 table arranged by atomic mass. Groups run across (I–VIII); periods run down. Noble gases were unknown. Gaps marked ? predicted undiscovered elements.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div'); grid.className='grid-mendeleev';
+  container.appendChild(grid);
+
+  // Column headers
+  ['Group →','I','II','III','IV','V','VI','VII','VIII'].forEach(t=>{
+    const d=labelCell(t,'font-size:10px;font-family:Bebas Neue,sans-serif;letter-spacing:1px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;');
+    grid.appendChild(d);
+  });
+  // Blank (for 12 cols we need 3 more blanks after VIII for spacing)
+  for(let i=0;i<3;i++) grid.appendChild(gap());
+
+  // Mendeleev's periods (approximate, educational)
+  // Format: [period_label, [z or 'gap' or 'placeholder:label'], ...]
+  const periods = [
+    ['Period 1', [1, 'g', 3, 4, 5, 6, 7, 8, 9]], // H Li Be B C N O F — no nobles
+    ['Period 2', [11, 12, 13, 14, 15, 16, 17, 'g', 'g']],
+    ['Period 3', [19, 20, 21, 22, 23, 24, 25, 26, 27]], // K Ca Sc Ti V Cr Mn Fe Co
+    ['Period 3b',[29, 30, 'g', 32, 33, 34, 35, 28, 'g']], // Cu Zn ? Ge As Se Br Ni (Mendeleev grouped Fe/Co/Ni)
+    ['Period 4', [37, 38, 39, 40, 41, 42, 43, 44, 45]], // Rb Sr Y Zr Nb Mo Tc Ru Rh
+    ['Period 4b',[47, 48, 49, 50, 51, 52, 53, 46, 'g']], // Ag Cd In Sn Sb Te I Pd
+    ['Period 5', [55, 56, 57, 72, 73, 74, 75, 76, 77]],  // Cs Ba La Hf Ta W Re Os Ir
+    ['Period 5b',[79, 80, 81, 82, 83, 84, 85, 78, 'g']], // Au Hg Tl Pb Bi Po At Pt
+  ];
+
+  const byZ = {};
+  E.forEach(e=>byZ[e.z]=e);
+
+  periods.forEach(([label, zList]) => {
+    const rl=document.createElement('div');
+    rl.style.cssText='display:flex;align-items:center;justify-content:center;font-family:"DM Mono",monospace;font-size:9px;color:var(--text-muted);padding:2px;';
+    rl.textContent=label; grid.appendChild(rl);
+    zList.forEach(z => {
+      if(z==='g'){grid.appendChild(gap());}
+      else if(typeof z==='string'&&z.startsWith('p:')){grid.appendChild(placeholder(z.slice(2)));}
+      else {
+        const e=byZ[z];
+        if(e) grid.appendChild(cell(e, e.am.toFixed(1)));
+        else grid.appendChild(gap());
+      }
+    });
+    // pad to 12 cols (1 label + 9 data + 2 pad)
+    const filled=1+zList.length; const need=12-filled;
+    for(let i=0;i<need;i++) grid.appendChild(gap());
+  });
+}
+
+function renderShortForm() {
+  // 8-group short form, periods 1-7
+  // Groups: 0(NG) | IA IIA | [TM crammed] | IIIA IVA VA VIA VIIA
+  // We approximate: cols 1=IA, 2=IIA, 3-10=TM(merged), 11-17=IIIA-VIIA, 18=0
+  // But genuine short form has 8 cols — main groups with TM in a middle block
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:700px;line-height:1.6;';
+  note.innerHTML='<strong>8-Group short form table.</strong> Used in UK schools until ~1970. Transition metals (periods 4–6) are shown in a separate block below each period. Groups labelled 0, I–VII with A/B sub-groups.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(10,minmax(54px,64px));grid-auto-rows:minmax(52px,64px);gap:3px;width:max-content;margin:0 auto;';
+  container.appendChild(grid);
+
+  // Headers
+  ['Period','0','IA','IIA','IIIA','IVA','VA','VIA','VIIA','—'].forEach(t=>{
+    grid.appendChild(labelCell(t,'display:flex;align-items:center;justify-content:center;font-family:Bebas Neue,sans-serif;font-size:11px;letter-spacing:1px;color:var(--text-muted);'));
+  });
+
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  // Short form rows
+  const rows = [
+    {label:'1', els:[null,1,null,null,null,null,null,null,null,2]},
+    {label:'2', els:[null,3,4,5,6,7,8,9,10,null]},  // Li–Ne (Ne=NG)  — 10 is Ne
+    {label:'3', els:[null,11,12,13,14,15,16,17,18,null]},
+    {label:'4', els:[null,19,20,31,32,33,34,35,36,null]},   // K Ca skip TM, Ga-Kr
+    {label:'4 TM',els:[null,null,null,21,22,23,24,25,null,null], sub:[26,27,28,29,30]},
+    {label:'5', els:[null,37,38,49,50,51,52,53,54,null]},
+    {label:'5 TM',els:[null,null,null,39,40,41,42,43,null,null], sub:[44,45,46,47,48]},
+    {label:'6', els:[null,55,56,81,82,83,84,85,86,null]},
+    {label:'6 TM',els:[null,null,null,72,73,74,75,76,null,null], sub:[77,78,79,80,'La-Lu']},
+    {label:'7', els:[null,87,88,null,null,null,null,null,null,null]},
+  ];
+
+  rows.forEach(row=>{
+    const rl=labelCell(row.label,'display:flex;align-items:center;justify-content:center;font-family:"DM Mono",monospace;font-size:10px;color:var(--text-muted);');
+    grid.appendChild(rl);
+    row.els.forEach((z,i)=>{
+      if(i===0)return; // label col already done
+      if(z===null){grid.appendChild(gap());}
+      else{
+        const e=byZ[z];
+        if(e) grid.appendChild(cell(e,e.n.length>8?e.s:e.n));
+        else grid.appendChild(gap());
+      }
+    });
+  });
+
+  // Fe Co Ni / Ru Rh Pd / Os Ir Pt shown in note
+  const note2=document.createElement('div');
+  note2.style.cssText='font-size:11px;color:var(--text-muted);margin-top:10px;';
+  note2.textContent='Note: In the short form, Fe/Co/Ni, Ru/Rh/Pd and Os/Ir/Pt all fall in "Group VIII" — three elements sharing one group column.';
+  container.appendChild(note2);
+}
+
+function renderLongForm() {
+  // 32-column table — lanthanides and actinides inline
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:900px;line-height:1.6;';
+  note.textContent='32-column long form — lanthanides and actinides appear in their natural positions within periods 6 and 7, between Ba/Ra and Hf/Rf. This is the "true" layout but requires 32 columns.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div'); grid.className='grid-32';
+  container.appendChild(grid);
+
+  // 32-column layout: s(2) | f(14) | d(10) | p(6) = 32
+  // Period 1: H + 30 gaps + He
+  // Period 2-3: 2 s + 16 gaps + 10 d(no) + 6 p (but d starts period 4)
+  // We'll build row by row
+
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  function row32(cells32){ // array of z or null
+    cells32.forEach(z=>{
+      if(z===null) grid.appendChild(gap());
+      else grid.appendChild(cell(byZ[z],byZ[z]?.n||'?'));
+    });
+  }
+
+  // Period 1
+  const p1=Array(32).fill(null); p1[0]=1; p1[31]=2; row32(p1);
+  // Period 2: Li(0) Be(1) | gap f14 | gap d10 | B-Ne (p6) at cols 26-31
+  const p2=Array(32).fill(null); p2[0]=3;p2[1]=4;
+  [5,6,7,8,9,10].forEach((z,i)=>{p2[26+i]=z;}); row32(p2);
+  // Period 3
+  const p3=Array(32).fill(null); p3[0]=11;p3[1]=12;
+  [13,14,15,16,17,18].forEach((z,i)=>{p3[26+i]=z;}); row32(p3);
+  // Period 4: K Ca | gap f14 | Sc-Zn d10 | Ga-Kr p6
+  const p4=Array(32).fill(null); p4[0]=19;p4[1]=20;
+  [21,22,23,24,25,26,27,28,29,30].forEach((z,i)=>{p4[16+i]=z;});
+  [31,32,33,34,35,36].forEach((z,i)=>{p4[26+i]=z;}); row32(p4);
+  // Period 5: Rb Sr | gap f14 | Y-Cd | In-Xe
+  const p5=Array(32).fill(null); p5[0]=37;p5[1]=38;
+  [39,40,41,42,43,44,45,46,47,48].forEach((z,i)=>{p5[16+i]=z;});
+  [49,50,51,52,53,54].forEach((z,i)=>{p5[26+i]=z;}); row32(p5);
+  // Period 6: Cs Ba | La-Lu (f14) | Hf-Hg (d10) | Tl-Rn (p6)
+  const p6=Array(32).fill(null); p6[0]=55;p6[1]=56;
+  [57,58,59,60,61,62,63,64,65,66,67,68,69,70,71].forEach((z,i)=>{p6[2+i]=z;});
+  [72,73,74,75,76,77,78,79,80].forEach((z,i)=>{p6[16+i]=z;}); p6[25]=80;
+  [72,73,74,75,76,77,78,79,80].forEach((z,i)=>{p6[16+i]=z;});
+  [81,82,83,84,85,86].forEach((z,i)=>{p6[26+i]=z;}); row32(p6);
+  // Period 7: Fr Ra | Ac-Lr (f14) | Rf-Cn (d10) | Nh-Og (p6)
+  const p7=Array(32).fill(null); p7[0]=87;p7[1]=88;
+  [89,90,91,92,93,94,95,96,97,98,99,100,101,102,103].forEach((z,i)=>{p7[2+i]=z;});
+  [104,105,106,107,108,109,110,111,112].forEach((z,i)=>{p7[16+i]=z;});
+  [113,114,115,116,117,118].forEach((z,i)=>{p7[26+i]=z;}); row32(p7);
+}
+
+function renderJanet() {
+  // Left-step: He goes with Be, periods build right to left
+  // 32 cols, periods shifted so f-block is leftmost
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:900px;line-height:1.6;';
+  note.innerHTML='<strong>Janet Left-Step Table (1928).</strong> Periods build right-to-left. Helium (He) is placed in Group 2 alongside Beryllium based on electron configuration (both have full s-subshells). Hydrogen appears alone on the far left. The f-block is at the left, s-block at the right.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div'); grid.className='grid-janet';
+  container.appendChild(grid);
+
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  function jrow(cells){ cells.forEach(z=>{ if(z===null)grid.appendChild(gap()); else grid.appendChild(cell(byZ[z],byZ[z]?.n||'?')); }); }
+
+  // Janet: rows 1-8, 32 cols. s-block on right, p left of s, d left of p, f leftmost
+  // Row 1: H alone far right
+  const r1=Array(32).fill(null); r1[30]=1; r1[31]=2; jrow(r1); // H alone, He with Be group
+  // Row 2: Li Be (cols 30-31)
+  const r2=Array(32).fill(null); r2[30]=3; r2[31]=4; jrow(r2);
+  // Row 3: B-Ne (p6, cols 26-31)
+  const r3=Array(32).fill(null); [5,6,7,8,9,10].forEach((z,i)=>r3[26+i]=z); jrow(r3);
+  // Row 4: Na-Mg (s) + Al-Ar (p)
+  const r4=Array(32).fill(null); r4[30]=11;r4[31]=12; [13,14,15,16,17,18].forEach((z,i)=>r4[26+i]=z); jrow(r4);
+  // Row 5: K Ca + Sc-Zn (d) + Ga-Kr (p)
+  const r5=Array(32).fill(null); r5[30]=19;r5[31]=20;
+  [21,22,23,24,25,26,27,28,29,30].forEach((z,i)=>r5[16+i]=z);
+  [31,32,33,34,35,36].forEach((z,i)=>r5[26+i]=z); jrow(r5);
+  // Row 6: Rb Sr + Y-Cd + In-Xe
+  const r6=Array(32).fill(null); r6[30]=37;r6[31]=38;
+  [39,40,41,42,43,44,45,46,47,48].forEach((z,i)=>r6[16+i]=z);
+  [49,50,51,52,53,54].forEach((z,i)=>r6[26+i]=z); jrow(r6);
+  // Row 7: Cs Ba + La-Lu (f14) + Hf-Hg (d10) + Tl-Rn (p6)
+  const r7=Array(32).fill(null); r7[30]=55;r7[31]=56;
+  [57,58,59,60,61,62,63,64,65,66,67,68,69,70,71].forEach((z,i)=>r7[2+i]=z);
+  [72,73,74,75,76,77,78,79,80].forEach((z,i)=>r7[16+i]=z);
+  [81,82,83,84,85,86].forEach((z,i)=>r7[26+i]=z); jrow(r7);
+  // Row 8: Fr Ra + Ac-Lr + Rf-Cn + Nh-Og
+  const r8=Array(32).fill(null); r8[30]=87;r8[31]=88;
+  [89,90,91,92,93,94,95,96,97,98,99,100,101,102,103].forEach((z,i)=>r8[2+i]=z);
+  [104,105,106,107,108,109,110,111,112].forEach((z,i)=>r8[16+i]=z);
+  [113,114,115,116,117,118].forEach((z,i)=>r8[26+i]=z); jrow(r8);
+}
+
+function renderIUPACOld() {
+  renderStandard18WithGroupLabels(
+    ['IA','IIA','IIIB','IVB','VB','VIB','VIIB','','VIII','','IB','IIB','IIIA','IVA','VA','VIA','VIIA','0'],
+    'Old IUPAC group labels (pre-1990). European convention: A = main groups, B = transition metals.',
+    'Note: American textbooks used the opposite A/B convention — what Europeans called Group IIIB, Americans called Group IIIA.'
+  );
+}
+
+function renderCAS() {
+  renderStandard18WithGroupLabels(
+    ['IA','IIA','IIIB','IVB','VB','VIB','VIIB','VIIIB','VIIIB','VIIIB','IB','IIB','IIIA','IVA','VA','VIA','VIIA','0'],
+    'CAS (Chemical Abstracts Service) group numbering — widely used in US chemistry until the 1990s.',
+    'Groups VIIIB covers three columns (Fe, Co, Ni group). Reversed A/B convention compared to European usage.'
+  );
+}
+
+function renderStandard18WithGroupLabels(groupLabels, noteText, noteText2) {
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:700px;line-height:1.6;';
+  note.textContent=noteText;
+  container.appendChild(note);
+
+  const grid=document.createElement('div'); grid.className='grid-18';
+  container.appendChild(grid);
+
+  // Group label header row
+  for(let i=0;i<18;i++){
+    const d=labelCell(groupLabels[i]||'','display:flex;align-items:center;justify-content:center;font-family:Bebas Neue,sans-serif;font-size:10px;letter-spacing:0.5px;color:var(--accent);');
+    grid.appendChild(d);
+  }
+
+  // Standard 18-col table body
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  const elMap={};E.forEach(e=>{
+    // only place in main grid if they have standard row/col
+    if(e.g18&&e.p) elMap[`${e.p},${e.g18}`]=e;
+  });
+
+  for(let r=1;r<=7;r++){
+    for(let c=1;c<=18;c++){
+      const e=elMap[`${r},${c}`];
+      if(e) grid.appendChild(cell(e,e.n));
+      else if((r===6&&c===3)||(r===7&&c===3)){
+        const ph=document.createElement('div');ph.className='el';
+        ph.style.cssText='background:#f1f0f5;border-color:#c4b5fd;opacity:0.5;';
+        ph.innerHTML=`<div class="el-sub" style="font-size:7px;color:#6b7280">${r===6?'57–71':'89–103'}</div>`;
+        grid.appendChild(ph);
+      } else grid.appendChild(gap());
+    }
+  }
+  // Separator
+  for(let i=0;i<18;i++){const g=gap();g.style.height='6px';grid.appendChild(g);}
+  // Lanthanide/actinide rows
+  for(let series=0;series<2;series++){
+    grid.appendChild(gap());grid.appendChild(gap());
+    const lbl=document.createElement('div');
+    lbl.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text-muted);text-align:center;line-height:1.2;';
+    lbl.textContent=series===0?'Lantha\u00adnides':'Acti\u00adnides';
+    grid.appendChild(lbl);
+    const start=series===0?57:89;
+    for(let z=start;z<start+15;z++){
+      const e=byZ[z];
+      if(e) grid.appendChild(cell(e,e.n));
+      else grid.appendChild(gap());
+    }
+  }
+
+  if(noteText2){
+    const note2=document.createElement('div');
+    note2.style.cssText='font-size:11px;color:var(--text-muted);margin-top:10px;';
+    note2.textContent=noteText2;
+    container.appendChild(note2);
+  }
+}
+
+function renderHGroup1() {
+  // Standard layout, H above Li (default — show with highlight on H)
+  renderStandard18WithGroupLabels(
+    ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18'],
+    'Hydrogen placed in Group 1 above Lithium — the most common arrangement in UK school textbooks (AQA, Edexcel, OCR). Justified by H having one valence electron like alkali metals.',
+    'H is highlighted here. Its placement is debated — it behaves very differently from Group 1 metals: it is a gas, non-metallic, and can form H⁻ as well as H⁺.'
+  );
+}
+
+function renderHGroup17() {
+  // H above F in Group 17
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:700px;line-height:1.6;';
+  note.innerHTML='<strong>Hydrogen placed in Group 17</strong> above Fluorine. Used in some university textbooks. Justified by H needing one electron to complete its shell (like halogens), forming hydride ions (H⁻), and having a similar electronegativity to iodine.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div');grid.className='grid-18';
+  container.appendChild(grid);
+
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  const elMap={};E.forEach(e=>{if(e.g18&&e.p)elMap[`${e.p},${e.g18}`]=e;});
+
+  // Override H position to col 17, period 1
+  const hEl = byZ[1];
+
+  for(let r=1;r<=7;r++){
+    for(let c=1;c<=18;c++){
+      if(r===1&&c===1){ grid.appendChild(gap()); continue; }
+      if(r===1&&c===17){ grid.appendChild(cell(hEl, hEl.n, 'h-special')); continue; }
+      const e=elMap[`${r},${c}`];
+      if(e&&e.z===1){ grid.appendChild(gap()); }
+      else if(e) grid.appendChild(cell(e,e.n));
+      else if((r===6&&c===3)||(r===7&&c===3)){
+        const ph=document.createElement('div');ph.className='el';
+        ph.style.cssText='background:#f1f0f5;border-color:#c4b5fd;opacity:0.5;';
+        ph.innerHTML=`<div class="el-sub" style="font-size:7px;color:#6b7280">${r===6?'57–71':'89–103'}</div>`;
+        grid.appendChild(ph);
+      } else grid.appendChild(gap());
+    }
+  }
+  for(let i=0;i<18;i++){const g=gap();g.style.height='6px';grid.appendChild(g);}
+  for(let series=0;series<2;series++){
+    grid.appendChild(gap());grid.appendChild(gap());
+    const lbl=document.createElement('div');
+    lbl.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text-muted);text-align:center;';
+    lbl.textContent=series===0?'Lanthanides':'Actinides';grid.appendChild(lbl);
+    const start=series===0?57:89;
+    for(let z=start;z<start+15;z++){const e=byZ[z];if(e)grid.appendChild(cell(e,e.n));else grid.appendChild(gap());}
+  }
+}
+
+function renderHeGroup2() {
+  // He moved to group 2, next to Be
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const note=document.createElement('div');
+  note.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:12px;max-width:700px;line-height:1.6;';
+  note.innerHTML='<strong>Helium placed in Group 2</strong> — as in the Janet Left-Step table. Both He (1s²) and Be (2s²) have completely filled s-subshells. Group 18 becomes halogens + noble gases minus He. Chemically controversial — He is inert, Be is reactive.';
+  container.appendChild(note);
+
+  const grid=document.createElement('div');grid.className='grid-18';
+  container.appendChild(grid);
+
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+  const elMap={};E.forEach(e=>{if(e.g18&&e.p)elMap[`${e.p},${e.g18}`]=e;});
+
+  for(let r=1;r<=7;r++){
+    for(let c=1;c<=18;c++){
+      if(r===1&&c===18){ grid.appendChild(gap()); continue; }
+      if(r===1&&c===2){ grid.appendChild(cell(byZ[2],'Helium')); continue; }
+      const e=elMap[`${r},${c}`];
+      if(e&&e.z===2) grid.appendChild(gap());
+      else if(e) grid.appendChild(cell(e,e.n));
+      else if((r===6&&c===3)||(r===7&&c===3)){
+        const ph=document.createElement('div');ph.className='el';
+        ph.style.cssText='background:#f1f0f5;border-color:#c4b5fd;opacity:0.5;';
+        ph.innerHTML=`<div class="el-sub" style="font-size:7px;color:#6b7280">${r===6?'57–71':'89–103'}</div>`;
+        grid.appendChild(ph);
+      } else grid.appendChild(gap());
+    }
+  }
+  for(let i=0;i<18;i++){const g=gap();g.style.height='6px';grid.appendChild(g);}
+  for(let series=0;series<2;series++){
+    grid.appendChild(gap());grid.appendChild(gap());
+    const lbl=document.createElement('div');
+    lbl.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text-muted);text-align:center;';
+    lbl.textContent=series===0?'Lanthanides':'Actinides';grid.appendChild(lbl);
+    const start=series===0?57:89;
+    for(let z=start;z<start+15;z++){const e=byZ[z];if(e)grid.appendChild(cell(e,e.n));else grid.appendChild(gap());}
+  }
+}
+
+function renderSpiral() {
+  const container=document.getElementById('tableContainer');
+  container.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='spiral-wrap';
+  container.appendChild(wrap);
+
+  const note=document.createElement('div');
+  note.style.cssText='font-size:13px;color:var(--text-muted);max-width:640px;text-align:center;line-height:1.7;';
+  note.innerHTML=`<strong style="color:var(--accent);font-family:Bebas Neue,sans-serif;font-size:20px;display:block;margin-bottom:8px;letter-spacing:2px;">Spiral / Circular Periodic Tables</strong>
+  Spiral tables have been proposed since John Newlands' 1863 "law of octaves." The most famous is Otto Theodor Benfey's 1964 spiral, where elements wind outward from hydrogen with lanthanides and actinides shown as peninsulas.<br><br>
+  A true interactive spiral requires a canvas or SVG drawing far beyond what a static grid can show. Below is a simplified conceptual version showing the first three periods as concentric rings.`;
+  wrap.appendChild(note);
+
+  // Draw a simple SVG spiral concept
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 600 600');
+  svg.setAttribute('width','min(560px, 90vw)');
+  svg.style.cssText='display:block;margin:20px auto;';
+
+  // Rings: period 1 (2), period 2 (8), period 3 (8)
+  const periods=[
+    {r:60, els:[{z:1,a:90},{z:2,a:270}]},
+    {r:130,els:[{z:3,a:90},{z:4,a:45},{z:5,a:0},{z:6,a:315},{z:7,a:270},{z:8,a:225},{z:9,a:180},{z:10,a:135}]},
+    {r:210,els:[{z:11,a:90},{z:12,a:60},{z:13,a:30},{z:14,a:0},{z:15,a:330},{z:16,a:300},{z:17,a:270},{z:18,a:240},{z:19,a:210},{z:20,a:180}]},
+  ];
+
+  const cx=300,cy=300;
+  const byZ={};E.forEach(e=>byZ[e.z]=e);
+
+  // Draw ring guides
+  periods.forEach(({r})=>{
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',cx);circle.setAttribute('cy',cy);circle.setAttribute('r',r);
+    circle.setAttribute('fill','none');circle.setAttribute('stroke','#ddd6fe');circle.setAttribute('stroke-width','1');
+    svg.appendChild(circle);
+  });
+
+  // H at centre
+  const hCircle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  hCircle.setAttribute('cx',cx);hCircle.setAttribute('cy',cy);hCircle.setAttribute('r','18');
+  hCircle.setAttribute('fill','#fef9c3');hCircle.setAttribute('stroke','#ca8a04');hCircle.setAttribute('stroke-width','1.5');
+  svg.appendChild(hCircle);
+  const hText=document.createElementNS('http://www.w3.org/2000/svg','text');
+  hText.setAttribute('x',cx);hText.setAttribute('y',cy+5);hText.setAttribute('text-anchor','middle');
+  hText.setAttribute('font-family','Bebas Neue,sans-serif');hText.setAttribute('font-size','18');hText.setAttribute('fill','#713f12');
+  hText.textContent='H';svg.appendChild(hText);
+
+  // Draw element circles on rings (skip z=1)
+  periods.forEach(({r,els})=>{
+    els.forEach(({z,a})=>{
+      if(z===1)return;
+      const e=byZ[z];if(!e)return;
+      const rad=a*Math.PI/180;
+      const x=cx+r*Math.cos(rad);
+      const y=cy+r*Math.sin(rad);
+      const c=TC[e.t]||{bg:'#f1f0f5',bd:'#c4b5fd',tx:'#6b7280'};
+      const circ=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circ.setAttribute('cx',x);circ.setAttribute('cy',y);circ.setAttribute('r','18');
+      circ.setAttribute('fill',c.bg);circ.setAttribute('stroke',c.bd);circ.setAttribute('stroke-width','1.5');
+      svg.appendChild(circ);
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',x);txt.setAttribute('y',y+5);txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('font-family','Bebas Neue,sans-serif');txt.setAttribute('font-size','14');txt.setAttribute('fill',c.tx);
+      txt.textContent=e.s;svg.appendChild(txt);
+    });
+  });
+
+  wrap.appendChild(svg);
+
+  const cap=document.createElement('div');
+  cap.style.cssText='font-size:11px;color:var(--text-muted);max-width:500px;text-align:center;line-height:1.5;';
+  cap.textContent='Simplified 3-period spiral for illustration only. Periods 4+ continue outward with the d-block forming inner branches. A full spiral with all 118 elements would be much larger.';
+  wrap.appendChild(cap);
+}
+
+// ══════════════════════════════════════
+// VIEW DISPATCHER
+// ══════════════════════════════════════
+function renderView(view) {
+  const meta=VIEWS[view];
+  document.getElementById('ctxYear').textContent=meta.year;
+  document.getElementById('ctxTitle').textContent=meta.title;
+  document.getElementById('ctxDesc').textContent=meta.desc;
+
+  switch(view){
+    case 'mendeleev':   renderMendeleev(); break;
+    case 'shortform':   renderShortForm(); break;
+    case 'longform':    renderLongForm(); break;
+    case 'janet':       renderJanet(); break;
+    case 'iupac_old':   renderIUPACOld(); break;
+    case 'cas':         renderCAS(); break;
+    case 'h_group1':    renderHGroup1(); break;
+    case 'h_group17':   renderHGroup17(); break;
+    case 'he_group2':   renderHeGroup2(); break;
+    case 'spiral':      renderSpiral(); break;
+  }
+}
+
+// ══════════════════════════════════════
+// TOOLTIP
+// ══════════════════════════════════════
+const tooltip=document.getElementById('tooltip');
+function showTT(e,ev){
+  document.getElementById('ttSym').innerHTML=fmtSym(e.s);
+  document.getElementById('ttName').textContent=`${e.n} · #${e.z}`;
+  document.getElementById('ttRows').innerHTML=[
+    ['Atomic Mass', e.am?.toFixed(3)+' u'||'—'],
+    ['IUPAC Group', e.g18||'—'],
+    ['Period', e.p||'—'],
+    ['Category', ({AM:'Alkali Metal',AEM:'Alkaline Earth',TM:'Transition Metal',PTM:'Post-transition',MET:'Metalloid',NM:'Non-metal',HAL:'Halogen',NG:'Noble Gas',LAN:'Lanthanide',ACT:'Actinide'})[e.t]||e.t],
+  ].map(([l,v])=>`<div class="tt-row"><span class="tt-label">${l}</span><span class="tt-val">${v}</span></div>`).join('');
+  tooltip.classList.add('visible'); moveTT(ev);
+}
+function moveTT(ev){
+  let l=ev.clientX+16,t=ev.clientY+16;
+  if(l+220>window.innerWidth-10)l=ev.clientX-220-16;
+  if(t+160>window.innerHeight-10)t=ev.clientY-160-16;
+  tooltip.style.left=l+'px';tooltip.style.top=t+'px';
+}
+function hideTT(){tooltip.classList.remove('visible');}
+
+// ══════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════
+document.querySelectorAll('.view-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderView(btn.dataset.view);
+  });
+});
+
+let isDark=false;
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  isDark=!isDark;
+  document.body.classList.toggle('dark',isDark);
+  document.getElementById('themeBtn').textContent=isDark?'☀ Light Mode':'🌙 Dark Mode';
+  renderView(document.querySelector('.view-btn.active').dataset.view);
+});
+
+// INIT
+renderView('mendeleev');
+</script>
+</body>
+</html>

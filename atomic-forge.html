@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AtomicForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f3ff;
+    --surface2: #ede9fe;
+    --border: #ddd6fe;
+    --text: #1e0a3e;
+    --text-muted: #6b45a0;
+    --accent: #7c3aed;
+    --accent2: #f5a623;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===================== HEADER ===================== */
+  header {
+    padding: 14px 24px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; letter-spacing: 2px; color: var(--text);
+    line-height: 1; text-decoration: none;
+  }
+  .logo .logo-main { color: var(--text); }
+  .logo .logo-forge { color: var(--accent); }
+  .byline { font-size: 11px; color: #111111; letter-spacing: 0.5px; font-weight: 400; text-align: right; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  /* ===================== SCORE BAR ===================== */
+  .score-bar {
+    display: none;
+    background: var(--surface); border-bottom: 1.5px solid var(--border);
+    padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0;
+  }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  /* ===================== LAYOUT ===================== */
+  .layout {
+    display: grid;
+    grid-template-columns: 210px 1fr 210px;
+    flex: 1; min-height: 0;
+  }
+
+  /* ===================== SIDEBARS ===================== */
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  /* ===================== LEVEL TOGGLES ===================== */
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 44px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--surface); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    transition: all 0.15s ease; user-select: none; padding: 0 14px;
+  }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 10px; height: 10px; background: var(--accent2);
+    border-radius: 50%; border: 1.5px solid #fff; display: none;
+  }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+
+  .toggle-all-btn {
+    margin-top: 12px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn {
+    margin-top: 8px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid #f2c4bb; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .reset-btn:hover { background: #fff0ed; }
+
+  /* ===================== MAIN ===================== */
+  .main {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 40px 20px; gap: 24px;
+  }
+
+  /* Element name display */
+  .name-card { text-align: center; }
+  .name-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 7vw, 72px);
+    letter-spacing: 4px;
+    color: var(--text);
+    line-height: 1.1;
+    transition: color 0.2s;
+  }
+  .name-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+  .name-card.correct-flash .name-text { color: var(--correct); }
+  .name-card.correct-flash .name-sub  { color: var(--correct); }
+  .name-card.wrong-flash   .name-text { color: var(--wrong); }
+  .name-card.wrong-flash   .name-sub  { color: var(--wrong); }
+
+  .question-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; min-height: 20px; text-align: center; }
+
+  /* Timer */
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
+  .timer-bar.urgent         { background: var(--wrong); }
+
+  /* Streak dots */
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  /* Input row */
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(18px, 5vw, 32px);
+    font-weight: 500; width: 120px; text-align: center;
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; outline: none;
+    background: var(--surface); color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+    letter-spacing: 2px;
+  }
+  .answer-input:focus         { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+
+  .submit-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    padding: 12px 22px; border: none; border-radius: 10px;
+    background: var(--accent); color: #fff; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.3px;
+    min-height: 48px; min-width: 64px;
+  }
+  .submit-btn:hover  { filter: brightness(1.1); }
+  .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
+  .feedback-msg.mastered { color: var(--accent2); }
+
+  /* ===================== RIGHT SIDEBAR ===================== */
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; }
+
+  /* ===================== MOBILE DRAWER ===================== */
+  .mobile-drawer-toggle {
+    display: none; width: 100%; padding: 12px 20px;
+    background: var(--surface); border: none; border-top: 1.5px solid var(--border);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px;
+    align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn,
+  .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  /* ===================== TOAST ===================== */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+    padding: 12px 24px; border-radius: 30px; pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  /* ===================== FOOTER ===================== */
+  footer {
+    border-top: 1.5px solid var(--border); padding: 11px 24px;
+    font-size: 11.5px; color: #111111;
+    background: var(--surface); line-height: 1.5; flex-shrink: 0;
+  }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  /* ===================== BREAKPOINTS ===================== */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 200px 1fr; }
+    .sidebar-right { display: none; }
+    .score-bar { display: flex; }
+  }
+  @media (max-width: 580px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .score-bar { display: flex; }
+    .mobile-drawer-toggle { display: flex; }
+    .main { padding: 28px 16px; gap: 18px; }
+    header { padding: 12px 16px; }
+    .byline { display: none; }
+    footer { padding: 10px 16px; font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="chemistry.html" class="logo"><span class="logo-main">Atomic</span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A website by <strong>Leon Dudhill</strong></div>
+</header>
+
+<!-- Score bar: tablet + mobile -->
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item">
+    <span class="score-bar-label">Correct</span>
+    <span class="score-bar-value" id="sbCorrect">0</span>
+  </div>
+  <div class="score-bar-item">
+    <span class="score-bar-label">Total</span>
+    <span class="score-bar-value" id="sbTotal">0</span>
+  </div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="score-bar-label">Accuracy</span>
+      <span class="score-bar-pct-label" id="sbPct">—</span>
+    </div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item">
+    <span class="score-bar-label">Mastered</span>
+    <span class="score-bar-value" id="sbMastered">0</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Difficulty</div>
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="name-card" id="nameCard">
+      <div class="name-text" id="nameText">—</div>
+    </div>
+    <div class="question-sub" id="questionSub">Enable a level to begin</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="number" class="answer-input" id="answerInput"
+             placeholder="?" autocomplete="off" inputmode="numeric" min="1" max="118">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value">
+        <span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList">
+        <div style="font-size:12px;color:var(--text-muted)">None yet</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MOBILE DRAWER -->
+<button class="mobile-drawer-toggle" id="drawerToggle">
+  <span>⚙ Options</span>
+  <span class="arrow">▼</span>
+</button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ELEMENT DATA
+// ============================================================
+const ELEMENTS = [
+  // Level 1 — First 20
+  { symbol: 'H',  name: 'Hydrogen',   z: 1,  level: 1 },
+  { symbol: 'He', name: 'Helium',     z: 2,  level: 1 },
+  { symbol: 'Li', name: 'Lithium',    z: 3,  level: 1 },
+  { symbol: 'Be', name: 'Beryllium',  z: 4,  level: 1 },
+  { symbol: 'B',  name: 'Boron',      z: 5,  level: 1 },
+  { symbol: 'C',  name: 'Carbon',     z: 6,  level: 1 },
+  { symbol: 'N',  name: 'Nitrogen',   z: 7,  level: 1 },
+  { symbol: 'O',  name: 'Oxygen',     z: 8,  level: 1 },
+  { symbol: 'F',  name: 'Fluorine',   z: 9,  level: 1 },
+  { symbol: 'Ne', name: 'Neon',       z: 10, level: 1 },
+  { symbol: 'Na', name: 'Sodium',     z: 11, level: 1 },
+  { symbol: 'Mg', name: 'Magnesium',  z: 12, level: 1 },
+  { symbol: 'Al', name: 'Aluminium',  z: 13, level: 1 },
+  { symbol: 'Si', name: 'Silicon',    z: 14, level: 1 },
+  { symbol: 'P',  name: 'Phosphorus', z: 15, level: 1 },
+  { symbol: 'S',  name: 'Sulfur',     z: 16, level: 1 },
+  { symbol: 'Cl', name: 'Chlorine',   z: 17, level: 1 },
+  { symbol: 'Ar', name: 'Argon',      z: 18, level: 1 },
+  { symbol: 'K',  name: 'Potassium',  z: 19, level: 1 },
+  { symbol: 'Ca', name: 'Calcium',    z: 20, level: 1 },
+  // Level 2 — Common / tricky symbols
+  { symbol: 'Fe', name: 'Iron',       z: 26, level: 2 },
+  { symbol: 'Cu', name: 'Copper',     z: 29, level: 2 },
+  { symbol: 'Zn', name: 'Zinc',       z: 30, level: 2 },
+  { symbol: 'Ag', name: 'Silver',     z: 47, level: 2 },
+  { symbol: 'Au', name: 'Gold',       z: 79, level: 2 },
+  { symbol: 'Pb', name: 'Lead',       z: 82, level: 2 },
+  { symbol: 'Sn', name: 'Tin',        z: 50, level: 2 },
+  { symbol: 'Hg', name: 'Mercury',    z: 80, level: 2 },
+  { symbol: 'Cr', name: 'Chromium',   z: 24, level: 2 },
+  { symbol: 'Mn', name: 'Manganese',  z: 25, level: 2 },
+  { symbol: 'Ni', name: 'Nickel',     z: 28, level: 2 },
+  { symbol: 'Pt', name: 'Platinum',   z: 78, level: 2 },
+  // Level 3 — Full GCSE set
+  { symbol: 'Sc', name: 'Scandium',   z: 21, level: 3 },
+  { symbol: 'Ti', name: 'Titanium',   z: 22, level: 3 },
+  { symbol: 'V',  name: 'Vanadium',   z: 23, level: 3 },
+  { symbol: 'Co', name: 'Cobalt',     z: 27, level: 3 },
+  { symbol: 'Ga', name: 'Gallium',    z: 31, level: 3 },
+  { symbol: 'Ge', name: 'Germanium',  z: 32, level: 3 },
+  { symbol: 'As', name: 'Arsenic',    z: 33, level: 3 },
+  { symbol: 'Se', name: 'Selenium',   z: 34, level: 3 },
+  { symbol: 'Br', name: 'Bromine',    z: 35, level: 3 },
+  { symbol: 'Kr', name: 'Krypton',    z: 36, level: 3 },
+  { symbol: 'Rb', name: 'Rubidium',   z: 37, level: 3 },
+  { symbol: 'Sr', name: 'Strontium',  z: 38, level: 3 },
+  { symbol: 'I',  name: 'Iodine',     z: 53, level: 3 },
+  { symbol: 'Ba', name: 'Barium',     z: 56, level: 3 },
+  { symbol: 'W',  name: 'Tungsten',   z: 74, level: 3 },
+  { symbol: 'U',  name: 'Uranium',    z: 92, level: 3 },
+];
+
+const LEVELS = [
+  { id: 1, name: 'First 20 Elements' },
+  { id: 2, name: 'Common Elements'   },
+  { id: 3, name: 'GCSE Elements'     },
+  { id: 4, name: 'All Elements'      },
+];
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'atomicforge_v1';
+
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return null;
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabledLevels, mastered: [...mastered], stats, streaks }));
+}
+
+const saved = loadState();
+let enabledLevels = saved?.enabledLevels || { 1: true, 2: false, 3: false, 4: false };
+let mastered  = new Set(Array.isArray(saved?.mastered) ? saved.mastered : []);
+let stats     = (saved?.stats && typeof saved.stats === 'object') ? saved.stats : { correct: 0, total: 0, sessionStreak: 0 };
+let streaks   = (saved?.streaks && typeof saved.streaks === 'object' && !Array.isArray(saved.streaks)) ? saved.streaks : {};
+
+LEVELS.forEach(l => { if (enabledLevels[l.id] === undefined) enabledLevels[l.id] = false; });
+
+// ============================================================
+// QUESTION POOL
+// ============================================================
+function getEnabledElements() {
+  if (enabledLevels[4]) return ELEMENTS.filter(e => !mastered.has(e.symbol));
+  const ids = [1,2,3].filter(id => enabledLevels[id]);
+  return ELEMENTS.filter(e => ids.includes(e.level) && !mastered.has(e.symbol));
+}
+
+function buildQuestion(previous) {
+  const pool = getEnabledElements();
+  if (pool.length === 0) return null;
+  let candidates = pool.filter(e => !previous || e.symbol !== previous.symbol);
+  if (candidates.length === 0) candidates = pool;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// ============================================================
+// DOM
+// ============================================================
+const nameText      = document.getElementById('nameText');
+const nameCard      = document.getElementById('nameCard');
+const questionSub   = document.getElementById('questionSub');
+const answerInput   = document.getElementById('answerInput');
+const submitBtn     = document.getElementById('submitBtn');
+const feedbackMsg   = document.getElementById('feedbackMsg');
+const timerBar      = document.getElementById('timerBar');
+const streakDotsEl  = document.getElementById('streakDots');
+
+const statCorrect   = document.getElementById('statCorrect');
+const statTotal     = document.getElementById('statTotal');
+const statPct       = document.getElementById('statPct');
+const pctBar        = document.getElementById('pctBar');
+const statStreak    = document.getElementById('statStreak');
+const masteredList  = document.getElementById('masteredList');
+const masteredCount = document.getElementById('masteredCount');
+const sbCorrect     = document.getElementById('sbCorrect');
+const sbTotal       = document.getElementById('sbTotal');
+const sbPct         = document.getElementById('sbPct');
+const sbPctBar      = document.getElementById('sbPctBar');
+const sbMastered    = document.getElementById('sbMastered');
+const levelGridDesktop = document.getElementById('levelGridDesktop');
+const levelGridMobile  = document.getElementById('levelGridMobile');
+const toast         = document.getElementById('toast');
+const drawerToggle  = document.getElementById('drawerToggle');
+const mobileDrawer  = document.getElementById('mobileDrawer');
+
+// ============================================================
+// RENDER LEVEL TOGGLES
+// ============================================================
+function renderLevelGrid(gridEl) {
+  gridEl.innerHTML = '';
+  LEVELS.forEach(l => {
+    const hasMastered = [...mastered].some(sym => {
+      const el = ELEMENTS.find(e => e.symbol === sym);
+      return el && el.level === l.id;
+    });
+    const wrapper = document.createElement('label');
+    wrapper.className = 'lv-toggle' + (hasMastered ? ' has-mastered' : '');
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!enabledLevels[l.id];
+    input.addEventListener('change', () => {
+      enabledLevels[l.id] = input.checked;
+      syncLevelToggles(l.id, input.checked);
+      saveState();
+      nextQuestion();
+    });
+
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.innerHTML = `<span class="lv-name">${l.name}</span>`;
+
+    const badge = document.createElement('div');
+    badge.className = 'mastered-badge';
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(pill);
+    wrapper.appendChild(badge);
+    gridEl.appendChild(wrapper);
+  });
+}
+
+function renderToggles() {
+  renderLevelGrid(levelGridDesktop);
+  renderLevelGrid(levelGridMobile);
+}
+
+function syncLevelToggles(levelId, checked) {
+  [levelGridDesktop, levelGridMobile].forEach(grid => {
+    const inputs = grid.querySelectorAll('input[type=checkbox]');
+    const idx = LEVELS.findIndex(l => l.id === levelId);
+    if (inputs[idx]) inputs[idx].checked = checked;
+  });
+}
+
+// ============================================================
+// STREAK DOTS
+// ============================================================
+function renderStreakDots(count) {
+  streakDotsEl.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot' + (i < count ? ' filled' : '');
+    streakDotsEl.appendChild(dot);
+  }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let currentQ = null, timerInterval = null, timerStart = null, timedOut = false;
+const TIME_LIMIT = 6000;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerStart = Date.now();
+  timerBar.style.transition = 'none';
+  timerBar.style.width = '100%';
+  timerBar.className = 'timer-bar';
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    timerBar.style.transition = 'width 0.1s linear';
+    timerBar.style.width = pct + '%';
+    if (pct <= 0) {
+      stopTimer();
+      handleTimeout();
+    } else if (pct <= 16)      timerBar.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBar.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBar.className = 'timer-bar warning';
+    else                timerBar.className = 'timer-bar';
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+// ============================================================
+// TIMEOUT — question stays alive, user can still answer (no mastery)
+// ============================================================
+function handleTimeout() {
+  if (!currentQ) return;
+  timedOut = true;
+  streaks[currentQ.symbol] = 0;
+  renderStreakDots(0);
+  feedbackMsg.textContent = 'Too slow — still try!';
+  feedbackMsg.className = 'feedback-msg wrong';
+  nameCard.classList.add('wrong-flash');
+  setTimeout(() => {
+    nameCard.className = 'name-card';
+    feedbackMsg.textContent = '';
+    feedbackMsg.className = 'feedback-msg';
+  }, 800);
+}
+
+// ============================================================
+// NEXT QUESTION
+// ============================================================
+function nextQuestion() {
+  stopTimer();
+  timedOut = false;
+  feedbackMsg.textContent = '';
+  feedbackMsg.className = 'feedback-msg';
+  nameCard.className = 'name-card';
+  answerInput.value = '';
+  answerInput.className = 'answer-input';
+  answerInput.disabled = false;
+  submitBtn.disabled = false;
+
+  const anyEnabled = LEVELS.some(l => enabledLevels[l.id]);
+  if (!anyEnabled) {
+    nameText.textContent = '—';
+    questionSub.textContent = 'Enable a level to begin.';
+    answerInput.disabled = true;
+    submitBtn.disabled = true;
+    currentQ = null;
+    timerBar.style.width = '0%';
+    renderStreakDots(0);
+    return;
+  }
+
+  const q = buildQuestion(currentQ);
+  if (!q) {
+    nameText.textContent = '🎉';
+    questionSub.textContent = 'All elements mastered! Enable more levels.';
+    answerInput.disabled = true;
+    submitBtn.disabled = true;
+    currentQ = null;
+    timerBar.style.width = '0%';
+    renderStreakDots(0);
+    return;
+  }
+
+  currentQ = q;
+  nameText.textContent = q.name;
+  const streak = streaks[q.symbol] || 0;
+  renderStreakDots(streak);
+  questionSub.textContent = streak > 0 ? `${streak}/6 mastery streak` : 'Type the atomic number';
+
+  startTimer();
+  if (!('ontouchstart' in window)) answerInput.focus();
+}
+
+// ============================================================
+// SUBMIT ANSWER
+// ============================================================
+function submitAnswer() {
+  if (!currentQ || answerInput.disabled) return;
+  const val = parseInt(answerInput.value, 10);
+  if (isNaN(val)) { answerInput.focus(); return; }
+
+  stopTimer();
+  stats.total++;
+  answerInput.disabled = true;
+  submitBtn.disabled = true;
+
+  if (val === currentQ.z) {
+    stats.correct++;
+    stats.sessionStreak = (stats.sessionStreak || 0) + 1;
+    answerInput.className = 'answer-input correct-flash';
+    nameCard.classList.add('correct-flash');
+
+    if (timedOut) {
+      feedbackMsg.textContent = 'Correct — but too slow!';
+      feedbackMsg.className = 'feedback-msg correct';
+    } else {
+      streaks[currentQ.symbol] = (streaks[currentQ.symbol] || 0) + 1;
+      const streak = streaks[currentQ.symbol];
+      renderStreakDots(streak);
+
+      if (streak >= 6) {
+        mastered.add(currentQ.symbol);
+        streaks[currentQ.symbol] = 0;
+        feedbackMsg.textContent = '★ MASTERED!';
+        feedbackMsg.className = 'feedback-msg mastered';
+        showToast(`${currentQ.name} (${currentQ.symbol}) mastered! 🔥`, true);
+        renderToggles();
+        renderMastered();
+      } else {
+        const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+        feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+        feedbackMsg.className = 'feedback-msg correct';
+      }
+    }
+  } else {
+    stats.sessionStreak = 0;
+    streaks[currentQ.symbol] = 0;
+    renderStreakDots(0);
+    answerInput.className = 'answer-input wrong-flash';
+    nameCard.classList.add('wrong-flash');
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.z}`;
+    feedbackMsg.className = 'feedback-msg wrong';
+  }
+
+  updateStats();
+  saveState();
+  setTimeout(() => nextQuestion(), 900);
+}
+
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+answerInput.addEventListener('input', () => { if (answerInput.value < 0) answerInput.value = ''; });
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const c = stats.correct, t = stats.total;
+  const pct = t > 0 ? Math.round((c / t) * 100) : null;
+  const pctStr = pct !== null ? pct + '%' : '—';
+  const pctW   = pct !== null ? pct + '%' : '0%';
+
+  statCorrect.textContent = c; statTotal.textContent = t;
+  statPct.textContent = pctStr; pctBar.style.width = pctW;
+  sbCorrect.textContent = c; sbTotal.textContent = t;
+  sbPct.textContent = pctStr; sbPctBar.style.width = pctW;
+  sbMastered.textContent = mastered.size;
+
+  const barColor = pct === null ? 'var(--correct)'
+    : pct <= 25 ? '#e84c1e'
+    : pct <= 50 ? '#f07d20'
+    : pct <= 70 ? '#f5c518'
+    : 'var(--correct)';
+  pctBar.style.background = barColor;
+  sbPctBar.style.background = barColor;
+
+  const ss = stats.sessionStreak || 0;
+  statStreak.textContent = ss >= 5 ? '🔥'.repeat(Math.floor(ss / 5)) + ' ' + ss + ' in a row' : '';
+}
+
+function renderMastered() {
+  masteredCount.textContent = mastered.size;
+  sbMastered.textContent = mastered.size;
+  if (mastered.size === 0) {
+    masteredList.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">None yet</div>';
+    return;
+  }
+  const sorted = [...mastered].sort((a, b) => {
+    const ea = ELEMENTS.find(e => e.symbol === a);
+    const eb = ELEMENTS.find(e => e.symbol === b);
+    return (ea?.z || 0) - (eb?.z || 0);
+  });
+  masteredList.innerHTML = sorted.map(sym => {
+    const el = ELEMENTS.find(e => e.symbol === sym);
+    return `<div class="mastered-item">★ ${el?.name} — #${el?.z}</div>`;
+  }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout;
+function showToast(msg, isMastered = false) {
+  toast.textContent = msg;
+  toast.className = 'toast' + (isMastered ? ' mastered-toast' : '') + ' show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast' + (isMastered ? ' mastered-toast' : ''); }, 2500);
+}
+
+// ============================================================
+// TOGGLE ALL / RESET
+// ============================================================
+let allOn = false;
+function toggleAll() {
+  allOn = !allOn;
+  LEVELS.forEach(l => enabledLevels[l.id] = allOn);
+  saveState(); renderToggles(); nextQuestion();
+}
+function doReset() {
+  if (!confirm('Reset all mastery progress and stats? This cannot be undone.')) return;
+  mastered = new Set(); streaks = {};
+  stats = { correct: 0, total: 0, sessionStreak: 0 };
+  LEVELS.forEach(l => enabledLevels[l.id] = l.id === 1);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion();
+  showToast('Progress reset.');
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click', toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click', doReset);
+document.getElementById('resetBtnMobile').addEventListener('click', doReset);
+
+drawerToggle.addEventListener('click', () => {
+  const open = mobileDrawer.classList.toggle('open');
+  drawerToggle.classList.toggle('open', open);
+});
+
+// ============================================================
+// INIT
+// ============================================================
+renderToggles();
+renderMastered();
+updateStats();
+nextQuestion();
+</script>
+</body>
+</html>

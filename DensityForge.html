@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DensityForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#ffffff;--surface:#f0f9ff;--surface2:#bae6fd;--border:#7dd3fc;
+    --text:#0c1a2e;--text-muted:#0369a1;--accent:#0284c7;
+    --accent2:#f59e0b;--correct:#2a9d5c;--wrong:#e84c1e;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;text-decoration:none;}
+  .logo span{color:var(--accent);}
+  .byline{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;font-weight:500;}
+  .byline strong{font-weight:700;color:var(--accent);}
+  .score-bar{display:none;background:var(--surface);border-bottom:1.5px solid var(--border);padding:10px 20px;gap:16px;align-items:center;flex-shrink:0;}
+  .score-bar-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
+  .score-bar-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);}
+  .score-bar-value{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);}
+  .score-bar-pct-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .score-bar-pct-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+  .score-bar-pct-fill{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;width:0%;}
+  .score-bar-pct-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-muted);}
+  .layout{display:grid;grid-template-columns:210px 1fr 210px;flex:1;min-height:0;}
+  .sidebar{border-right:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-right{border-right:none;border-left:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-muted);margin-bottom:14px;}
+  .level-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .lv-toggle{position:relative;cursor:pointer;}
+  .lv-toggle input{display:none;}
+  .lv-toggle .pill{display:flex;align-items:center;justify-content:space-between;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all 0.15s ease;user-select:none;padding:0 14px;}
+  .lv-toggle input:checked+.pill{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .lv-toggle .mastered-badge{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:1.5px solid #fff;display:none;}
+  .lv-toggle.has-mastered .mastered-badge{display:block;}
+  .toggle-all-btn{margin-top:12px;width:100%;padding:8px;background:none;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .toggle-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .reset-btn{margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #f2c4bb;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--wrong);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .reset-btn:hover{background:#fff0ed;}
+  .main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:18px;}
+  .question-card{text-align:center;max-width:520px;width:100%;}
+  .topic-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-bottom:12px;}
+  .diagram-wrap{width:100%;max-width:360px;margin:0 auto 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;overflow:hidden;box-shadow:0 2px 12px rgba(2,132,199,0.10);}
+  .diagram-wrap svg{display:block;width:100%;height:auto;}
+  .question-text{font-family:'DM Sans',sans-serif;font-size:clamp(14px,2.8vw,17px);font-weight:600;line-height:1.45;color:var(--text);margin-bottom:4px;}
+  .question-sub{font-size:13px;color:var(--text-muted);margin-top:4px;font-weight:500;letter-spacing:0.4px;min-height:20px;}
+  .timer-wrap{width:min(320px,80vw);height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .timer-bar{height:100%;width:100%;background:var(--correct);border-radius:2px;transition:width 0.1s linear,background 0.3s;}
+  .timer-bar.warning{background:#f5c518;}.timer-bar.warning-orange{background:#f07d20;}.timer-bar.urgent{background:var(--wrong);}
+  .streak-dots{display:flex;gap:6px;justify-content:center;}
+  .streak-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all 0.2s ease;}
+  .streak-dot.filled{background:var(--correct);border-color:var(--correct);transform:scale(1.2);}
+  .input-row{display:flex;gap:10px;align-items:center;}
+  .answer-input{font-family:'DM Mono',monospace;font-size:clamp(16px,4vw,24px);font-weight:500;width:160px;text-align:center;border:2px solid var(--border);border-radius:10px;padding:10px 12px;outline:none;background:var(--surface);color:var(--text);transition:border-color 0.15s,background 0.15s;}
+  .answer-input:focus{border-color:var(--accent);background:#fff;}
+  .answer-input.correct-flash{border-color:var(--correct);background:#edfaf3;}
+  .answer-input.wrong-flash{border-color:var(--wrong);background:#fff0ed;}
+  .answer-input:disabled{opacity:0.5;}
+  .unit-label{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--text-muted);min-width:40px;}
+  .submit-btn{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:12px 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;min-height:48px;min-width:64px;}
+  .submit-btn:hover{filter:brightness(1.1);}.submit-btn:active{transform:scale(0.97);}
+  .feedback-msg{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;min-height:26px;}
+  .feedback-msg.correct{color:var(--correct);}.feedback-msg.wrong{color:var(--wrong);}.feedback-msg.mastered{color:var(--accent2);}
+  .stat-block{margin-bottom:18px;flex-shrink:0;}
+  .stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+  .stat-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1;color:var(--text);}
+  .stat-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .pct-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .pct-bar{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:18px 0;}
+  .mastered-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;}
+  .mastered-item{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text-muted);padding:3px 6px;background:var(--surface);border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mobile-drawer-toggle{display:none;width:100%;padding:12px 20px;background:var(--surface);border:none;border-top:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;letter-spacing:0.3px;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .mobile-drawer-toggle .arrow{font-size:10px;transition:transform 0.25s;color:var(--text-muted);}
+  .mobile-drawer-toggle.open .arrow{transform:rotate(180deg);}
+  .mobile-drawer{display:none;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px 20px;flex-shrink:0;}
+  .mobile-drawer.open{display:block;}
+  .mobile-drawer-actions{display:flex;gap:8px;margin-top:10px;}
+  .mobile-drawer-actions .toggle-all-btn,.mobile-drawer-actions .reset-btn{margin:0;flex:1;}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:12px 24px;border-radius:30px;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.mastered-toast{background:var(--accent2);color:var(--text);}
+  footer{border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111111;background:var(--surface);line-height:1.5;flex-shrink:0;}
+  .footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+  @media(max-width:860px){.layout{grid-template-columns:200px 1fr;}.sidebar-right{display:none;}.score-bar{display:flex;}}
+  @media(max-width:580px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.score-bar{display:flex;}.mobile-drawer-toggle{display:flex;}.main{padding:24px 14px;gap:14px;}header{padding:12px 16px;}.byline{display:none;}footer{padding:10px 16px;font-size:10.5px;}}
+</style>
+</head>
+<body>
+<header>
+  <a href="../physics/index.html" class="logo">Density<span>Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="diagram-wrap" id="diagramWrap"></div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <span class="unit-label" id="unitLabel"></span>
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>&#9881; Topics</span><span class="arrow">&#9660;</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. &mdash; Leon Dudhill</footer>
+<div class="toast" id="toast"></div>
+<script>
+// ============================================================
+// SVG DENSITY DIAGRAM BUILDER  ViewBox 360x200
+// ============================================================
+const W=360,H=200,AC='#0284c7',GRN='#15803d',RED='#dc2626',ORG='#ea580c',GRY='#64748b',TXT='#0c1a2e';
+
+function svgD(b){return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:DM Sans,sans-serif">'+b+'</svg>';}
+function lbl(x,y,text,color,size,weight,anchor){
+  color=color||TXT; size=size||11; weight=weight||'700'; anchor=anchor||'middle';
+  return '<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'" font-family="DM Mono,monospace">'+text+'</text>';
+}
+function dimArrow(x1,y1,x2,y2,label,color){
+  color=color||AC;
+  var mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  var ux=dx/len,uy=dy/len,hx1=x1+ux*8,hy1=y1+uy*8,hx2=x2-ux*8,hy2=y2-uy*8;
+  var s='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,3"/>';
+  s+='<polygon points="'+x1+','+y1+' '+(hx1+uy*4)+','+(hy1-ux*4)+' '+(hx1-uy*4)+','+(hy1+ux*4)+'" fill="'+color+'"/>';
+  s+='<polygon points="'+x2+','+y2+' '+(hx2+uy*4)+','+(hy2-ux*4)+' '+(hx2-uy*4)+','+(hy2+ux*4)+'" fill="'+color+'"/>';
+  var px=-uy*14,py=ux*14;
+  s+=lbl(mx+px,my+py,label,color,10,'700');
+  return s;
+}
+
+function cuboid(w,h,d,massLabel,densLabel,volLabel,fill,stroke){
+  fill=fill||'#bae6fd'; stroke=stroke||AC;
+  var cx=170,cy=110,isoX=0.6,isoY=0.3,scW=w*9,scH=h*9,scD=d*6,ox=scD*isoX,oy=scD*isoY;
+  var fl={x:cx-scW/2,y:cy+scH/2},fr={x:cx+scW/2,y:cy+scH/2};
+  var flt={x:cx-scW/2,y:cy-scH/2},frt={x:cx+scW/2,y:cy-scH/2};
+  var bl={x:fl.x+ox,y:fl.y-oy},br={x:fr.x+ox,y:fr.y-oy};
+  var blt={x:flt.x+ox,y:flt.y-oy},brt={x:frt.x+ox,y:frt.y-oy};
+  var s='';
+  s+='<polygon points="'+fr.x+','+fr.y+' '+br.x+','+br.y+' '+brt.x+','+brt.y+' '+frt.x+','+frt.y+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5" opacity="0.6"/>';
+  s+='<polygon points="'+flt.x+','+flt.y+' '+frt.x+','+frt.y+' '+brt.x+','+brt.y+' '+blt.x+','+blt.y+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5" opacity="0.85"/>';
+  s+='<polygon points="'+fl.x+','+fl.y+' '+fr.x+','+fr.y+' '+frt.x+','+frt.y+' '+flt.x+','+flt.y+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5" opacity="0.95"/>';
+  s+=dimArrow(flt.x-14,flt.y,fl.x-14,fl.y,'h='+h+' m',AC);
+  s+=dimArrow(fl.x,fl.y+18,fr.x,fr.y+18,'w='+w+' m',GRN);
+  s+=dimArrow(fr.x+4,fr.y+4,br.x+4,br.y+4,'d='+d+' m',ORG);
+  s+=lbl(cx,cy+4,massLabel,RED,12,'700');
+  s+=lbl(W/2,H-16,'rho = m/V     V = '+volLabel,GRY,10,'600');
+  s+=lbl(W/2,H-4,'rho = '+densLabel,AC,10,'700');
+  return svgD(s);
+}
+
+function cylinder(r,h,massLabel,densLabel,fill,stroke){
+  fill=fill||'#bae6fd'; stroke=stroke||AC;
+  var cx=180,topY=38,botY=topY+h*12,rx=r*20,ry=10;
+  var s='';
+  s+='<rect x="'+(cx-rx)+'" y="'+topY+'" width="'+(rx*2)+'" height="'+(botY-topY)+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5" opacity="0.9"/>';
+  s+='<ellipse cx="'+cx+'" cy="'+botY+'" rx="'+rx+'" ry="'+ry+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5"/>';
+  s+='<ellipse cx="'+cx+'" cy="'+topY+'" rx="'+rx+'" ry="'+ry+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5"/>';
+  s+=dimArrow(cx-rx-14,topY,cx-rx-14,botY,'h='+h+' m',AC);
+  s+=dimArrow(cx,topY-22,cx+rx,topY-22,'r='+r+' m',GRN);
+  s+=lbl(cx,topY+(botY-topY)/2+4,massLabel,RED,12,'700');
+  s+=lbl(W/2,H-8,'V = pir2h     rho = '+densLabel,GRY,10,'600');
+  return svgD(s);
+}
+
+function beaker(wl1,wl2,objLabel,volLabel){
+  var bx=110,botY=165,bW=110,wallT=6;
+  var bInn=bx+wallT,bRt=bx+bW-wallT;
+  var h1=wl1*2.5,h2=wl2*2.5,wt1=botY-h1,wt2=botY-h2;
+  var s='';
+  s+='<rect x="'+bx+'" y="'+(botY-130)+'" width="'+bW+'" height="130" fill="none" stroke="'+GRY+'" stroke-width="3" rx="4"/>';
+  s+='<rect x="'+bInn+'" y="'+wt2+'" width="'+(bRt-bInn)+'" height="'+(botY-wt2)+'" fill="#bae6fd" opacity="0.6"/>';
+  var objW=40,objH=30,objX=bInn+(bRt-bInn-objW)/2,objY=wt2-objH/2;
+  s+='<rect x="'+objX+'" y="'+objY+'" width="'+objW+'" height="'+objH+'" fill="#0284c7" rx="4" opacity="0.85"/>';
+  s+=lbl(objX+objW/2,objY+objH/2+4,objLabel,'#fff',10,'700');
+  s+='<line x1="'+bInn+'" y1="'+wt2+'" x2="'+bRt+'" y2="'+wt2+'" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,3"/>';
+  s+='<line x1="'+bInn+'" y1="'+wt1+'" x2="'+(bx-12)+'" y2="'+wt1+'" stroke="'+GRY+'" stroke-width="1" stroke-dasharray="4,2"/>';
+  s+=lbl(bx-30,wt1+4,wl1+' cm3',GRY,9,'600');
+  s+=lbl(bx-30,wt2+4,wl2+' cm3',AC,9,'600');
+  s+='<line x1="'+(bx+bW+10)+'" y1="'+wt1+'" x2="'+(bx+bW+10)+'" y2="'+wt2+'" stroke="'+AC+'" stroke-width="1.5"/>';
+  s+='<polygon points="'+(bx+bW+10)+','+wt2+' '+(bx+bW+6)+','+(wt2-8)+' '+(bx+bW+14)+','+(wt2-8)+'" fill="'+AC+'"/>';
+  s+=lbl(bx+bW+26,(wt1+wt2)/2+4,volLabel,AC,9,'700');
+  s+=lbl(W/2,H-6,'V = final - initial reading',GRY,9,'600');
+  return svgD(s);
+}
+
+function tri(hl){
+  var cx=W/2,ty=32,bly=138,side=110;
+  var s='';
+  s+='<polygon points="'+cx+','+ty+' '+(cx-side/2)+','+bly+' '+(cx+side/2)+','+bly+'" fill="none" stroke="'+GRY+'" stroke-width="1.5"/>';
+  s+='<line x1="'+(cx-side/2)+'" y1="'+bly+'" x2="'+(cx+side/2)+'" y2="'+bly+'" stroke="'+GRY+'" stroke-width="1.5"/>';
+  var covers={rho:cx+','+ty+' '+(cx-side/2)+','+bly+' '+(cx+side/2)+','+bly,m:(cx-side/2)+','+bly+' '+cx+','+bly+' '+cx+','+ty,V:cx+','+bly+' '+(cx+side/2)+','+bly+' '+cx+','+ty};
+  var fills={rho:'#bae6fd',m:'#dcfce7',V:'#fef9c3'};
+  ['rho','m','V'].forEach(function(k){
+    var isHL=hl===k;
+    s+='<polygon points="'+covers[k]+'" fill="'+fills[k]+'" opacity="'+(isHL?0.8:0.4)+'"/>';
+    if(isHL) s+='<polygon points="'+covers[k]+'" fill="none" stroke="'+AC+'" stroke-width="2" stroke-dasharray="4,2"/>';
+  });
+  s+=lbl(cx,ty+42,'p',AC,24,'900');
+  s+=lbl(cx-26,bly-14,'m',GRN,24,'900');
+  s+=lbl(cx+26,bly-14,'V',ORG,24,'900');
+  s+=lbl(cx,H-22,'p = m/V     m = p*V     V = m/p',GRY,9,'600');
+  return svgD(s);
+}
+
+function cmpCard(mat1,d1,mat2,d2,massQ,f1,f2){
+  f1=f1||'#bae6fd'; f2=f2||'#fef9c3';
+  var bx1=40,bx2=210,by=55,bw=110,bh=80;
+  var s='';
+  s+='<rect x="'+bx1+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="8" fill="'+f1+'" stroke="'+AC+'" stroke-width="1.5"/>';
+  s+='<rect x="'+bx2+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="8" fill="'+f2+'" stroke="'+ORG+'" stroke-width="1.5"/>';
+  s+=lbl(bx1+bw/2,by+28,mat1,AC,12,'700');
+  s+=lbl(bx1+bw/2,by+46,'p='+d1,AC,10,'600');
+  s+=lbl(bx1+bw/2,by+62,'kg/m3',AC,9,'400');
+  s+=lbl(bx2+bw/2,by+28,mat2,ORG,12,'700');
+  s+=lbl(bx2+bw/2,by+46,'p='+d2,ORG,10,'600');
+  s+=lbl(bx2+bw/2,by+62,'kg/m3',ORG,9,'400');
+  s+=lbl(W/2,by+bh+26,'V=0.5m3 each. Find mass of '+massQ,GRY,10,'600');
+  s+=lbl(W/2,H-6,'m = p x V',GRY,10,'600');
+  return svgD(s);
+}
+
+const DIAGRAMS={
+  cb_2x3x4:   function(){return cuboid(2,3,4,'m = ?','?','2x3x4 = 24 m3');},
+  cb_5x2x2:   function(){return cuboid(5,2,2,'m = 800 kg','?','5x2x2 = 20 m3');},
+  cb_3x3x3:   function(){return cuboid(3,3,3,'m = 810 kg','?','3x3x3 = 27 m3');},
+  cb_4x2x3:   function(){return cuboid(4,2,3,'m = 480 kg','?','4x2x3 = 24 m3');},
+  cb_find_m:  function(){return cuboid(2,3,4,'m = ?','500 kg/m3','2x3x4 = 24 m3');},
+  cb_find_v:  function(){return cuboid(2,2,2,'m = 1200 kg','400 kg/m3','? = m/p');},
+  cb_1x2x5:   function(){return cuboid(1,2,5,'m = 1400 kg','?','1x2x5 = 10 m3');},
+  cy_2x5:     function(){return cylinder(2,5,'m = 1570 kg','?');},
+  cy_3x4:     function(){return cylinder(3,4,'m = 11310 kg','?');},
+  bk_40_65:   function(){return beaker(40,65,'rock','25 cm3');},
+  bk_200_280: function(){return beaker(200,280,'metal','80 cm3');},
+  bk_100_150: function(){return beaker(100,150,'object','50 cm3');},
+  bk_50_80:   function(){return beaker(50,80,'block','30 cm3');},
+  tri_rho:    function(){return tri('rho');},
+  tri_m:      function(){return tri('m');},
+  tri_V:      function(){return tri('V');},
+  tri_all:    function(){return tri('');},
+  cmp_iw:     function(){return cmpCard('Iron','7874','Wood','600','iron');},
+  cmp_al:     function(){return cmpCard('Aluminium','2710','Lead','11340','lead','#e0f2fe','#fecaca');},
+};
+
+const QUESTIONS=[
+  {id:'fd1',topic:'Find Density',diagram:'cb_5x2x2',question:'m = 800 kg, V = 20 m\u00b3. Find the density.',answer:'40',unit:'kg/m\u00b3'},
+  {id:'fd2',topic:'Find Density',diagram:'cb_3x3x3',question:'m = 810 kg, V = 27 m\u00b3. Find the density.',answer:'30',unit:'kg/m\u00b3'},
+  {id:'fd3',topic:'Find Density',diagram:'cb_4x2x3',question:'m = 480 kg, V = 24 m\u00b3. Find the density.',answer:'20',unit:'kg/m\u00b3'},
+  {id:'fd4',topic:'Find Density',diagram:'cb_1x2x5',question:'m = 1400 kg, V = 10 m\u00b3. Find the density.',answer:'140',unit:'kg/m\u00b3'},
+  {id:'fd5',topic:'Find Density',diagram:'tri_rho',question:'Mass = 500 g, Volume = 250 cm\u00b3. Find the density.',answer:'2',unit:'g/cm\u00b3'},
+  {id:'fd6',topic:'Find Density',diagram:'bk_40_65',question:'Rock mass = 75 g. Volume by displacement = 25 cm\u00b3. Find density.',answer:'3',unit:'g/cm\u00b3'},
+  {id:'fd7',topic:'Find Density',diagram:'bk_200_280',question:'Metal mass = 640 g. Volume by displacement = 80 cm\u00b3. Find density.',answer:'8',unit:'g/cm\u00b3'},
+  {id:'fd8',topic:'Find Density',diagram:'bk_100_150',question:'Object mass = 150 g. Volume by displacement = 50 cm\u00b3. Find density.',answer:'3',unit:'g/cm\u00b3'},
+  {id:'fd9',topic:'Find Density',diagram:'tri_rho',question:'m = 270 kg, V = 0.1 m\u00b3. Find the density.',answer:'2700',unit:'kg/m\u00b3'},
+  {id:'fd10',topic:'Find Density',diagram:'bk_50_80',question:'Block mass = 120 g. Volume by displacement = 30 cm\u00b3. Find density.',answer:'4',unit:'g/cm\u00b3'},
+
+  {id:'fm1',topic:'Find Mass',diagram:'cb_find_m',question:'\u03c1 = 500 kg/m\u00b3, V = 24 m\u00b3. Find the mass.',answer:'12000',unit:'kg'},
+  {id:'fm2',topic:'Find Mass',diagram:'tri_m',question:'\u03c1 = 8000 kg/m\u00b3, V = 0.5 m\u00b3. Find the mass.',answer:'4000',unit:'kg'},
+  {id:'fm3',topic:'Find Mass',diagram:'tri_m',question:'\u03c1 = 2700 kg/m\u00b3, V = 2 m\u00b3. Find the mass.',answer:'5400',unit:'kg'},
+  {id:'fm4',topic:'Find Mass',diagram:'tri_m',question:'\u03c1 = 1000 kg/m\u00b3 (water), V = 3 m\u00b3. Find the mass.',answer:'3000',unit:'kg'},
+  {id:'fm5',topic:'Find Mass',diagram:'tri_m',question:'\u03c1 = 7.9 g/cm\u00b3, V = 10 cm\u00b3. Find the mass.',answer:'79',unit:'g'},
+  {id:'fm6',topic:'Find Mass',diagram:'tri_m',question:'\u03c1 = 0.9 g/cm\u00b3, V = 200 cm\u00b3. Find the mass.',answer:'180',unit:'g'},
+  {id:'fm7',topic:'Find Mass',diagram:'cmp_iw',question:'Iron \u03c1 = 7874 kg/m\u00b3, V = 0.5 m\u00b3. Find the mass.',answer:'3937',unit:'kg'},
+  {id:'fm8',topic:'Find Mass',diagram:'cmp_al',question:'Lead \u03c1 = 11340 kg/m\u00b3, V = 0.5 m\u00b3. Find the mass.',answer:'5670',unit:'kg'},
+
+  {id:'fv1',topic:'Find Volume',diagram:'cb_find_v',question:'\u03c1 = 400 kg/m\u00b3, m = 1200 kg. Find the volume.',answer:'3',unit:'m\u00b3'},
+  {id:'fv2',topic:'Find Volume',diagram:'tri_V',question:'\u03c1 = 2700 kg/m\u00b3, m = 5400 kg. Find the volume.',answer:'2',unit:'m\u00b3'},
+  {id:'fv3',topic:'Find Volume',diagram:'tri_V',question:'\u03c1 = 8000 kg/m\u00b3, m = 4000 kg. Find the volume.',answer:'0.5',unit:'m\u00b3'},
+  {id:'fv4',topic:'Find Volume',diagram:'tri_V',question:'\u03c1 = 1000 kg/m\u00b3, m = 500 kg. Find the volume.',answer:'0.5',unit:'m\u00b3'},
+  {id:'fv5',topic:'Find Volume',diagram:'tri_V',question:'\u03c1 = 3 g/cm\u00b3, m = 150 g. Find the volume.',answer:'50',unit:'cm\u00b3'},
+  {id:'fv6',topic:'Find Volume',diagram:'tri_V',question:'\u03c1 = 7.9 g/cm\u00b3, m = 790 g. Find the volume.',answer:'100',unit:'cm\u00b3'},
+
+  {id:'dv1',topic:'Displacement',diagram:'bk_40_65',question:'Water: before 40 cm\u00b3, after 65 cm\u00b3. Find object volume.',answer:'25',unit:'cm\u00b3'},
+  {id:'dv2',topic:'Displacement',diagram:'bk_200_280',question:'Water: before 200 cm\u00b3, after 280 cm\u00b3. Find object volume.',answer:'80',unit:'cm\u00b3'},
+  {id:'dv3',topic:'Displacement',diagram:'bk_100_150',question:'Water: before 100 cm\u00b3, after 150 cm\u00b3. Find object volume.',answer:'50',unit:'cm\u00b3'},
+  {id:'dv4',topic:'Displacement',diagram:'bk_50_80',question:'Water: before 50 cm\u00b3, after 80 cm\u00b3. Find object volume.',answer:'30',unit:'cm\u00b3'},
+  {id:'dv5',topic:'Displacement',diagram:'bk_40_65',question:'Rock volume = 25 cm\u00b3, mass = 100 g. Find density.',answer:'4',unit:'g/cm\u00b3'},
+  {id:'dv6',topic:'Displacement',diagram:'bk_200_280',question:'Volume = 80 cm\u00b3, \u03c1 = 8 g/cm\u00b3. Find mass.',answer:'640',unit:'g'},
+
+  {id:'mx1',topic:'Mixed',diagram:'tri_all',question:'A cube of side 2 m has mass 400 kg. Find the density.',answer:'50',unit:'kg/m\u00b3'},
+  {id:'mx2',topic:'Mixed',diagram:'tri_all',question:'\u03c1 of aluminium = 2700 kg/m\u00b3. V = 3 m\u00b3. Find mass.',answer:'8100',unit:'kg'},
+  {id:'mx3',topic:'Mixed',diagram:'tri_all',question:'m = 900 g, \u03c1 = 0.9 g/cm\u00b3. Find volume.',answer:'1000',unit:'cm\u00b3'},
+  {id:'mx4',topic:'Mixed',diagram:'tri_all',question:'A liquid has m = 600 g and V = 500 cm\u00b3. Find its density.',answer:'1.2',unit:'g/cm\u00b3'},
+  {id:'mx5',topic:'Mixed',diagram:'cb_2x3x4',question:'Cuboid: 2m \xd7 3m \xd7 4m. Find volume.',answer:'24',unit:'m\u00b3'},
+  {id:'mx6',topic:'Mixed',diagram:'cb_2x3x4',question:'Cuboid V=24 m\u00b3, \u03c1=500 kg/m\u00b3. Find mass.',answer:'12000',unit:'kg'},
+  {id:'mx7',topic:'Mixed',diagram:'cy_2x5',question:'Cylinder r=2m, h=5m (\u03c0r\u00b2h\u226562.8 m\u00b3). m=1570 kg. Find density.',answer:'25',unit:'kg/m\u00b3',accept:['25','24.9','25.0']},
+  {id:'mx8',topic:'Mixed',diagram:'tri_all',question:'Object floats in water (\u03c1=1000 kg/m\u00b3). Its own density must be\u2026',answer:'less',unit:'',accept:['less','lower','less than 1000','<1000']},
+];
+
+const TOPICS=['Find Density','Find Mass','Find Volume','Displacement','Mixed'];
+const SK='densityforge_v1';
+function loadState(){try{var r=localStorage.getItem(SK);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(SK,JSON.stringify({enabledTopics:enabledTopics,mastered:[...mastered],stats:stats,streaks:streaks}));}
+var saved=loadState();
+var enabledTopics=saved&&saved.enabledTopics?saved.enabledTopics:Object.fromEntries(TOPICS.map(function(t){return[t,true];}));
+var mastered=new Set(Array.isArray(saved&&saved.mastered)?saved.mastered:[]);
+var stats=saved&&saved.stats&&typeof saved.stats==='object'?saved.stats:{correct:0,total:0,sessionStreak:0};
+var streaks=saved&&saved.streaks&&typeof saved.streaks==='object'?saved.streaks:{};
+TOPICS.forEach(function(t){if(enabledTopics[t]===undefined)enabledTopics[t]=true;});
+
+function getPool(){return QUESTIONS.filter(function(q){return enabledTopics[q.topic]&&!mastered.has(q.id);});}
+function buildQ(prev){var pool=getPool();if(!pool.length)return null;var c=prev?pool.filter(function(q){return q.id!==prev.id;}):pool;return(c.length?c:pool)[Math.floor(Math.random()*(c.length||pool.length))];}
+
+var tb=document.getElementById('topicBadge'),dw=document.getElementById('diagramWrap'),
+  qt=document.getElementById('questionText'),qs=document.getElementById('questionSub'),
+  ai=document.getElementById('answerInput'),sb=document.getElementById('submitBtn'),
+  ul=document.getElementById('unitLabel'),fm=document.getElementById('feedbackMsg'),
+  timerBar=document.getElementById('timerBar'),sde=document.getElementById('streakDots'),
+  sc=document.getElementById('statCorrect'),st=document.getElementById('statTotal'),
+  sp=document.getElementById('statPct'),pb=document.getElementById('pctBar'),
+  ss=document.getElementById('statStreak'),ml=document.getElementById('masteredList'),
+  mc=document.getElementById('masteredCount'),sbc=document.getElementById('sbCorrect'),
+  sbt=document.getElementById('sbTotal'),sbp=document.getElementById('sbPct'),
+  sbpb=document.getElementById('sbPctBar'),sbm=document.getElementById('sbMastered'),
+  lgd=document.getElementById('levelGridDesktop'),lgm=document.getElementById('levelGridMobile'),
+  tst=document.getElementById('toast'),dt=document.getElementById('drawerToggle'),
+  md=document.getElementById('mobileDrawer');
+
+function renderGrid(g){
+  g.innerHTML='';
+  TOPICS.forEach(function(topic){
+    var hm=QUESTIONS.some(function(q){return q.topic===topic&&mastered.has(q.id);});
+    var w=document.createElement('label'); w.className='lv-toggle'+(hm?' has-mastered':'');
+    var inp=document.createElement('input'); inp.type='checkbox'; inp.checked=enabledTopics[topic];
+    inp.addEventListener('change',function(){enabledTopics[topic]=inp.checked;syncT(topic,inp.checked);saveState();nxt();});
+    var pill=document.createElement('div'); pill.className='pill'; pill.innerHTML='<span class="lv-name">'+topic+'</span>';
+    var badge=document.createElement('div'); badge.className='mastered-badge';
+    w.appendChild(inp);w.appendChild(pill);w.appendChild(badge);g.appendChild(w);
+  });
+}
+function renderToggles(){renderGrid(lgd);renderGrid(lgm);}
+function syncT(topic,checked){[lgd,lgm].forEach(function(g){g.querySelectorAll('.lv-toggle').forEach(function(l){if(l.querySelector('.lv-name').textContent===topic)l.querySelector('input').checked=checked;});});}
+function renderDots(count){sde.innerHTML='';for(var i=0;i<6;i++){var d=document.createElement('div');d.className='streak-dot'+(i<count?' filled':'');sde.appendChild(d);}}
+
+var cQ=null,tI=null,tS=null,TL=6000;
+function startTimer(){
+  clearInterval(tI);tS=Date.now();timerBar.style.transition='none';timerBar.style.width='100%';timerBar.className='timer-bar';
+  tI=setInterval(function(){
+    var pct=Math.max(0,100-((Date.now()-tS)/TL)*100);
+    timerBar.style.transition='width 0.1s linear';timerBar.style.width=pct+'%';
+    if(pct<=16)timerBar.className='timer-bar urgent';
+    else if(pct<=33)timerBar.className='timer-bar warning-orange';
+    else if(pct<=55)timerBar.className='timer-bar warning';
+    else timerBar.className='timer-bar';
+  },100);
+}
+function stopTimer(){clearInterval(tI);}
+function elapsed(){return Date.now()-(tS||Date.now());}
+
+function nxt(){
+  stopTimer();fm.textContent='';fm.className='feedback-msg';ai.value='';ai.className='answer-input';ai.disabled=false;dw.innerHTML='';
+  if(!TOPICS.some(function(t){return enabledTopics[t];})){tb.textContent='—';qt.textContent='Enable a topic to begin.';qs.textContent='';cQ=null;timerBar.style.width='0%';renderDots(0);return;}
+  var q=buildQ(cQ);
+  if(!q){tb.textContent='Done!';qt.textContent='All questions mastered!';qs.textContent='Enable more topics or reset.';cQ=null;timerBar.style.width='0%';renderDots(0);return;}
+  cQ=q;tb.textContent=q.topic;dw.innerHTML=DIAGRAMS[q.diagram]();qt.textContent=q.question;ul.textContent=q.unit||'';
+  var streak=streaks[q.id]||0;renderDots(streak);qs.textContent=streak>0?streak+'/6 mastery streak':'';
+  startTimer();if(!('ontouchstart' in window))ai.focus();
+}
+
+function submit(){
+  if(!cQ||ai.disabled)return;var raw=ai.value.trim().toLowerCase();if(!raw){ai.focus();return;}
+  var el=elapsed();stopTimer();stats.total++;
+  var uN=parseFloat(raw),cN=parseFloat(cQ.answer);
+  var nm=!isNaN(uN)&&!isNaN(cN)&&Math.abs(uN-cN)<0.01;
+  var sm=raw===cQ.answer.toLowerCase();
+  var am=cQ.accept?cQ.accept.some(function(a){return raw===a.toLowerCase()||parseFloat(raw)===parseFloat(a);}):false;
+  var ok=sm||nm||am;
+  if(ok){
+    stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;ai.className='answer-input correct-flash';
+    streaks[cQ.id]=el<=TL?(streaks[cQ.id]||0)+1:0;var streak=streaks[cQ.id];renderDots(streak);
+    if(streak>=6){mastered.add(cQ.id);streaks[cQ.id]=0;fm.textContent='MASTERED!';fm.className='feedback-msg mastered';showToast('Question mastered!',true);renderToggles();renderMastered();}
+    else{var msgs=['Correct!','Nice!','Spot on!','Yes!','Right!'];fm.textContent=msgs[Math.floor(Math.random()*msgs.length)];fm.className='feedback-msg correct';}
+  } else {
+    stats.sessionStreak=0;streaks[cQ.id]=0;renderDots(0);ai.className='answer-input wrong-flash';
+    fm.textContent='Wrong: '+cQ.answer+(cQ.unit?' '+cQ.unit:'');fm.className='feedback-msg wrong';
+  }
+  updateStats();saveState();ai.disabled=true;setTimeout(nxt,1000);
+}
+
+function updateStats(){
+  var c=stats.correct,t=stats.total,pct=t>0?Math.round((c/t)*100):null;
+  var ps=pct!==null?pct+'%':'--',pw=pct!==null?pct+'%':'0%';
+  sc.textContent=c;st.textContent=t;sp.textContent=ps;pb.style.width=pw;
+  sbc.textContent=c;sbt.textContent=t;sbp.textContent=ps;sbpb.style.width=pw;sbm.textContent=mastered.size;
+  var col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pb.style.background=col;sbpb.style.background=col;
+  var sss=stats.sessionStreak||0;ss.textContent=sss>=5?sss+' in a row':'';
+}
+function renderMastered(){
+  mc.textContent=mastered.size;sbm.textContent=mastered.size;
+  if(!mastered.size){ml.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}
+  ml.innerHTML=[...mastered].sort().map(function(id){var q=QUESTIONS.find(function(x){return x.id===id;});return '<div class="mastered-item">* '+(q?q.question.slice(0,30)+'...':id)+'</div>';}).join('');
+}
+var ttm;
+function showToast(msg,im){tst.textContent=msg;tst.className='toast'+(im?' mastered-toast':'')+' show';clearTimeout(ttm);ttm=setTimeout(function(){tst.className='toast'+(im?' mastered-toast':'');},2500);}
+
+var allOn=true;
+function toggleAll(){allOn=!allOn;TOPICS.forEach(function(t){enabledTopics[t]=allOn;});saveState();renderToggles();nxt();}
+function doReset(){if(!confirm('Reset all mastery progress and stats?'))return;mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};allOn=true;TOPICS.forEach(function(t){enabledTopics[t]=true;});saveState();renderToggles();renderMastered();updateStats();nxt();showToast('Progress reset.');}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+dt.addEventListener('click',function(){var open=md.classList.toggle('open');dt.classList.toggle('open',open);});
+sb.addEventListener('click',submit);
+ai.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+renderToggles();renderMastered();updateStats();nxt();
+</script>
+</body>
+</html>

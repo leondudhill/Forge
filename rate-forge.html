@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RateForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#ffffff;--surface:#f5f3ff;--surface2:#ede9fe;--border:#ddd6fe;--text:#1e0a3e;--text-muted:#6b45a0;--accent:#7c3aed;--accent2:#f5a623;--correct:#2a9d5c;--wrong:#e84c1e; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;text-decoration:none;}
+  .logo .logo-main{color:var(--text);}.logo .logo-forge{color:var(--accent);}
+  .byline{font-size:11px;color:#111111;letter-spacing:0.5px;font-weight:400;text-align:right;}
+  .byline strong{font-weight:700;color:var(--accent);}
+  .score-bar{display:none;background:var(--surface);border-bottom:1.5px solid var(--border);padding:10px 20px;gap:16px;align-items:center;flex-shrink:0;}
+  .score-bar-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
+  .score-bar-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);}
+  .score-bar-value{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);}
+  .score-bar-pct-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .score-bar-pct-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+  .score-bar-pct-fill{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;width:0%;}
+  .score-bar-pct-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-muted);}
+  .layout{display:grid;grid-template-columns:210px 1fr 210px;flex:1;min-height:0;}
+  .sidebar{border-right:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-right{border-right:none;border-left:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-muted);margin-bottom:14px;}
+  .level-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .lv-toggle{position:relative;cursor:pointer;}
+  .lv-toggle input{display:none;}
+  .lv-toggle .pill{display:flex;align-items:center;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all 0.15s ease;user-select:none;padding:0 14px;}
+  .lv-toggle input:checked+.pill{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .lv-toggle .mastered-badge{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:1.5px solid #fff;display:none;}
+  .lv-toggle.has-mastered .mastered-badge{display:block;}
+  .toggle-all-btn{margin-top:12px;width:100%;padding:8px;background:none;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .toggle-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .reset-btn{margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #f2c4bb;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--wrong);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .reset-btn:hover{background:#fff0ed;}
+  .main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:22px;}
+  .q-card{width:min(460px,94vw);padding:24px 28px;border:3px solid var(--border);border-radius:20px;background:var(--surface);text-align:center;transition:border-color 0.2s,background 0.2s;}
+  .q-card.correct-flash{border-color:var(--correct);background:#edfaf3;}
+  .q-card.wrong-flash{border-color:var(--wrong);background:#fff0ed;}
+  .q-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:var(--surface2);border-radius:20px;padding:3px 10px;margin-bottom:12px;}
+  .q-text{font-size:clamp(14px,3vw,16px);font-weight:500;color:var(--text);line-height:1.7;}
+  .q-text strong{color:var(--accent);}
+  .question-sub{font-size:13px;color:var(--text-muted);font-weight:500;letter-spacing:0.5px;min-height:20px;text-align:center;}
+  .timer-wrap{width:min(320px,80vw);height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .timer-bar{height:100%;width:100%;background:var(--correct);border-radius:2px;transition:width 0.1s linear,background 0.3s;}
+  .timer-bar.warning{background:#f5c518;}.timer-bar.warning-orange{background:#f07d20;}.timer-bar.urgent{background:var(--wrong);}
+  .streak-dots{display:flex;gap:6px;justify-content:center;}
+  .streak-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all 0.2s ease;}
+  .streak-dot.filled{background:var(--correct);border-color:var(--correct);transform:scale(1.2);}
+  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(380px,90vw);}
+  .choice-btn{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:16px 10px;border:2px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);cursor:pointer;transition:all 0.15s ease;text-align:center;min-height:60px;line-height:1.3;}
+  .choice-btn:hover:not(:disabled){border-color:var(--accent);background:var(--surface2);color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(124,58,237,0.12);}
+  .choice-btn:active:not(:disabled){transform:scale(0.98);}
+  .choice-btn:disabled{cursor:default;}
+  .choice-btn.correct-reveal{border-color:var(--correct);background:#edfaf3;color:var(--correct);}
+  .choice-btn.wrong-reveal{border-color:var(--wrong);background:#fff0ed;color:var(--wrong);}
+  .feedback-msg{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;min-height:26px;text-align:center;}
+  .feedback-msg.correct{color:var(--correct);}.feedback-msg.wrong{color:var(--wrong);}.feedback-msg.mastered{color:var(--accent2);}
+  .stat-block{margin-bottom:18px;flex-shrink:0;}
+  .stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+  .stat-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1;color:var(--text);}
+  .stat-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .pct-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .pct-bar{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:18px 0;}
+  .mastered-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;}
+  .mastered-item{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);padding:3px 6px;background:var(--surface);border-radius:4px;}
+  .mobile-drawer-toggle{display:none;width:100%;padding:12px 20px;background:var(--surface);border:none;border-top:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;letter-spacing:0.3px;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .mobile-drawer-toggle .arrow{font-size:10px;transition:transform 0.25s;color:var(--text-muted);}
+  .mobile-drawer-toggle.open .arrow{transform:rotate(180deg);}
+  .mobile-drawer{display:none;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px 20px;flex-shrink:0;}
+  .mobile-drawer.open{display:block;}
+  .mobile-drawer-actions{display:flex;gap:8px;margin-top:10px;}
+  .mobile-drawer-actions .toggle-all-btn,.mobile-drawer-actions .reset-btn{margin:0;flex:1;}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:12px 24px;border-radius:30px;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.mastered-toast{background:var(--accent2);color:var(--text);}
+  footer{border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111111;background:var(--surface);line-height:1.5;flex-shrink:0;}
+  .footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+  @media(max-width:860px){.layout{grid-template-columns:200px 1fr;}.sidebar-right{display:none;}.score-bar{display:flex;}}
+  @media(max-width:580px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.score-bar{display:flex;}.mobile-drawer-toggle{display:flex;}.main{padding:24px 12px;gap:16px;}header{padding:12px 16px;}.byline{display:none;}footer{padding:10px 16px;font-size:10.5px;}}
+</style>
+</head>
+<body>
+<header>
+  <a href="chemistry.html" class="logo"><span class="logo-main">Rate</span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A website by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+  <div class="main">
+    <div class="q-card" id="qCard">
+      <div class="q-tag" id="qTag">—</div>
+      <div class="q-text" id="qText">—</div>
+    </div>
+    <div class="question-sub" id="questionSub">Enable a category to begin</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="choice-grid">
+      <button class="choice-btn" id="btn0"></button>
+      <button class="choice-btn" id="btn1"></button>
+      <button class="choice-btn" id="btn2"></button>
+      <button class="choice-btn" id="btn3"></button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Options</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill</footer>
+<div class="toast" id="toast"></div>
+<script>
+const QUESTIONS = [
+  // Level 1 — Temperature, concentration, surface area
+  {key:'temp_up',    tag:'Temperature',    statement:'The temperature of a reaction is <strong>increased</strong>. The rate of reaction…',                         answer:'Increases',          distractors:['Decreases','Stays the same','First increases then decreases'], level:1},
+  {key:'temp_down',  tag:'Temperature',    statement:'The temperature of a reaction is <strong>decreased</strong>. The rate of reaction…',                        answer:'Decreases',          distractors:['Increases','Stays the same','First decreases then increases'], level:1},
+  {key:'conc_up',    tag:'Concentration',  statement:'The concentration of a reactant solution is <strong>increased</strong>. The rate of reaction…',              answer:'Increases',          distractors:['Decreases','Stays the same','Halves'], level:1},
+  {key:'conc_down',  tag:'Concentration',  statement:'The concentration of a reactant solution is <strong>decreased</strong>. The rate of reaction…',             answer:'Decreases',          distractors:['Increases','Stays the same','Doubles'], level:1},
+  {key:'sa_up',      tag:'Surface Area',   statement:'A solid reactant is <strong>ground into a powder</strong>. The rate of reaction…',                          answer:'Increases',          distractors:['Decreases','Stays the same','Halves'], level:1},
+  {key:'sa_down',    tag:'Surface Area',   statement:'A solid reactant is formed into <strong>larger chunks</strong>. The rate of reaction…',                     answer:'Decreases',          distractors:['Increases','Stays the same','Is unaffected'], level:1},
+  {key:'press_up',   tag:'Pressure (Gas)', statement:'The pressure of a gas reaction is <strong>increased</strong>. The rate of reaction…',                       answer:'Increases',          distractors:['Decreases','Stays the same','Cannot be determined'], level:1},
+
+  // Level 2 — Catalysts and light
+  {key:'cat_add',    tag:'Catalyst',       statement:'A <strong>catalyst is added</strong> to a reaction. The rate of reaction…',                                answer:'Increases',          distractors:['Decreases','Stays the same','First increases then decreases'], level:2},
+  {key:'cat_why',    tag:'Catalyst',       statement:'A catalyst increases the rate of reaction by…',                                                             answer:'Lowering the activation energy', distractors:['Increasing temperature','Increasing concentration','Adding more reactant'], level:2},
+  {key:'cat_unchanged',tag:'Catalyst',     statement:'After a reaction with a catalyst, the catalyst is…',                                                        answer:'Unchanged',          distractors:['Used up','Converted to product','Increased in mass'], level:2},
+  {key:'light_phot', tag:'Light',          statement:'In a photosynthesis reaction, increasing <strong>light intensity</strong> (up to a limit) will…',           answer:'Increase the rate',  distractors:['Decrease the rate','Have no effect','Decrease then increase the rate'], level:2},
+  {key:'enzyme_opt', tag:'Enzymes',        statement:'Raising temperature above an enzyme\'s <strong>optimum</strong> will…',                                    answer:'Decrease the rate',  distractors:['Increase the rate','Have no effect','First increase then decrease'], level:2},
+
+  // Level 2 — Collision theory
+  {key:'coll_freq',  tag:'Collision Theory',statement:'Increasing temperature increases rate because particles have <strong>more energy</strong> and…',           answer:'Collide more frequently and with more energy', distractors:['Move more slowly','Collide less often','Break apart more easily'], level:2},
+  {key:'coll_energy',tag:'Collision Theory',statement:'A successful collision requires particles to have energy greater than the…',                               answer:'Activation energy',  distractors:['Bond energy','Kinetic energy','Ionisation energy'], level:2},
+  {key:'act_energy', tag:'Collision Theory',statement:'The <strong>activation energy</strong> of a reaction is…',                                               answer:'The minimum energy needed for a successful collision', distractors:['The energy released by the reaction','The energy of all particles','The average kinetic energy'], level:2},
+
+  // Level 3 — More nuanced
+  {key:'water_rate',tag:'Concentration',   statement:'Adding water to an acid solution will <strong>dilute</strong> it. The rate of its reaction…',               answer:'Decreases',          distractors:['Increases','Stays the same','First decreases then increases'], level:3},
+  {key:'removing',  tag:'Equilibrium',     statement:'In a reversible reaction, <strong>removing a product</strong> will shift the equilibrium…',               answer:'To the right (forward reaction)', distractors:['To the left','Have no effect','Increase the temperature'], level:3},
+  {key:'eq_temp',   tag:'Equilibrium',     statement:'Increasing temperature in a reversible reaction will favour the <strong>endothermic</strong> direction because…',answer:'It absorbs the extra energy', distractors:['It releases energy','The activation energy increases','The catalyst is destroyed'], level:3},
+  {key:'eq_press',  tag:'Equilibrium',     statement:'Increasing pressure in a gas equilibrium favours the side with…',                                          answer:'Fewer moles of gas',  distractors:['More moles of gas','Equal moles of gas','Higher temperature'], level:3},
+  {key:'le_chatel', tag:'Equilibrium',     statement:'Le Chatelier\'s Principle states that a system will respond to a change by…',                             answer:'Opposing that change', distractors:['Amplifying that change','Stopping the reaction','Increasing temperature'], level:3},
+];
+
+const LEVELS = [
+  {id:1,name:'Temperature & Concentration'},
+  {id:2,name:'Catalysts & Collision Theory'},
+  {id:3,name:'Equilibrium'},
+  {id:4,name:'All Topics'},
+];
+
+const STORAGE_KEY='rateforge_v1';
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({enabledLevels,mastered:[...mastered],stats,streaks}));}
+
+const saved=loadState();
+let enabledLevels=saved?.enabledLevels||{1:true,2:false,3:false,4:false};
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+LEVELS.forEach(l=>{if(enabledLevels[l.id]===undefined)enabledLevels[l.id]=false;});
+
+function getPool(){
+  if(enabledLevels[4])return QUESTIONS.filter(q=>!mastered.has(q.key));
+  const ids=[1,2,3].filter(id=>enabledLevels[id]);
+  return QUESTIONS.filter(q=>ids.includes(q.level)&&!mastered.has(q.key));
+}
+function buildQuestion(prev){
+  const pool=getPool();
+  if(!pool.length)return null;
+  let candidates=pool.filter(q=>!prev||q.key!==prev.correct.key);
+  if(!candidates.length)candidates=pool;
+  const correct=candidates[Math.floor(Math.random()*candidates.length)];
+  const choices=[correct.answer,...correct.distractors].sort(()=>Math.random()-0.5);
+  return{correct,choices};
+}
+
+const qTag=document.getElementById('qTag');const qText=document.getElementById('qText');const qCard=document.getElementById('qCard');
+const questionSub=document.getElementById('questionSub');const feedbackMsg=document.getElementById('feedbackMsg');
+const timerBar=document.getElementById('timerBar');const streakDotsEl=document.getElementById('streakDots');
+const choiceBtns=[0,1,2,3].map(i=>document.getElementById('btn'+i));
+const statCorrect=document.getElementById('statCorrect');const statTotal=document.getElementById('statTotal');
+const statPct=document.getElementById('statPct');const pctBar=document.getElementById('pctBar');
+const statStreak=document.getElementById('statStreak');const masteredList=document.getElementById('masteredList');
+const masteredCount=document.getElementById('masteredCount');const sbCorrect=document.getElementById('sbCorrect');
+const sbTotal=document.getElementById('sbTotal');const sbPct=document.getElementById('sbPct');
+const sbPctBar=document.getElementById('sbPctBar');const sbMastered=document.getElementById('sbMastered');
+const levelGridDesktop=document.getElementById('levelGridDesktop');const levelGridMobile=document.getElementById('levelGridMobile');
+const toast=document.getElementById('toast');const drawerToggle=document.getElementById('drawerToggle');const mobileDrawer=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(gridEl){
+  gridEl.innerHTML='';
+  LEVELS.forEach(l=>{
+    const hasMastered=[...mastered].some(key=>{const q=QUESTIONS.find(x=>x.key===key);return q&&q.level===l.id;});
+    const wrapper=document.createElement('label');wrapper.className='lv-toggle'+(hasMastered?' has-mastered':'');
+    const input=document.createElement('input');input.type='checkbox';input.checked=!!enabledLevels[l.id];
+    input.addEventListener('change',()=>{enabledLevels[l.id]=input.checked;syncLevelToggles(l.id,input.checked);saveState();nextQuestion();});
+    const pill=document.createElement('div');pill.className='pill';pill.innerHTML=`<span>${l.name}</span>`;
+    const badge=document.createElement('div');badge.className='mastered-badge';
+    wrapper.appendChild(input);wrapper.appendChild(pill);wrapper.appendChild(badge);gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles(){renderLevelGrid(levelGridDesktop);renderLevelGrid(levelGridMobile);}
+function syncLevelToggles(levelId,checked){
+  [levelGridDesktop,levelGridMobile].forEach(grid=>{
+    const inputs=grid.querySelectorAll('input[type=checkbox]');
+    const idx=LEVELS.findIndex(l=>l.id===levelId);
+    if(inputs[idx])inputs[idx].checked=checked;
+  });
+}
+function renderStreakDots(count){
+  streakDotsEl.innerHTML='';
+  for(let i=0;i<6;i++){const dot=document.createElement('div');dot.className='streak-dot'+(i<count?' filled':'');streakDotsEl.appendChild(dot);}
+}
+
+let currentQ=null,timerInterval=null,timerStart=null,timedOut=false;
+const TIME_LIMIT=7000;
+
+function startTimer(){
+  clearInterval(timerInterval);timerStart=Date.now();
+  timerBar.style.transition='none';timerBar.style.width='100%';timerBar.className='timer-bar';
+  timerInterval=setInterval(()=>{
+    const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100);
+    timerBar.style.transition='width 0.1s linear';timerBar.style.width=pct+'%';
+    if(pct<=0){stopTimer();handleTimeout();}
+    else if(pct<=16)timerBar.className='timer-bar urgent';
+    else if(pct<=33)timerBar.className='timer-bar warning-orange';
+    else if(pct<=55)timerBar.className='timer-bar warning';
+    else timerBar.className='timer-bar';
+  },100);
+}
+function stopTimer(){clearInterval(timerInterval);}
+function handleTimeout(){
+  if(!currentQ)return;
+  timedOut=true;streaks[currentQ.correct.key]=0;renderStreakDots(0);
+  feedbackMsg.textContent='Too slow — still try!';feedbackMsg.className='feedback-msg wrong';
+  qCard.classList.add('wrong-flash');
+  setTimeout(()=>{qCard.className='q-card';feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';},800);
+}
+function nextQuestion(){
+  stopTimer();timedOut=false;
+  feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';
+  qCard.className='q-card';
+  choiceBtns.forEach(btn=>{btn.disabled=false;btn.className='choice-btn';btn.textContent='';});
+  const anyEnabled=LEVELS.some(l=>enabledLevels[l.id]);
+  if(!anyEnabled){
+    qTag.textContent='—';qText.textContent='Enable a category to begin.';
+    questionSub.textContent='';choiceBtns.forEach(btn=>btn.disabled=true);
+    currentQ=null;timerBar.style.width='0%';renderStreakDots(0);return;
+  }
+  const q=buildQuestion(currentQ);
+  if(!q){
+    qTag.textContent='🎉';qText.textContent='All questions mastered! Enable more categories.';
+    questionSub.textContent='';choiceBtns.forEach(btn=>btn.disabled=true);
+    currentQ=null;timerBar.style.width='0%';renderStreakDots(0);return;
+  }
+  currentQ=q;
+  qTag.textContent=q.correct.tag;
+  qText.innerHTML=q.correct.statement;
+  const streak=streaks[q.correct.key]||0;renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:'What happens to the rate?';
+  q.choices.forEach((c,i)=>{choiceBtns[i].textContent=c;});
+  startTimer();
+}
+function submitAnswer(idx){
+  if(!currentQ||choiceBtns[0].disabled)return;
+  const chosen=currentQ.choices[idx];
+  stopTimer();stats.total++;
+  choiceBtns.forEach(btn=>btn.disabled=true);
+  if(chosen===currentQ.correct.answer){
+    stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    choiceBtns[idx].classList.add('correct-reveal');qCard.classList.add('correct-flash');
+    if(timedOut){
+      feedbackMsg.textContent='Correct — but too slow!';feedbackMsg.className='feedback-msg correct';
+    } else {
+      streaks[currentQ.correct.key]=(streaks[currentQ.correct.key]||0)+1;
+      const streak=streaks[currentQ.correct.key];renderStreakDots(streak);
+      if(streak>=6){
+        mastered.add(currentQ.correct.key);streaks[currentQ.correct.key]=0;
+        feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';
+        showToast('Question mastered! 🔥',true);renderToggles();renderMastered();
+      } else {
+        const msgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];
+        feedbackMsg.textContent=msgs[Math.floor(Math.random()*msgs.length)];feedbackMsg.className='feedback-msg correct';
+      }
+    }
+  } else {
+    stats.sessionStreak=0;streaks[currentQ.correct.key]=0;renderStreakDots(0);
+    choiceBtns[idx].classList.add('wrong-reveal');qCard.classList.add('wrong-flash');
+    currentQ.choices.forEach((c,i)=>{if(c===currentQ.correct.answer)choiceBtns[i].classList.add('correct-reveal');});
+    feedbackMsg.textContent=`✗  ${currentQ.correct.answer}`;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();
+  setTimeout(()=>nextQuestion(),1100);
+}
+choiceBtns.forEach((btn,i)=>btn.addEventListener('click',()=>submitAnswer(i)));
+document.addEventListener('keydown',e=>{if(e.key==='1')submitAnswer(0);if(e.key==='2')submitAnswer(1);if(e.key==='3')submitAnswer(2);if(e.key==='4')submitAnswer(3);});
+function updateStats(){
+  const c=stats.correct,t=stats.total;const pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—';const pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c;statTotal.textContent=t;statPct.textContent=pctStr;pctBar.style.width=pctW;
+  sbCorrect.textContent=c;sbTotal.textContent=t;sbPct.textContent=pctStr;sbPctBar.style.width=pctW;sbMastered.textContent=mastered.size;
+  const bc=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=bc;sbPctBar.style.background=bc;
+  const ss=stats.sessionStreak||0;statStreak.textContent=ss>=5?'🔥'.repeat(Math.floor(ss/5))+' '+ss+' in a row':'';
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size;sbMastered.textContent=mastered.size;
+  if(!mastered.size){masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}
+  masteredList.innerHTML=[...mastered].map(key=>{const q=QUESTIONS.find(x=>x.key===key);return`<div class="mastered-item">★ ${q?.tag}</div>`;}).join('');
+}
+let toastTimeout;
+function showToast(msg,isMastered=false){
+  toast.textContent=msg;toast.className='toast'+(isMastered?' mastered-toast':'')+' show';
+  clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{toast.className='toast'+(isMastered?' mastered-toast':'');},2500);
+}
+let allOn=false;
+function toggleAll(){allOn=!allOn;LEVELS.forEach(l=>enabledLevels[l.id]=allOn);saveState();renderToggles();nextQuestion();}
+function doReset(){
+  if(!confirm('Reset all progress? This cannot be undone.'))return;
+  mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};
+  LEVELS.forEach(l=>enabledLevels[l.id]=l.id===1);
+  saveState();renderToggles();renderMastered();updateStats();nextQuestion();showToast('Progress reset.');
+}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{const open=mobileDrawer.classList.toggle('open');drawerToggle.classList.toggle('open',open);});
+renderToggles();renderMastered();updateStats();nextQuestion();
+</script>
+</body>
+</html>

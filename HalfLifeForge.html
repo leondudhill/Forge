@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HalfLifeForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff7ed;
+    --surface2: #fed7aa;
+    --border: #fb923c;
+    --text: #3b1200;
+    --text-muted: #7c3a10;
+    --accent: #f97316;
+    --accent2: #facc15;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill { display: flex; align-items: center; justify-content: space-between; height: 44px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; user-select: none; padding: 0 14px; }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; background: var(--accent2); border-radius: 50%; border: 1.5px solid #fff; display: none; }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; gap: 18px; }
+  .question-card { text-align: center; max-width: 520px; width: 100%; }
+  .topic-badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 12px; }
+
+  .diagram-wrap { width: 100%; max-width: 360px; margin: 0 auto 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+
+  .question-text { font-family: 'DM Sans', sans-serif; font-size: clamp(14px, 2.8vw, 16px); font-weight: 600; line-height: 1.45; color: var(--text); margin-bottom: 4px; }
+  .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.4px; min-height: 20px; }
+
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning { background: #f5c518; } .timer-bar.warning-orange { background: #f07d20; } .timer-bar.urgent { background: var(--wrong); }
+
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(16px, 4vw, 24px); font-weight: 500; width: 160px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input:focus { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash { border-color: var(--wrong); background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+  .unit-label { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text-muted); min-width: 28px; }
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover { filter: brightness(1.08); } .submit-btn:active { transform: scale(0.97); }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct { color: var(--correct); } .feedback-msg.wrong { color: var(--wrong); } .feedback-msg.mastered { color: var(--accent2); }
+
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 24px 14px; gap: 14px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">HalfLife<span>Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="diagram-wrap" id="diagramWrap"></div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <span class="unit-label" id="unitLabel"></span>
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SVG DIAGRAM BUILDER
+// Four diagram types:
+//   1. Decay curve — exponential decay graph with gridlines
+//   2. Step ladder — discrete halving steps shown as bar chart
+//   3. Atom grid — rows of filled/empty circles showing halving
+//   4. Activity table — labelled data table
+// ViewBox 360×200
+// ============================================================
+
+const W=360, H=200;
+const AC ='#f97316', GRN='#15803d', BLU='#1d4ed8', GRY='#64748b', TXT='#3b1200', RED='#dc2626';
+
+function svgHL(body){
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:'DM Sans',sans-serif">${body}</svg>`;
+}
+function t(x,y,text,color=TXT,size=11,weight='700',anchor='middle'){
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${color}" font-family="DM Mono,monospace">${text}</text>`;
+}
+function line(x1,y1,x2,y2,color=GRY,w=1.5,dash=''){
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''} stroke-linecap="round"/>`;
+}
+function dot(x,y,r,fill,stroke='#fff'){
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+}
+
+// ── 1. DECAY CURVE ──
+// Plots N(t) = N0 × (0.5)^(t/t½) normalised to canvas
+// Steps: number of half-lives to show; highlight: time in half-lives to mark with a dot
+function decayCurve(N0label, halfLifeLabel, steps=4, highlightHL=null, highlightN=null, questionMark=false){
+  const ml=52, mr=16, mt=18, mb=38;
+  const pw=W-ml-mr, ph=H-mt-mb; // plot width/height
+  const px=(t)=>ml+t/steps*pw;
+  const py=(n)=>mt+(1-n)*ph;
+
+  let s='';
+  // Grid
+  for(let i=0;i<=steps;i++){
+    s+=line(px(i),mt,px(i),mt+ph,GRY,0.8,'4,3');
+  }
+  for(let j=0;j<=4;j++){
+    s+=line(ml,py(j/4),ml+pw,py(j/4),GRY,0.8,'4,3');
+  }
+  // Axes
+  s+=line(ml,mt,ml,mt+ph,TXT,2);
+  s+=line(ml,mt+ph,ml+pw,mt+ph,TXT,2);
+
+  // Decay curve path
+  const pts=[];
+  for(let i=0;i<=120;i++){
+    const tval=i/120*steps;
+    const n=Math.pow(0.5,tval);
+    pts.push(`${i===0?'M':'L'}${px(tval).toFixed(1)},${py(n).toFixed(1)}`);
+  }
+  s+=`<path d="${pts.join(' ')}" fill="none" stroke="${AC}" stroke-width="2.5" stroke-linecap="round"/>`;
+
+  // X axis labels (half-life multiples)
+  for(let i=0;i<=steps;i++){
+    s+=t(px(i),mt+ph+14,`${i}t½`,GRY,9,'600');
+  }
+  // Y axis labels (fraction of N0)
+  const fracs=['0','¼N₀','½N₀','¾N₀','N₀'];
+  for(let j=0;j<=4;j++){
+    s+=t(ml-6,py(j/4)+4,fracs[j],GRY,9,'600','end');
+  }
+
+  // Highlight dashed lines for a specific answer point
+  if(highlightHL!==null && highlightN!==null){
+    const hx=px(highlightHL), hy=py(highlightN);
+    s+=line(hx,mt+ph,hx,hy,BLU,1.5,'5,3');
+    s+=line(ml,hy,hx,hy,BLU,1.5,'5,3');
+    s+=dot(hx,hy,5,questionMark?'#fff':BLU,BLU);
+    if(questionMark) s+=t(hx+14,hy+4,'?',RED,12,'900');
+  }
+
+  // Axis labels
+  s+=t(ml+pw/2,H-5,'Time (half-lives)',GRY,10,'600');
+  s+=t(10,(mt+mt+ph)/2,'N',GRY,10,'600');
+  // Info box
+  s+=`<rect x="${ml+4}" y="${mt+4}" width="108" height="30" fill="#fff7ed" stroke="${AC}" stroke-width="1" rx="3" opacity="0.92"/>`;
+  s+=t(ml+10,mt+14,`N₀ = ${N0label}`,AC,10,'600','start');
+  s+=t(ml+10,mt+25,`t½ = ${halfLifeLabel}`,AC,10,'600','start');
+  return svgHL(s);
+}
+
+// ── 2. STEP LADDER ──
+// Bar chart showing atoms remaining after each half-life
+function stepLadder(N0, halfLife, steps, highlightStep=null, showQuestion=false){
+  const ml=48, mr=12, mt=18, mb=42;
+  const pw=W-ml-mr, ph=H-mt-mb;
+  const barW=Math.min(44, (pw/(steps+1))*0.7);
+  const gap=pw/(steps+1);
+  const maxN=N0;
+
+  let s='';
+  // Gridlines
+  for(let j=0;j<=4;j++){
+    const y=mt+j*(ph/4);
+    s+=line(ml,y,ml+pw,y,GRY,0.8,'4,3');
+  }
+  // Axes
+  s+=line(ml,mt,ml,mt+ph,TXT,2);
+  s+=line(ml,mt+ph,ml+pw,mt+ph,TXT,2);
+
+  for(let i=0;i<=steps;i++){
+    const atoms=N0/Math.pow(2,i);
+    const barH=(atoms/maxN)*ph;
+    const bx=ml+gap*(i+0.5)-barW/2;
+    const by=mt+ph-barH;
+    const isHL=i===highlightStep;
+    const fill=isHL?BLU:AC;
+    s+=`<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW}" height="${barH.toFixed(1)}" fill="${fill}" rx="3" opacity="${isHL?0.9:0.7}"/>`;
+    // Value label above bar
+    const label=(showQuestion && isHL) ? '?' : atoms.toLocaleString();
+    s+=t(bx+barW/2, by-5, label, isHL?(showQuestion?RED:BLU):AC, 10, '700');
+    // Time label below axis
+    s+=t(bx+barW/2, mt+ph+14, `${i}t½`, GRY, 9, '600');
+  }
+
+  // Y axis labels
+  for(let j=0;j<=4;j++){
+    const val=(maxN*(1-j/4)).toLocaleString();
+    s+=t(ml-5, mt+j*(ph/4)+4, val, GRY, 9, '500', 'end');
+  }
+  s+=t(ml+pw/2, H-5, 'Half-lives elapsed', GRY, 10, '600');
+  // Info box
+  s+=`<rect x="${ml+4}" y="${mt+4}" width="110" height="30" fill="#fff7ed" stroke="${AC}" stroke-width="1" rx="3" opacity="0.92"/>`;
+  s+=t(ml+10,mt+14,`Start: ${N0.toLocaleString()} atoms`,AC,9,'600','start');
+  s+=t(ml+10,mt+25,`t½ = ${halfLife}`,AC,9,'600','start');
+  return svgHL(s);
+}
+
+// ── 3. ATOM GRID ──
+// Visual grid of circles — filled = active, empty = decayed
+// Shows halving pattern for small N0 (e.g. 16, 32)
+function atomGrid(N0, halfLifeLabel, steps, showAfterSteps){
+  // Draw N0 circles, first (N0/2^steps) filled, rest empty
+  const remaining=Math.round(N0/Math.pow(2,showAfterSteps));
+  const cols=Math.min(N0, 16);
+  const rows=Math.ceil(N0/cols);
+  const r=8, pad=4;
+  const gridW=cols*(2*r+pad);
+  const gridH=rows*(2*r+pad);
+  const offX=(W-gridW)/2;
+  const offY=28;
+
+  let s='';
+  // Title
+  s+=t(W/2,16,`After ${showAfterSteps} half-life${showAfterSteps>1?'s':''}`,TXT,11,'700');
+
+  for(let i=0;i<N0;i++){
+    const col=i%cols, row=Math.floor(i/cols);
+    const cx=offX+col*(2*r+pad)+r+pad/2;
+    const cy=offY+row*(2*r+pad)+r;
+    const active=i<remaining;
+    s+=dot(cx,cy,r,active?AC:'#e2e8f0',active?'#fff':GRY);
+  }
+  // Legend
+  const ly=offY+gridH+18;
+  s+=dot(W/2-52,ly,7,AC,'#fff');
+  s+=t(W/2-42,ly+4,'Active',AC,10,'600','start');
+  s+=dot(W/2+14,ly,7,'#e2e8f0',GRY);
+  s+=t(W/2+24,ly+4,'Decayed',GRY,10,'600','start');
+  // Count
+  s+=t(W/2,ly+20,`${remaining} / ${N0} remaining`,TXT,11,'700');
+  s+=t(W/2,ly+33,`t½ = ${halfLifeLabel}`,GRY,10,'400');
+  return svgHL(s);
+}
+
+// ── 4. ACTIVITY TABLE ──
+// Shows a table of time vs activity or atoms
+function actTable(rows, highlightRow=null){
+  // rows: [{time, value, label?}]  — label optional for column header
+  const colW=100, rowH=26;
+  const tx=W/2-colW, vx=W/2+colW/2;
+  const startY=36;
+  let s='';
+  s+=t(W/2-colW/2,22,'Time',TXT,11,'700');
+  s+=t(vx,22,'Activity / Count',TXT,11,'700');
+  s+=line(20,27,W-20,27,GRY,1);
+
+  rows.forEach((row,i)=>{
+    const y=startY+i*rowH;
+    const isHL=i===highlightRow;
+    if(isHL){
+      s+=`<rect x="20" y="${y-18}" width="${W-40}" height="${rowH}" fill="#fff7ed" stroke="${AC}" stroke-width="1" rx="3"/>`;
+    }
+    s+=t(tx,y,row.time,isHL?AC:TXT,11,isHL?'700':'500');
+    s+=t(vx,y,row.value,isHL?(row.value==='?'?RED:BLU):TXT,11,isHL?'700':'500');
+    s+=line(20,y+8,W-20,y+8,GRY,0.6,'3,3');
+  });
+  return svgHL(s);
+}
+
+// ============================================================
+// NAMED DIAGRAMS
+// ============================================================
+const DIAGRAMS = {
+  // Decay curves
+  dc_1000_4:   ()=>decayCurve('1000','10 min',4, 2, 0.25, true),
+  dc_800_3:    ()=>decayCurve('800','5 s',3, 3, 0.125, true),
+  dc_basic:    ()=>decayCurve('N₀','t½',4, 2, 0.25, false),
+  dc_half1:    ()=>decayCurve('N₀','t½',3, 1, 0.5, true),
+  dc_half2:    ()=>decayCurve('N₀','t½',4, 2, 0.25, true),
+  dc_half3:    ()=>decayCurve('N₀','t½',4, 3, 0.125, true),
+
+  // Step ladders
+  sl_1000_4:   ()=>stepLadder(1000,'10 min',4, 3, true),
+  sl_800_3:    ()=>stepLadder(800,'5 s',3, 3, true),
+  sl_400_3:    ()=>stepLadder(400,'2 hr',3, 2, true),
+  sl_200_3:    ()=>stepLadder(200,'6 hr',3, 1, false),
+  sl_1600_4:   ()=>stepLadder(1600,'20 s',4, 4, true),
+  sl_640_3:    ()=>stepLadder(640,'30 s',3, 2, true),
+  sl_500_3:    ()=>stepLadder(500,'1 hr',3, null, false),
+
+  // Atom grids
+  ag_16_1:     ()=>atomGrid(16,'2 min',3,1),
+  ag_16_2:     ()=>atomGrid(16,'2 min',3,2),
+  ag_16_3:     ()=>atomGrid(16,'2 min',3,3),
+  ag_32_2:     ()=>atomGrid(32,'5 s',4,2),
+  ag_32_3:     ()=>atomGrid(32,'5 s',4,3),
+
+  // Activity tables
+  at_basic:    ()=>actTable([
+    {time:'0 min', value:'1200 Bq'},{time:'10 min', value:'600 Bq'},
+    {time:'20 min', value:'300 Bq'},{time:'30 min', value:'?'}
+  ], 3),
+  at_find_hl:  ()=>actTable([
+    {time:'0 hr', value:'800 Bq'},{time:'2 hr', value:'400 Bq'},
+    {time:'4 hr', value:'200 Bq'},{time:'6 hr', value:'100 Bq'}
+  ], null),
+  at_atoms:    ()=>actTable([
+    {time:'0 s',  value:'4800'},{time:'6 s',  value:'2400'},
+    {time:'12 s', value:'1200'},{time:'18 s', value:'?'}
+  ], 3),
+  at_missing:  ()=>actTable([
+    {time:'0 days',value:'960 Bq'},{time:'3 days',value:'480 Bq'},
+    {time:'6 days',value:'?'},{time:'9 days',value:'120 Bq'}
+  ], 2),
+};
+
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const QUESTIONS = [
+
+  // ── WHAT IS HALF-LIFE ──
+  { id:'def1', topic:'Definition', diagram:'dc_basic',
+    question:'After 1 half-life, what fraction of the original atoms remain?',
+    answer:'0.5', unit:'', accept:['1/2','0.5','half','50%','½'] },
+  { id:'def2', topic:'Definition', diagram:'dc_half2',
+    question:'After 2 half-lives, what fraction of the original atoms remain?',
+    answer:'0.25', unit:'', accept:['1/4','0.25','quarter','25%','¼'] },
+  { id:'def3', topic:'Definition', diagram:'dc_half3',
+    question:'After 3 half-lives, what fraction of the original atoms remain?',
+    answer:'0.125', unit:'', accept:['1/8','0.125','12.5%','⅛'] },
+  { id:'def4', topic:'Definition', diagram:'dc_basic',
+    question:'A sample starts with 800 atoms. After 1 half-life, how many remain?',
+    answer:'400', unit:'atoms' },
+  { id:'def5', topic:'Definition', diagram:'dc_half2',
+    question:'A sample starts with 800 atoms. After 2 half-lives, how many remain?',
+    answer:'200', unit:'atoms' },
+  { id:'def6', topic:'Definition', diagram:'dc_half3',
+    question:'A sample starts with 800 atoms. After 3 half-lives, how many remain?',
+    answer:'100', unit:'atoms' },
+
+  // ── COUNT REMAINING ATOMS ──
+  { id:'cnt1', topic:'Atoms Remaining', diagram:'sl_1000_4',
+    question:'Start: 1000 atoms, t½ = 10 min. How many remain after 30 min?',
+    answer:'125', unit:'atoms' },
+  { id:'cnt2', topic:'Atoms Remaining', diagram:'sl_800_3',
+    question:'Start: 800 atoms, t½ = 5 s. How many remain after 15 s?',
+    answer:'100', unit:'atoms' },
+  { id:'cnt3', topic:'Atoms Remaining', diagram:'sl_400_3',
+    question:'Start: 400 atoms, t½ = 2 hr. How many remain after 4 hr?',
+    answer:'100', unit:'atoms' },
+  { id:'cnt4', topic:'Atoms Remaining', diagram:'sl_1600_4',
+    question:'Start: 1600 atoms, t½ = 20 s. How many remain after 80 s?',
+    answer:'100', unit:'atoms' },
+  { id:'cnt5', topic:'Atoms Remaining', diagram:'ag_16_1',
+    question:'16 atoms, t½ = 2 min. How many remain after 1 half-life?',
+    answer:'8', unit:'atoms' },
+  { id:'cnt6', topic:'Atoms Remaining', diagram:'ag_16_2',
+    question:'16 atoms, t½ = 2 min. How many remain after 2 half-lives?',
+    answer:'4', unit:'atoms' },
+  { id:'cnt7', topic:'Atoms Remaining', diagram:'ag_16_3',
+    question:'16 atoms, t½ = 2 min. How many remain after 3 half-lives?',
+    answer:'2', unit:'atoms' },
+  { id:'cnt8', topic:'Atoms Remaining', diagram:'ag_32_2',
+    question:'32 atoms, t½ = 5 s. How many remain after 2 half-lives?',
+    answer:'8', unit:'atoms' },
+  { id:'cnt9', topic:'Atoms Remaining', diagram:'ag_32_3',
+    question:'32 atoms, t½ = 5 s. How many remain after 3 half-lives?',
+    answer:'4', unit:'atoms' },
+  { id:'cnt10', topic:'Atoms Remaining', diagram:'sl_640_3',
+    question:'Start: 640 atoms, t½ = 30 s. How many remain after 60 s?',
+    answer:'160', unit:'atoms' },
+  { id:'cnt11', topic:'Atoms Remaining', diagram:'sl_200_3',
+    question:'Start: 200 atoms, t½ = 6 hr. How many remain after 12 hr?',
+    answer:'50', unit:'atoms' },
+  { id:'cnt12', topic:'Atoms Remaining', diagram:'sl_500_3',
+    question:'Start: 500 atoms, t½ = 1 hr. How many remain after 3 hr?',
+    answer:'62.5', unit:'atoms', accept:['62.5','63','62'] },
+
+  // ── ACTIVITY ──
+  { id:'act1', topic:'Activity', diagram:'at_basic',
+    question:'Activity halves each half-life. t½ = 10 min. Activity at 30 min?',
+    answer:'150', unit:'Bq' },
+  { id:'act2', topic:'Activity', diagram:'at_atoms',
+    question:'The count halves every 6 s. What is the count after 18 s?',
+    answer:'600', unit:'' },
+  { id:'act3', topic:'Activity', diagram:'at_missing',
+    question:'Activity at t = 6 days? (pattern: halves every 3 days)',
+    answer:'240', unit:'Bq' },
+  { id:'act4', topic:'Activity', diagram:'sl_1000_4',
+    question:'Initial activity = 1000 Bq, t½ = 10 min. Activity after 20 min?',
+    answer:'250', unit:'Bq' },
+  { id:'act5', topic:'Activity', diagram:'at_basic',
+    question:'Initial activity = 1200 Bq, t½ = 10 min. Activity after 40 min?',
+    answer:'75', unit:'Bq' },
+
+  // ── FIND THE HALF-LIFE ──
+  { id:'fhl1', topic:'Find Half-Life', diagram:'at_find_hl',
+    question:'Activity falls from 800 Bq to 400 Bq in 2 hr. What is the half-life?',
+    answer:'2', unit:'hr' },
+  { id:'fhl2', topic:'Find Half-Life', diagram:'sl_200_3',
+    question:'Activity halves from 200 Bq to 100 Bq in 6 hr. What is the half-life?',
+    answer:'6', unit:'hr' },
+  { id:'fhl3', topic:'Find Half-Life', diagram:'at_atoms',
+    question:'Count drops from 4800 to 1200 in 12 s. How many half-lives is that?',
+    answer:'2', unit:'half-lives' },
+  { id:'fhl4', topic:'Find Half-Life', diagram:'at_atoms',
+    question:'Count drops from 4800 to 1200 in 12 s. What is the half-life?',
+    answer:'6', unit:'s' },
+  { id:'fhl5', topic:'Find Half-Life', diagram:'dc_basic',
+    question:'A sample falls to ¼ of its original value in 20 days. What is the half-life?',
+    answer:'10', unit:'days' },
+  { id:'fhl6', topic:'Find Half-Life', diagram:'at_find_hl',
+    question:'Activity goes: 800→400→200→100 Bq, each step taking 2 hr. What is t½?',
+    answer:'2', unit:'hr' },
+  { id:'fhl7', topic:'Find Half-Life', diagram:'dc_basic',
+    question:'A sample falls to ⅛ of its original value after 30 min. What is t½?',
+    answer:'10', unit:'min' },
+  { id:'fhl8', topic:'Find Half-Life', diagram:'sl_640_3',
+    question:'640 atoms → 160 atoms in 60 s. How many half-lives occurred?',
+    answer:'2', unit:'half-lives' },
+  { id:'fhl9', topic:'Find Half-Life', diagram:'sl_640_3',
+    question:'640 → 160 atoms in 60 s. What is the half-life?',
+    answer:'30', unit:'s' },
+
+  // ── FIND ORIGINAL AMOUNT ──
+  { id:'orig1', topic:'Find Original', diagram:'dc_half2',
+    question:'After 2 half-lives, 50 atoms remain. How many were there originally?',
+    answer:'200', unit:'atoms' },
+  { id:'orig2', topic:'Find Original', diagram:'dc_half3',
+    question:'After 3 half-lives, 25 atoms remain. Find the original count.',
+    answer:'200', unit:'atoms' },
+  { id:'orig3', topic:'Find Original', diagram:'dc_half1',
+    question:'After 1 half-life, 300 Bq remains. What was the initial activity?',
+    answer:'600', unit:'Bq' },
+  { id:'orig4', topic:'Find Original', diagram:'dc_half2',
+    question:'After 2 half-lives, 75 Bq remains. Find the initial activity.',
+    answer:'300', unit:'Bq' },
+  { id:'orig5', topic:'Find Original', diagram:'dc_half3',
+    question:'After 3 half-lives, 60 atoms remain. Find the original count.',
+    answer:'480', unit:'atoms' },
+
+  // ── FIND ELAPSED TIME ──
+  { id:'time1', topic:'Find Time', diagram:'sl_1000_4',
+    question:'Start: 1000 atoms, t½ = 10 min. When will 125 remain?',
+    answer:'30', unit:'min' },
+  { id:'time2', topic:'Find Time', diagram:'sl_800_3',
+    question:'Start: 800 atoms, t½ = 5 s. When will 100 remain?',
+    answer:'15', unit:'s' },
+  { id:'time3', topic:'Find Time', diagram:'sl_1600_4',
+    question:'Start: 1600 atoms, t½ = 20 s. When will 200 remain?',
+    answer:'60', unit:'s' },
+  { id:'time4', topic:'Find Time', diagram:'dc_basic',
+    question:'t½ = 4 days. How long until only ¼ of the original remains?',
+    answer:'8', unit:'days' },
+  { id:'time5', topic:'Find Time', diagram:'dc_basic',
+    question:'t½ = 6 min. How long until only ⅛ of the original remains?',
+    answer:'18', unit:'min' },
+  { id:'time6', topic:'Find Time', diagram:'sl_400_3',
+    question:'Start: 400 atoms, t½ = 2 hr. After how long do 50 remain?',
+    answer:'6', unit:'hr' },
+];
+
+// ============================================================
+// TOPICS
+// ============================================================
+const TOPICS = ['Definition','Atoms Remaining','Activity','Find Half-Life','Find Original','Find Time'];
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'halflifeforge_v1';
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({enabledTopics, mastered:[...mastered], stats, streaks})); }
+
+const saved = loadState();
+let enabledTopics = saved?.enabledTopics || Object.fromEntries(TOPICS.map(t=>[t,true]));
+let mastered  = new Set(Array.isArray(saved?.mastered) ? saved.mastered : []);
+let stats     = (saved?.stats && typeof saved.stats==='object') ? saved.stats : {correct:0, total:0, sessionStreak:0};
+let streaks   = (saved?.streaks && typeof saved.streaks==='object') ? saved.streaks : {};
+TOPICS.forEach(t=>{ if(enabledTopics[t]===undefined) enabledTopics[t]=true; });
+
+// ============================================================
+// QUESTION SELECTION
+// ============================================================
+function getPool(){ return QUESTIONS.filter(q=>enabledTopics[q.topic]&&!mastered.has(q.id)); }
+function buildQuestion(prev){
+  const pool=getPool(); if(!pool.length) return null;
+  const c=prev?pool.filter(q=>q.id!==prev.id):pool;
+  return (c.length?c:pool)[Math.floor(Math.random()*(c.length||pool.length))];
+}
+
+// ============================================================
+// DOM
+// ============================================================
+const topicBadge=document.getElementById('topicBadge'), diagramWrap=document.getElementById('diagramWrap'),
+      questionText=document.getElementById('questionText'), questionSub=document.getElementById('questionSub'),
+      answerInput=document.getElementById('answerInput'), submitBtn=document.getElementById('submitBtn'),
+      unitLabel=document.getElementById('unitLabel'), feedbackMsg=document.getElementById('feedbackMsg'),
+      timerBar=document.getElementById('timerBar'), streakDotsEl=document.getElementById('streakDots'),
+      statCorrect=document.getElementById('statCorrect'), statTotal=document.getElementById('statTotal'),
+      statPct=document.getElementById('statPct'), pctBar=document.getElementById('pctBar'),
+      statStreak=document.getElementById('statStreak'), masteredList=document.getElementById('masteredList'),
+      masteredCount=document.getElementById('masteredCount'), sbCorrect=document.getElementById('sbCorrect'),
+      sbTotal=document.getElementById('sbTotal'), sbPct=document.getElementById('sbPct'),
+      sbPctBar=document.getElementById('sbPctBar'), sbMastered=document.getElementById('sbMastered'),
+      levelGridDesktop=document.getElementById('levelGridDesktop'), levelGridMobile=document.getElementById('levelGridMobile'),
+      toast=document.getElementById('toast'), drawerToggle=document.getElementById('drawerToggle'),
+      mobileDrawer=document.getElementById('mobileDrawer');
+
+// ============================================================
+// TOGGLES
+// ============================================================
+function renderLevelGrid(gridEl){
+  gridEl.innerHTML='';
+  TOPICS.forEach(topic=>{
+    const hasMastered=QUESTIONS.some(q=>q.topic===topic&&mastered.has(q.id));
+    const wrapper=document.createElement('label');
+    wrapper.className='lv-toggle'+(hasMastered?' has-mastered':'');
+    const input=document.createElement('input'); input.type='checkbox'; input.checked=enabledTopics[topic];
+    input.addEventListener('change',()=>{ enabledTopics[topic]=input.checked; syncToggle(topic,input.checked); saveState(); nextQuestion(); });
+    const pill=document.createElement('div'); pill.className='pill'; pill.innerHTML=`<span class="lv-name">${topic}</span>`;
+    const badge=document.createElement('div'); badge.className='mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge); gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles(){ renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncToggle(topic, checked){
+  [levelGridDesktop,levelGridMobile].forEach(g=>g.querySelectorAll('.lv-toggle').forEach(l=>{
+    if(l.querySelector('.lv-name').textContent===topic) l.querySelector('input').checked=checked;
+  }));
+}
+function renderStreakDots(count){
+  streakDotsEl.innerHTML='';
+  for(let i=0;i<6;i++){ const d=document.createElement('div'); d.className='streak-dot'+(i<count?' filled':''); streakDotsEl.appendChild(d); }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let currentQ=null, timerInterval=null, timerStart=null;
+const TIME_LIMIT=6000;
+function startTimer(){
+  clearInterval(timerInterval); timerStart=Date.now();
+  timerBar.style.transition='none'; timerBar.style.width='100%'; timerBar.className='timer-bar';
+  timerInterval=setInterval(()=>{
+    const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100);
+    timerBar.style.transition='width 0.1s linear'; timerBar.style.width=pct+'%';
+    if(pct<=16) timerBar.className='timer-bar urgent';
+    else if(pct<=33) timerBar.className='timer-bar warning-orange';
+    else if(pct<=55) timerBar.className='timer-bar warning';
+    else timerBar.className='timer-bar';
+  },100);
+}
+function stopTimer(){ clearInterval(timerInterval); }
+function getElapsed(){ return Date.now()-(timerStart||Date.now()); }
+
+// ============================================================
+// NEXT QUESTION
+// ============================================================
+function nextQuestion(){
+  stopTimer();
+  feedbackMsg.textContent=''; feedbackMsg.className='feedback-msg';
+  answerInput.value=''; answerInput.className='answer-input'; answerInput.disabled=false;
+  diagramWrap.innerHTML='';
+
+  if(!TOPICS.some(t=>enabledTopics[t])){
+    topicBadge.textContent='—'; questionText.textContent='Enable a topic to begin.'; questionSub.textContent='';
+    currentQ=null; timerBar.style.width='0%'; renderStreakDots(0); return;
+  }
+  const q=buildQuestion(currentQ);
+  if(!q){
+    topicBadge.textContent='🎉 DONE'; questionText.textContent='All questions mastered!';
+    questionSub.textContent='Enable more topics or reset progress.';
+    currentQ=null; timerBar.style.width='0%'; renderStreakDots(0); return;
+  }
+  currentQ=q;
+  topicBadge.textContent=q.topic;
+  diagramWrap.innerHTML=DIAGRAMS[q.diagram]();
+  questionText.textContent=q.question;
+  unitLabel.textContent=q.unit||'';
+  const streak=streaks[q.id]||0; renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:'';
+  startTimer();
+  if(!('ontouchstart' in window)) answerInput.focus();
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitAnswer(){
+  if(!currentQ||answerInput.disabled) return;
+  const raw=answerInput.value.trim().toLowerCase(); if(!raw){ answerInput.focus(); return; }
+  const elapsed=getElapsed(); stopTimer(); stats.total++;
+
+  const userNum=parseFloat(raw);
+  const corrNum=parseFloat(currentQ.answer);
+  const numMatch=!isNaN(userNum)&&!isNaN(corrNum)&&Math.abs(userNum-corrNum)<0.01;
+  const strMatch=raw===currentQ.answer.toLowerCase();
+  const acceptMatch=currentQ.accept?currentQ.accept.some(a=>raw===a.toLowerCase()||parseFloat(raw)===parseFloat(a)):false;
+  const isCorrect=strMatch||numMatch||acceptMatch;
+
+  if(isCorrect){
+    stats.correct++; stats.sessionStreak=(stats.sessionStreak||0)+1;
+    answerInput.className='answer-input correct-flash';
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id]; renderStreakDots(streak);
+    if(streak>=6){
+      mastered.add(currentQ.id); streaks[currentQ.id]=0;
+      feedbackMsg.textContent='★ MASTERED!'; feedbackMsg.className='feedback-msg mastered';
+      showToast('Question mastered! 🔥',true); renderToggles(); renderMastered();
+    } else {
+      const msgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];
+      feedbackMsg.textContent=msgs[Math.floor(Math.random()*msgs.length)]; feedbackMsg.className='feedback-msg correct';
+    }
+  } else {
+    stats.sessionStreak=0; streaks[currentQ.id]=0; renderStreakDots(0);
+    answerInput.className='answer-input wrong-flash';
+    feedbackMsg.textContent=`✗  Answer: ${currentQ.answer}${currentQ.unit?' '+currentQ.unit:''}`;
+    feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats(); saveState(); answerInput.disabled=true;
+  setTimeout(()=>nextQuestion(),1000);
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(){
+  const c=stats.correct,t=stats.total,pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—',pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr; pctBar.style.width=pctW;
+  sbCorrect.textContent=c; sbTotal.textContent=t; sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbMastered.textContent=mastered.size;
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col; sbPctBar.style.background=col;
+  const ss=stats.sessionStreak||0; statStreak.textContent=ss>=5?'🔥'.repeat(Math.min(3,Math.floor(ss/5)))+' '+ss+' in a row':'';
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size; sbMastered.textContent=mastered.size;
+  if(!mastered.size){ masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>'; return; }
+  masteredList.innerHTML=[...mastered].sort().map(id=>{ const q=QUESTIONS.find(x=>x.id===id); return `<div class="mastered-item">★ ${q?q.question.slice(0,30)+'…':id}</div>`; }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout;
+function showToast(msg,isMastered=false){
+  toast.textContent=msg; toast.className='toast'+(isMastered?' mastered-toast':'')+' show';
+  clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>{ toast.className='toast'+(isMastered?' mastered-toast':''); },2500);
+}
+
+// ============================================================
+// TOGGLE ALL / RESET
+// ============================================================
+let allOn=true;
+function toggleAll(){ allOn=!allOn; TOPICS.forEach(t=>enabledTopics[t]=allOn); saveState(); renderToggles(); nextQuestion(); }
+function doReset(){
+  if(!confirm('Reset all mastery progress and stats? This cannot be undone.')) return;
+  mastered=new Set(); streaks={}; stats={correct:0,total:0,sessionStreak:0}; allOn=true; TOPICS.forEach(t=>enabledTopics[t]=true);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion(); showToast('Progress reset.');
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{ const open=mobileDrawer.classList.toggle('open'); drawerToggle.classList.toggle('open',open); });
+submitBtn.addEventListener('click',submitAnswer);
+answerInput.addEventListener('keydown',e=>{ if(e.key==='Enter') submitAnswer(); });
+
+renderToggles(); renderMastered(); updateStats(); nextQuestion();
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MolesForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f5f3ff; --surface2: #ede9fe; --border: #ddd6fe;
+    --text: #1e0a3e; --text-muted: #6b45a0; --accent: #7c3aed; --accent2: #f5a623;
+    --correct: #2a9d5c; --wrong: #e84c1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; text-decoration: none; }
+  .logo .logo-main { color: var(--text); } .logo .logo-forge { color: var(--accent); }
+  .byline { font-size: 11px; color: #111111; letter-spacing: 0.5px; font-weight: 400; text-align: right; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill { display: flex; align-items: center; height: 44px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; user-select: none; padding: 0 14px; }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; background: var(--accent2); border-radius: 50%; border: 1.5px solid #fff; display: none; }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+
+  /* Formula triangle in sidebar */
+  .formula-box { margin-top: 20px; background: var(--surface2); border-radius: 12px; padding: 14px; text-align: center; }
+  .formula-box-title { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 10px; }
+  .triangle { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); line-height: 1.9; }
+  .triangle .top { color: var(--accent); font-weight: 600; font-size: 14px; }
+  .triangle .bot { color: var(--text-muted); }
+
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 22px; }
+
+  /* Question card */
+  .question-card {
+    width: min(420px, 92vw); padding: 24px 28px;
+    border: 3px solid var(--border); border-radius: 20px;
+    background: var(--surface);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .question-card.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .question-card.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .q-type { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+  .q-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.6; }
+  .q-text strong { color: var(--accent); font-weight: 700; }
+  .q-unit { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  .question-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; min-height: 20px; text-align: center; }
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning { background: #f5c518; } .timer-bar.warning-orange { background: #f07d20; } .timer-bar.urgent { background: var(--wrong); }
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(18px,5vw,32px); font-weight: 500; width: 160px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; -moz-appearance: textfield; }
+  .answer-input::-webkit-outer-spin-button, .answer-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .answer-input:focus { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover { filter: brightness(1.1); } .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
+  .feedback-msg.correct { color: var(--correct); } .feedback-msg.wrong { color: var(--wrong); } .feedback-msg.mastered { color: var(--accent2); }
+
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; }
+
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 18px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="chemistry.html" class="logo"><span class="logo-main">Moles</span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A website by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+    <div class="formula-box">
+      <div class="formula-box-title">Formulae</div>
+      <div class="triangle">
+        <div class="top">n = m ÷ Mr</div>
+        <div class="bot">m = n × Mr</div>
+        <div class="bot">Mr = m ÷ n</div>
+        <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;" class="bot">c = n ÷ V</div>
+        <div class="bot">n = c × V</div>
+        <div class="bot">V = n ÷ c</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="question-card" id="questionCard">
+      <div class="q-type" id="qType">—</div>
+      <div class="q-text" id="qText">—</div>
+      <div class="q-unit" id="qUnit"></div>
+    </div>
+    <div class="question-sub" id="questionSub">Enable a level to begin</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="number" class="answer-input" id="answerInput" placeholder="?" step="any" min="0" inputmode="decimal">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Options</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// Questions are generated dynamically using templates + random numbers
+// type: 'moles_from_mass' | 'mass_from_moles' | 'moles_from_conc' | 'mass_from_conc' | 'conc_from_moles'
+// level: 1=n=m/Mr only, 2=c=n/V included, 3=multi-step
+
+// Substance data for generation
+const SUBSTANCES = [
+  { name:'NaCl',  Mr:58.5 }, { name:'H₂O',   Mr:18   }, { name:'CaCO₃', Mr:100  },
+  { name:'NaOH',  Mr:40   }, { name:'HCl',    Mr:36.5 }, { name:'H₂SO₄', Mr:98   },
+  { name:'Na₂CO₃',Mr:106  }, { name:'CuSO₄', Mr:160  }, { name:'MgO',   Mr:40   },
+  { name:'CO₂',   Mr:44   }, { name:'KNO₃',  Mr:101  }, { name:'NH₃',   Mr:17   },
+];
+
+const LEVELS = [
+  { id: 1, name: 'n = m ÷ Mr'       },
+  { id: 2, name: 'c = n ÷ V'        },
+  { id: 3, name: 'Mixed & Multi-step'},
+  { id: 4, name: 'All Types'         },
+];
+
+const STORAGE_KEY = 'molesforge_v1';
+function loadState() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {} return null; }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabledLevels, stats, streaks, masteredCount: mastered })); }
+
+const saved = loadState();
+let enabledLevels = saved?.enabledLevels || { 1: true, 2: false, 3: false, 4: false };
+let stats     = (saved?.stats && typeof saved.stats === 'object') ? saved.stats : { correct: 0, total: 0, sessionStreak: 0, streak: 0 };
+let streaks   = (saved?.streaks && typeof saved.streaks === 'object') ? saved.streaks : { overall: 0 };
+// MolesForge uses a simple overall mastery count since questions are generated
+let mastered  = typeof saved?.masteredCount === 'number' ? saved.masteredCount : 0;
+
+LEVELS.forEach(l => { if (enabledLevels[l.id] === undefined) enabledLevels[l.id] = false; });
+
+// ── Question Generators ─────────────────────────────────────
+function pickSubstance() { return SUBSTANCES[Math.floor(Math.random() * SUBSTANCES.length)]; }
+function round2(n) { return Math.round(n * 100) / 100; }
+function niceMass(Mr) {
+  // Generate a mass that gives a clean-ish answer
+  const moles = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5][Math.floor(Math.random() * 8)];
+  return { mass: round2(moles * Mr), moles };
+}
+function niceConc() {
+  return [0.1, 0.25, 0.5, 1, 1.5, 2][Math.floor(Math.random() * 6)];
+}
+function niceVolume() {
+  // in dm³
+  return [0.025, 0.05, 0.1, 0.25, 0.5, 1, 2][Math.floor(Math.random() * 7)];
+}
+
+function generateQuestion(type) {
+  const s = pickSubstance();
+  switch(type) {
+    case 'moles_from_mass': {
+      const { mass, moles } = niceMass(s.Mr);
+      return {
+        key: type, type: 'Find Moles',
+        text: `What is the number of moles in <strong>${mass} g</strong> of ${s.name}? (Mr = ${s.Mr})`,
+        unit: 'Answer in mol',
+        answer: moles,
+        tolerance: 0.01,
+      };
+    }
+    case 'mass_from_moles': {
+      const moles = [0.5,1,1.5,2,2.5,3][Math.floor(Math.random()*6)];
+      return {
+        key: type, type: 'Find Mass',
+        text: `What is the mass of <strong>${moles} mol</strong> of ${s.name}? (Mr = ${s.Mr})`,
+        unit: 'Answer in g',
+        answer: round2(moles * s.Mr),
+        tolerance: 0.1,
+      };
+    }
+    case 'Mr_from_mass': {
+      const { mass, moles } = niceMass(s.Mr);
+      return {
+        key: type, type: 'Find Mr',
+        text: `A sample has a mass of <strong>${mass} g</strong> and contains <strong>${moles} mol</strong>. What is its Mr?`,
+        unit: 'Answer in g/mol',
+        answer: s.Mr,
+        tolerance: 0.5,
+      };
+    }
+    case 'moles_from_conc': {
+      const c = niceConc(); const V = niceVolume();
+      const n = round2(c * V);
+      return {
+        key: type, type: 'Find Moles (c × V)',
+        text: `What is the number of moles in <strong>${V} dm³</strong> of a <strong>${c} mol/dm³</strong> solution?`,
+        unit: 'Answer in mol',
+        answer: n,
+        tolerance: 0.005,
+      };
+    }
+    case 'conc_from_moles': {
+      const n = [0.05,0.1,0.25,0.5,1,2][Math.floor(Math.random()*6)];
+      const V = niceVolume();
+      return {
+        key: type, type: 'Find Concentration',
+        text: `What is the concentration of a solution containing <strong>${n} mol</strong> in <strong>${V} dm³</strong>?`,
+        unit: 'Answer in mol/dm³',
+        answer: round2(n / V),
+        tolerance: 0.05,
+      };
+    }
+    case 'volume_from_moles': {
+      const c = niceConc(); const n = [0.05,0.1,0.25,0.5,1][Math.floor(Math.random()*5)];
+      return {
+        key: type, type: 'Find Volume',
+        text: `What volume of a <strong>${c} mol/dm³</strong> solution contains <strong>${n} mol</strong>?`,
+        unit: 'Answer in dm³',
+        answer: round2(n / c),
+        tolerance: 0.01,
+      };
+    }
+    default: return generateQuestion('moles_from_mass');
+  }
+}
+
+function getQuestionTypes() {
+  const level1 = ['moles_from_mass','mass_from_moles','Mr_from_mass'];
+  const level2 = ['moles_from_conc','conc_from_moles','volume_from_moles'];
+  const all = [...level1, ...level2];
+  if (enabledLevels[4]) return all;
+  let types = [];
+  if (enabledLevels[1]) types.push(...level1);
+  if (enabledLevels[2]) types.push(...level2);
+  if (enabledLevels[3]) types.push(...all);
+  return types.length ? types : [];
+}
+
+function buildQuestion() {
+  const types = getQuestionTypes();
+  if (!types.length) return null;
+  const type = types[Math.floor(Math.random() * types.length)];
+  return generateQuestion(type);
+}
+
+const qType        = document.getElementById('qType');
+const qText        = document.getElementById('qText');
+const qUnit        = document.getElementById('qUnit');
+const questionCard = document.getElementById('questionCard');
+const questionSub  = document.getElementById('questionSub');
+const answerInput  = document.getElementById('answerInput');
+const submitBtn    = document.getElementById('submitBtn');
+const feedbackMsg  = document.getElementById('feedbackMsg');
+const timerBar     = document.getElementById('timerBar');
+const streakDotsEl = document.getElementById('streakDots');
+const statCorrect  = document.getElementById('statCorrect'); const statTotal = document.getElementById('statTotal');
+const statPct      = document.getElementById('statPct'); const pctBar = document.getElementById('pctBar');
+const statStreak   = document.getElementById('statStreak'); const masteredList = document.getElementById('masteredList');
+const masteredCount= document.getElementById('masteredCount'); const sbCorrect = document.getElementById('sbCorrect');
+const sbTotal      = document.getElementById('sbTotal'); const sbPct = document.getElementById('sbPct');
+const sbPctBar     = document.getElementById('sbPctBar'); const sbMastered = document.getElementById('sbMastered');
+const levelGridDesktop = document.getElementById('levelGridDesktop'); const levelGridMobile = document.getElementById('levelGridMobile');
+const toast = document.getElementById('toast'); const drawerToggle = document.getElementById('drawerToggle'); const mobileDrawer = document.getElementById('mobileDrawer');
+
+function renderLevelGrid(gridEl) {
+  gridEl.innerHTML = '';
+  LEVELS.forEach(l => {
+    const wrapper = document.createElement('label'); wrapper.className = 'lv-toggle';
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !!enabledLevels[l.id];
+    input.addEventListener('change', () => { enabledLevels[l.id] = input.checked; syncLevelToggles(l.id, input.checked); saveState(); nextQuestion(); });
+    const pill = document.createElement('div'); pill.className = 'pill'; pill.innerHTML = `<span>${l.name}</span>`;
+    const badge = document.createElement('div'); badge.className = 'mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge); gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles() { renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncLevelToggles(levelId, checked) {
+  [levelGridDesktop, levelGridMobile].forEach(grid => {
+    const inputs = grid.querySelectorAll('input[type=checkbox]');
+    const idx = LEVELS.findIndex(l => l.id === levelId);
+    if (inputs[idx]) inputs[idx].checked = checked;
+  });
+}
+function renderStreakDots(count) {
+  streakDotsEl.innerHTML = '';
+  for (let i = 0; i < 6; i++) { const dot = document.createElement('div'); dot.className = 'streak-dot' + (i < count ? ' filled' : ''); streakDotsEl.appendChild(dot); }
+}
+
+let currentQ = null, timerInterval = null, timerStart = null, timedOut = false, currentStreak = 0;
+const TIME_LIMIT = 15000; // 15s for calculations
+
+function startTimer() {
+  clearInterval(timerInterval); timerStart = Date.now();
+  timerBar.style.transition = 'none'; timerBar.style.width = '100%'; timerBar.className = 'timer-bar';
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    timerBar.style.transition = 'width 0.1s linear'; timerBar.style.width = pct + '%';
+    if (pct <= 0) { stopTimer(); handleTimeout(); }
+    else if (pct <= 16) timerBar.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBar.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBar.className = 'timer-bar warning';
+    else timerBar.className = 'timer-bar';
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+function handleTimeout() {
+  if (!currentQ) return;
+  timedOut = true; currentStreak = 0; renderStreakDots(0);
+  feedbackMsg.textContent = 'Too slow — still try!'; feedbackMsg.className = 'feedback-msg wrong';
+  questionCard.classList.add('wrong-flash');
+  setTimeout(() => { questionCard.className = 'question-card'; feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg'; }, 800);
+}
+
+function nextQuestion() {
+  stopTimer(); timedOut = false;
+  feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
+  questionCard.className = 'question-card';
+  answerInput.value = ''; answerInput.className = 'answer-input';
+  answerInput.disabled = false; submitBtn.disabled = false;
+
+  const anyEnabled = LEVELS.some(l => enabledLevels[l.id]);
+  if (!anyEnabled) {
+    qType.textContent = ''; qText.textContent = 'Enable a level to begin.'; qUnit.textContent = '';
+    questionSub.textContent = ''; answerInput.disabled = true; submitBtn.disabled = true;
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0); return;
+  }
+  const q = buildQuestion();
+  currentQ = q;
+  qType.textContent = q.type;
+  qText.innerHTML = q.text;
+  qUnit.textContent = q.unit;
+  renderStreakDots(currentStreak);
+  questionSub.textContent = currentStreak > 0 ? `${currentStreak}/6 streak — keep going!` : 'Calculate and type your answer';
+  startTimer();
+  if (!('ontouchstart' in window)) answerInput.focus();
+}
+
+function submitAnswer() {
+  if (!currentQ || answerInput.disabled) return;
+  const val = parseFloat(answerInput.value);
+  if (isNaN(val)) { answerInput.focus(); return; }
+  stopTimer(); stats.total++;
+  answerInput.disabled = true; submitBtn.disabled = true;
+
+  const correct = Math.abs(val - currentQ.answer) <= currentQ.tolerance;
+
+  if (correct) {
+    stats.correct++; stats.sessionStreak = (stats.sessionStreak || 0) + 1;
+    answerInput.className = 'answer-input correct-flash';
+    questionCard.classList.add('correct-flash');
+    if (timedOut) {
+      feedbackMsg.textContent = 'Correct — but too slow!'; feedbackMsg.className = 'feedback-msg correct';
+      currentStreak = 0;
+    } else {
+      currentStreak++;
+      renderStreakDots(currentStreak);
+      if (currentStreak >= 6) {
+        mastered++; currentStreak = 0;
+        feedbackMsg.textContent = '★ 6-STREAK BONUS!'; feedbackMsg.className = 'feedback-msg mastered';
+        showToast('6 correct in a row! 🔥', true);
+        renderMastered();
+      } else {
+        const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+        feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)]; feedbackMsg.className = 'feedback-msg correct';
+      }
+    }
+  } else {
+    stats.sessionStreak = 0; currentStreak = 0; renderStreakDots(0);
+    answerInput.className = 'answer-input wrong-flash';
+    questionCard.classList.add('wrong-flash');
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.answer}`; feedbackMsg.className = 'feedback-msg wrong';
+  }
+  updateStats(); saveState();
+  setTimeout(() => nextQuestion(), 1400);
+}
+
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+
+function updateStats() {
+  const c = stats.correct, t = stats.total; const pct = t > 0 ? Math.round((c/t)*100) : null;
+  const pctStr = pct !== null ? pct+'%' : '—'; const pctW = pct !== null ? pct+'%' : '0%';
+  statCorrect.textContent = c; statTotal.textContent = t; statPct.textContent = pctStr; pctBar.style.width = pctW;
+  sbCorrect.textContent = c; sbTotal.textContent = t; sbPct.textContent = pctStr; sbPctBar.style.width = pctW; sbMastered.textContent = mastered;
+  const bc = pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background = bc; sbPctBar.style.background = bc;
+  const ss = stats.sessionStreak||0; statStreak.textContent = ss>=5?'🔥'.repeat(Math.floor(ss/5))+' '+ss+' in a row':'';
+}
+function renderMastered() {
+  masteredCount.textContent = mastered; sbMastered.textContent = mastered;
+  masteredList.innerHTML = mastered > 0
+    ? `<div class="mastered-item">★ ${mastered} × 6-streak bonus achieved</div>`
+    : '<div style="font-size:12px;color:var(--text-muted)">None yet</div>';
+}
+let toastTimeout;
+function showToast(msg, isMastered=false) {
+  toast.textContent = msg; toast.className = 'toast'+(isMastered?' mastered-toast':'')+' show';
+  clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { toast.className = 'toast'+(isMastered?' mastered-toast':''); }, 2500);
+}
+let allOn = false;
+function toggleAll() { allOn = !allOn; LEVELS.forEach(l => enabledLevels[l.id] = allOn); saveState(); renderToggles(); nextQuestion(); }
+function doReset() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  mastered = 0; currentStreak = 0;
+  stats = { correct: 0, total: 0, sessionStreak: 0 };
+  LEVELS.forEach(l => enabledLevels[l.id] = l.id === 1);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion(); showToast('Progress reset.');
+}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click', toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click', doReset);
+document.getElementById('resetBtnMobile').addEventListener('click', doReset);
+drawerToggle.addEventListener('click', () => { const open = mobileDrawer.classList.toggle('open'); drawerToggle.classList.toggle('open', open); });
+renderToggles(); renderMastered(); updateStats(); nextQuestion();
+</script>
+</body>
+</html>

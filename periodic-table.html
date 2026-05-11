@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Periodic Table — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f8f4ff;
+  --surface2: #ede9fe;
+  --border: #ddd6fe;
+  --text: #1e0a3e;
+  --text-muted: #6b45a0;
+  --accent: #7c3aed;
+
+  /* State colours — light */
+  --solid-bg: #dbeafe;
+  --solid-border: #3b5bdb;
+  --solid-text: #1e3a8a;
+  --liquid-bg: #dcfce7;
+  --liquid-border: #16a34a;
+  --liquid-text: #14532d;
+  --gas-bg: #fee2e2;
+  --gas-border: #dc2626;
+  --gas-text: #7f1d1d;
+  --unknown-bg: #f1f0f5;
+  --unknown-border: #c4b5fd;
+  --unknown-text: #6b7280;
+}
+
+body.dark {
+  --bg: #0f0f14;
+  --surface: #16161f;
+  --surface2: #1e1e2a;
+  --border: #2a2a3d;
+  --text: #e8e6f0;
+  --text-muted: #7a7a9a;
+  --accent: #a78bfa;
+
+  /* State colours — dark */
+  --solid-bg: #1a2744;
+  --solid-border: #3b5bdb;
+  --solid-text: #a5c8ff;
+  --liquid-bg: #1a3a2a;
+  --liquid-border: #2f9e60;
+  --liquid-text: #69db7c;
+  --gas-bg: #3a1a1a;
+  --gas-border: #c92a2a;
+  --gas-text: #ff8787;
+  --unknown-bg: #222230;
+  --unknown-border: #444460;
+  --unknown-text: #888899;
+}
+
+/* Theme toggle button */
+.theme-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 6px;
+  background: none; color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--text); }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; background: var(--surface);
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; text-decoration: none; line-height: 1; }
+.logo .logo-main { color: var(--text); }
+.logo .logo-forge { color: var(--accent); }
+.byline { font-size: 11px; color: var(--text-muted); text-align: right; }
+.byline strong { color: var(--accent); font-weight: 700; }
+
+/* ── CONTROLS ── */
+.controls {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex; flex-wrap: wrap; gap: 20px; align-items: center; flex-shrink: 0;
+}
+
+.temp-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px; letter-spacing: 2px; line-height: 1;
+  min-width: 180px; color: var(--text);
+  transition: color 0.3s;
+}
+.temp-display .temp-unit { font-size: 24px; color: var(--text-muted); margin-left: 4px; }
+
+.slider-wrap { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.slider-labels { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); }
+
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 6px;
+  border-radius: 3px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, #3b5bdb 0%, #2f9e60 50%, #c92a2a 100%);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px;
+  border-radius: 50%; background: #fff;
+  border: 3px solid var(--accent); cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: transform 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type=range]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  border: 3px solid var(--accent); cursor: pointer;
+}
+
+.unit-toggle { display: flex; gap: 4px; }
+.unit-btn {
+  font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
+  padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 6px;
+  background: none; color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+}
+.unit-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.unit-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  padding: 0 24px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; }
+.legend-dot.solid   { background: var(--solid-bg);   border-color: var(--solid-border); }
+.legend-dot.liquid  { background: var(--liquid-bg);  border-color: var(--liquid-border); }
+.legend-dot.gas     { background: var(--gas-bg);     border-color: var(--gas-border); }
+.legend-dot.unknown { background: var(--unknown-bg); border-color: var(--unknown-border); }
+.legend-item.solid   { color: var(--solid-text); }
+.legend-item.liquid  { color: var(--liquid-text); }
+.legend-item.gas     { color: var(--gas-text); }
+.legend-item.unknown { color: var(--unknown-text); }
+
+/* count badges in legend */
+.legend-count {
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px; margin-left: 4px;
+}
+
+/* ── TABLE WRAPPER ── */
+.table-outer { flex: 1; overflow-x: auto; padding: 16px 16px 24px; }
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(48px, 58px));
+  grid-auto-rows: minmax(48px, 58px);
+  gap: 3px;
+  width: max-content;
+  margin: 0 auto;
+}
+
+/* ── ELEMENT CELL ── */
+.el {
+  border-radius: 6px;
+  border: 1.5px solid;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; position: relative;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.4s, border-color 0.4s;
+  padding: 2px;
+  overflow: hidden;
+}
+.el:hover { transform: scale(1.18); z-index: 10; box-shadow: 0 6px 24px rgba(124,58,237,0.2); }
+
+.el.solid   { background: var(--solid-bg);   border-color: var(--solid-border); }
+.el.liquid  { background: var(--liquid-bg);  border-color: var(--liquid-border); }
+.el.gas     { background: var(--gas-bg);     border-color: var(--gas-border); }
+.el.unknown { background: var(--unknown-bg); border-color: var(--unknown-border); }
+
+.el-z    { font-family: 'DM Mono', monospace; font-size: 8px; line-height: 1; opacity: 0.6; }
+.el-sym  { font-family: 'Bebas Neue', sans-serif; font-size: clamp(14px,1.8vw,20px); letter-spacing: 0.5px; line-height: 1; }
+.el-name { font-size: 7px; font-weight: 500; opacity: 0.7; line-height: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; padding: 0 2px; }
+
+.el.solid   .el-sym { color: var(--solid-text); }
+.el.liquid  .el-sym { color: var(--liquid-text); }
+.el.gas     .el-sym { color: var(--gas-text); }
+.el.unknown .el-sym { color: var(--unknown-text); }
+
+/* Period label cells */
+.period-label {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); letter-spacing: 1px;
+}
+/* Group label row */
+.group-label {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); font-weight: 600;
+}
+
+/* Gap cell — invisible placeholder */
+.gap { background: transparent; border: none; pointer-events: none; }
+
+/* Lanthanide/Actinide row separator */
+.series-gap { grid-column: 1 / -1; height: 6px; }
+
+/* ── TOOLTIP ── */
+.tooltip {
+  position: fixed; z-index: 100; pointer-events: none;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 18px; min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  opacity: 0; transition: opacity 0.15s;
+}
+.tooltip.visible { opacity: 1; }
+.tt-sym { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; line-height: 1; }
+.tt-name { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+.tt-row { display: flex; justify-content: space-between; font-size: 11.5px; margin-top: 3px; }
+.tt-label { color: var(--text-muted); }
+.tt-val { font-family: 'DM Mono', monospace; font-weight: 500; }
+.tt-state { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; margin-top: 8px; }
+.tt-state.solid  { color: var(--solid-text); }
+.tt-state.liquid { color: var(--liquid-text); }
+.tt-state.gas    { color: var(--gas-text); }
+.tt-state.unknown{ color: var(--unknown-text); }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: var(--text-muted); background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+.footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .controls { padding: 12px 16px; gap: 12px; }
+  .temp-display { font-size: 36px; min-width: 130px; }
+  .legend { padding: 8px 16px; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo"><span class="logo-main">Periodic</span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+
+<!-- CONTROLS -->
+<div class="controls">
+
+  <!-- Row 1: temperature -->
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;width:100%;">
+    <div class="temp-display" id="tempDisplay">—</div>
+    <div class="slider-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;">Temperature</span>
+      </div>
+      <input type="range" id="tempSlider" min="-273" max="6000" value="20" step="1">
+
+    </div>
+    <div class="unit-toggle">
+      <button class="unit-btn active" data-unit="C">°C</button>
+      <button class="unit-btn" data-unit="F">°F</button>
+      <button class="unit-btn" data-unit="K">K</button>
+    </div>
+    <button class="theme-btn" id="themeBtn">🌙 Dark Mode</button>
+  </div>
+
+  <!-- Row 2: pressure -->
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;width:100%;padding-top:12px;border-top:1px solid var(--border);">
+    <div class="temp-display" id="pressDisplay" style="min-width:160px;font-size:36px;">—</div>
+    <div class="slider-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;">Pressure</span>
+      </div>
+      <input type="range" id="pressSlider" min="0" max="1000" value="500" step="1"
+             style="background:linear-gradient(to right,#7c3aed 0%,#7c3aed 50%,#7c3aed 100%);">
+
+    </div>
+  </div>
+
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item solid">  <div class="legend-dot solid"></div>  Solid  <span class="legend-count" id="countSolid">—</span></div>
+  <div class="legend-item liquid"> <div class="legend-dot liquid"></div> Liquid <span class="legend-count" id="countLiquid">—</span></div>
+  <div class="legend-item gas">    <div class="legend-dot gas"></div>    Gas    <span class="legend-count" id="countGas">—</span></div>
+  <div class="legend-item unknown"><div class="legend-dot unknown"></div>Unknown <span class="legend-count" id="countUnknown">—</span></div>
+</div>
+
+<!-- TABLE -->
+<div class="table-outer">
+  <div class="table-grid" id="periodicTable"></div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip">
+  <div class="tt-sym" id="ttSym"></div>
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-row"><span class="tt-label">Atomic No.</span><span class="tt-val" id="ttZ"></span></div>
+  <div class="tt-row"><span class="tt-label">Melting point</span><span class="tt-val" id="ttMp"></span></div>
+  <div class="tt-row"><span class="tt-label">Boiling point</span><span class="tt-val" id="ttBp"></span></div>
+  <div class="tt-state" id="ttState"></div>
+</div>
+
+<footer>
+  <span class="footer-label">NOTE</span>
+  Melting points are at standard pressure (1 atm) for most elements. Two elements never form a liquid at standard pressure: <strong>helium</strong> (requires ~25 atm to solidify) and <strong>arsenic</strong> (sublimes directly from solid to gas at 614°C — requires ~28 atm to melt). Both correctly show no liquid phase until pressure is raised on the pressure slider. Boiling points adjust with the pressure slider using an approximation of the Clausius-Clapeyron equation. Values for some synthetic/radioactive elements are estimated or unknown — the 14 unknown elements (z=104–118) have only ever been produced a few atoms at a time and decay too quickly for physical properties to be measured.
+  <br><br>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// ELEMENT DATA
+// mp = melting point (°C), bp = boiling point (°C)
+// null = unknown / no stable solid form
+// row = periodic table row (1-10), col = column (1-18)
+// rows 8-9 = lanthanides, rows 9-10 = actinides (displayed separately)
+// ─────────────────────────────────────────────
+const ELEMENTS = [
+  {z:1,  sym:'H',  name:'Hydrogen',      mp:-259.16, bp:-252.88, row:1,  col:1 },
+  {z:2,  sym:'He', name:'Helium',        mp:null,    bp:-268.93, row:1,  col:18},
+  {z:3,  sym:'Li', name:'Lithium',       mp:180.54,  bp:1342,    row:2,  col:1 },
+  {z:4,  sym:'Be', name:'Beryllium',     mp:1287,    bp:2470,    row:2,  col:2 },
+  {z:5,  sym:'B',  name:'Boron',         mp:2075,    bp:4000,    row:2,  col:13},
+  {z:6,  sym:'C',  name:'Carbon',        mp:3550,    bp:4827,    row:2,  col:14},
+  {z:7,  sym:'N',  name:'Nitrogen',      mp:-210.00, bp:-195.79, row:2,  col:15},
+  {z:8,  sym:'O',  name:'Oxygen',        mp:-218.79, bp:-182.96, row:2,  col:16},
+  {z:9,  sym:'F',  name:'Fluorine',      mp:-219.67, bp:-188.12, row:2,  col:17},
+  {z:10, sym:'Ne', name:'Neon',          mp:-248.59, bp:-246.05, row:2,  col:18},
+  {z:11, sym:'Na', name:'Sodium',        mp:97.79,   bp:882.8,   row:3,  col:1 },
+  {z:12, sym:'Mg', name:'Magnesium',     mp:650,     bp:1090,    row:3,  col:2 },
+  {z:13, sym:'Al', name:'Aluminium',     mp:660.32,  bp:2519,    row:3,  col:13},
+  {z:14, sym:'Si', name:'Silicon',       mp:1414,    bp:3265,    row:3,  col:14},
+  {z:15, sym:'P',  name:'Phosphorus',    mp:44.15,   bp:280.5,   row:3,  col:15},
+  {z:16, sym:'S',  name:'Sulfur',        mp:115.21,  bp:444.61,  row:3,  col:16},
+  {z:17, sym:'Cl', name:'Chlorine',      mp:-101.5,  bp:-34.04,  row:3,  col:17},
+  {z:18, sym:'Ar', name:'Argon',         mp:-189.34, bp:-185.85, row:3,  col:18},
+  {z:19, sym:'K',  name:'Potassium',     mp:63.38,   bp:759,     row:4,  col:1 },
+  {z:20, sym:'Ca', name:'Calcium',       mp:842,     bp:1484,    row:4,  col:2 },
+  {z:21, sym:'Sc', name:'Scandium',      mp:1541,    bp:2836,    row:4,  col:3 },
+  {z:22, sym:'Ti', name:'Titanium',      mp:1668,    bp:3287,    row:4,  col:4 },
+  {z:23, sym:'V',  name:'Vanadium',      mp:1910,    bp:3407,    row:4,  col:5 },
+  {z:24, sym:'Cr', name:'Chromium',      mp:1907,    bp:2671,    row:4,  col:6 },
+  {z:25, sym:'Mn', name:'Manganese',     mp:1246,    bp:2061,    row:4,  col:7 },
+  {z:26, sym:'Fe', name:'Iron',          mp:1538,    bp:2861,    row:4,  col:8 },
+  {z:27, sym:'Co', name:'Cobalt',        mp:1495,    bp:2927,    row:4,  col:9 },
+  {z:28, sym:'Ni', name:'Nickel',        mp:1455,    bp:2913,    row:4,  col:10},
+  {z:29, sym:'Cu', name:'Copper',        mp:1084.62, bp:2562,    row:4,  col:11},
+  {z:30, sym:'Zn', name:'Zinc',          mp:419.53,  bp:907,     row:4,  col:12},
+  {z:31, sym:'Ga', name:'Gallium',       mp:29.76,   bp:2204,    row:4,  col:13},
+  {z:32, sym:'Ge', name:'Germanium',     mp:938.25,  bp:2833,    row:4,  col:14},
+  {z:33, sym:'As', name:'Arsenic',       mp:null,    bp:614,     row:4,  col:15},
+  {z:34, sym:'Se', name:'Selenium',      mp:220.8,   bp:685,     row:4,  col:16},
+  {z:35, sym:'Br', name:'Bromine',       mp:-7.2,    bp:58.8,    row:4,  col:17},
+  {z:36, sym:'Kr', name:'Krypton',       mp:-157.37, bp:-153.22, row:4,  col:18},
+  {z:37, sym:'Rb', name:'Rubidium',      mp:39.31,   bp:688,     row:5,  col:1 },
+  {z:38, sym:'Sr', name:'Strontium',     mp:777,     bp:1382,    row:5,  col:2 },
+  {z:39, sym:'Y',  name:'Yttrium',       mp:1526,    bp:3336,    row:5,  col:3 },
+  {z:40, sym:'Zr', name:'Zirconium',     mp:1855,    bp:4409,    row:5,  col:4 },
+  {z:41, sym:'Nb', name:'Niobium',       mp:2477,    bp:4744,    row:5,  col:5 },
+  {z:42, sym:'Mo', name:'Molybdenum',    mp:2623,    bp:4639,    row:5,  col:6 },
+  {z:43, sym:'Tc', name:'Technetium',    mp:2157,    bp:4265,    row:5,  col:7 },
+  {z:44, sym:'Ru', name:'Ruthenium',     mp:2334,    bp:4150,    row:5,  col:8 },
+  {z:45, sym:'Rh', name:'Rhodium',       mp:1964,    bp:3695,    row:5,  col:9 },
+  {z:46, sym:'Pd', name:'Palladium',     mp:1554.9,  bp:2963,    row:5,  col:10},
+  {z:47, sym:'Ag', name:'Silver',        mp:961.78,  bp:2162,    row:5,  col:11},
+  {z:48, sym:'Cd', name:'Cadmium',       mp:321.07,  bp:767,     row:5,  col:12},
+  {z:49, sym:'In', name:'Indium',        mp:156.6,   bp:2072,    row:5,  col:13},
+  {z:50, sym:'Sn', name:'Tin',           mp:231.93,  bp:2602,    row:5,  col:14},
+  {z:51, sym:'Sb', name:'Antimony',      mp:630.63,  bp:1587,    row:5,  col:15},
+  {z:52, sym:'Te', name:'Tellurium',     mp:449.51,  bp:988,     row:5,  col:16},
+  {z:53, sym:'I',  name:'Iodine',        mp:113.7,   bp:184.3,   row:5,  col:17},
+  {z:54, sym:'Xe', name:'Xenon',         mp:-111.75, bp:-108.12, row:5,  col:18},
+  {z:55, sym:'Cs', name:'Caesium',       mp:28.44,   bp:671,     row:6,  col:1 },
+  {z:56, sym:'Ba', name:'Barium',        mp:727,     bp:1845,    row:6,  col:2 },
+  {z:57, sym:'La', name:'Lanthanum',     mp:920,     bp:3464,    row:8,  col:4 },
+  {z:58, sym:'Ce', name:'Cerium',        mp:798,     bp:3443,    row:8,  col:5 },
+  {z:59, sym:'Pr', name:'Praseodymium',  mp:931,     bp:3520,    row:8,  col:6 },
+  {z:60, sym:'Nd', name:'Neodymium',     mp:1021,    bp:3074,    row:8,  col:7 },
+  {z:61, sym:'Pm', name:'Promethium',    mp:1100,    bp:3000,    row:8,  col:8 },
+  {z:62, sym:'Sm', name:'Samarium',      mp:1072,    bp:1794,    row:8,  col:9 },
+  {z:63, sym:'Eu', name:'Europium',      mp:822,     bp:1596,    row:8,  col:10},
+  {z:64, sym:'Gd', name:'Gadolinium',    mp:1313,    bp:3273,    row:8,  col:11},
+  {z:65, sym:'Tb', name:'Terbium',       mp:1356,    bp:3230,    row:8,  col:12},
+  {z:66, sym:'Dy', name:'Dysprosium',    mp:1412,    bp:2567,    row:8,  col:13},
+  {z:67, sym:'Ho', name:'Holmium',       mp:1474,    bp:2700,    row:8,  col:14},
+  {z:68, sym:'Er', name:'Erbium',        mp:1529,    bp:2868,    row:8,  col:15},
+  {z:69, sym:'Tm', name:'Thulium',       mp:1545,    bp:1950,    row:8,  col:16},
+  {z:70, sym:'Yb', name:'Ytterbium',     mp:819,     bp:1196,    row:8,  col:17},
+  {z:71, sym:'Lu', name:'Lutetium',      mp:1663,    bp:3402,    row:8,  col:18},
+  {z:72, sym:'Hf', name:'Hafnium',       mp:2233,    bp:4603,    row:6,  col:4 },
+  {z:73, sym:'Ta', name:'Tantalum',      mp:3017,    bp:5458,    row:6,  col:5 },
+  {z:74, sym:'W',  name:'Tungsten',      mp:3422,    bp:5555,    row:6,  col:6 },
+  {z:75, sym:'Re', name:'Rhenium',       mp:3186,    bp:5627,    row:6,  col:7 },
+  {z:76, sym:'Os', name:'Osmium',        mp:3033,    bp:5012,    row:6,  col:8 },
+  {z:77, sym:'Ir', name:'Iridium',       mp:2446,    bp:4428,    row:6,  col:9 },
+  {z:78, sym:'Pt', name:'Platinum',      mp:1768.3,  bp:3825,    row:6,  col:10},
+  {z:79, sym:'Au', name:'Gold',          mp:1064.18, bp:2856,    row:6,  col:11},
+  {z:80, sym:'Hg', name:'Mercury',       mp:-38.83,  bp:356.73,  row:6,  col:12},
+  {z:81, sym:'Tl', name:'Thallium',      mp:304,     bp:1473,    row:6,  col:13},
+  {z:82, sym:'Pb', name:'Lead',          mp:327.46,  bp:1749,    row:6,  col:14},
+  {z:83, sym:'Bi', name:'Bismuth',       mp:271.5,   bp:1564,    row:6,  col:15},
+  {z:84, sym:'Po', name:'Polonium',      mp:254,     bp:962,     row:6,  col:16},
+  {z:85, sym:'At', name:'Astatine',      mp:302,     bp:337,     row:6,  col:17},
+  {z:86, sym:'Rn', name:'Radon',         mp:-71,     bp:-61.7,   row:6,  col:18},
+  {z:87, sym:'Fr', name:'Francium',      mp:27,      bp:677,     row:7,  col:1 },
+  {z:88, sym:'Ra', name:'Radium',        mp:700,     bp:1737,    row:7,  col:2 },
+  {z:89, sym:'Ac', name:'Actinium',      mp:1050,    bp:3200,    row:9,  col:4 },
+  {z:90, sym:'Th', name:'Thorium',       mp:1750,    bp:4788,    row:9,  col:5 },
+  {z:91, sym:'Pa', name:'Protactinium',  mp:1572,    bp:4027,    row:9,  col:6 },
+  {z:92, sym:'U',  name:'Uranium',       mp:1135,    bp:4131,    row:9,  col:7 },
+  {z:93, sym:'Np', name:'Neptunium',     mp:644,     bp:4000,    row:9,  col:8 },
+  {z:94, sym:'Pu', name:'Plutonium',     mp:640,     bp:3228,    row:9,  col:9 },
+  {z:95, sym:'Am', name:'Americium',     mp:1176,    bp:2011,    row:9,  col:10},
+  {z:96, sym:'Cm', name:'Curium',        mp:1345,    bp:3110,    row:9,  col:11},
+  {z:97, sym:'Bk', name:'Berkelium',     mp:986,     bp:2627,    row:9,  col:12},
+  {z:98, sym:'Cf', name:'Californium',   mp:900,     bp:1472,    row:9,  col:13},
+  {z:99, sym:'Es', name:'Einsteinium',   mp:860,     bp:996,     row:9,  col:14},
+  {z:100,sym:'Fm', name:'Fermium',       mp:1527,    bp:null,    row:9,  col:15},
+  {z:101,sym:'Md', name:'Mendelevium',   mp:827,     bp:null,    row:9,  col:16},
+  {z:102,sym:'No', name:'Nobelium',      mp:827,     bp:null,    row:9,  col:17},
+  {z:103,sym:'Lr', name:'Lawrencium',    mp:1627,    bp:null,    row:9,  col:18},
+  {z:104,sym:'Rf', name:'Rutherfordium', mp:2100,    bp:5500,    row:7,  col:4 },
+  {z:105,sym:'Db', name:'Dubnium',       mp:null,    bp:null,    row:7,  col:5 },
+  {z:106,sym:'Sg', name:'Seaborgium',    mp:null,    bp:null,    row:7,  col:6 },
+  {z:107,sym:'Bh', name:'Bohrium',       mp:null,    bp:null,    row:7,  col:7 },
+  {z:108,sym:'Hs', name:'Hassium',       mp:null,    bp:null,    row:7,  col:8 },
+  {z:109,sym:'Mt', name:'Meitnerium',    mp:null,    bp:null,    row:7,  col:9 },
+  {z:110,sym:'Ds', name:'Darmstadtium',  mp:null,    bp:null,    row:7,  col:10},
+  {z:111,sym:'Rg', name:'Roentgenium',   mp:null,    bp:null,    row:7,  col:11},
+  {z:112,sym:'Cn', name:'Copernicium',   mp:null,    bp:null,    row:7,  col:12},
+  {z:113,sym:'Nh', name:'Nihonium',      mp:null,    bp:null,    row:7,  col:13},
+  {z:114,sym:'Fl', name:'Flerovium',     mp:null,    bp:null,    row:7,  col:14},
+  {z:115,sym:'Mc', name:'Moscovium',     mp:null,    bp:null,    row:7,  col:15},
+  {z:116,sym:'Lv', name:'Livermorium',   mp:null,    bp:null,    row:7,  col:16},
+  {z:117,sym:'Ts', name:'Tennessine',    mp:null,    bp:null,    row:7,  col:17},
+  {z:118,sym:'Og', name:'Oganesson',     mp:null,    bp:null,    row:7,  col:18},
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let tempC = 20;   // internal always in °C
+let unit = 'C';
+let pressAtm = 1; // internal always in atm
+
+// Pressure slider uses a log scale: slider 0-1000 maps to 0.001–100 atm
+// slider=500 → 1 atm (standard)
+function sliderToAtm(v) {
+  // log scale: 0→0.001, 500→1, 1000→100
+  return Math.pow(10, (v / 1000) * 5 - 3);
+}
+
+function cToDisplay(c) {
+  if (unit === 'C') return Math.round(c * 10) / 10;
+  if (unit === 'F') return Math.round(c * 9/5 + 32);
+  if (unit === 'K') return Math.round((c + 273.15) * 10) / 10;
+}
+
+// Clausius-Clapeyron approximation for boiling point shift:
+// ΔT_bp ≈ (R * T_bp² / ΔH_vap) * ln(P2/P1)
+// Simplified GCSE-appropriate version:
+// bp_adjusted ≈ bp_1atm + k * ln(P_atm)
+// where k ≈ bp_1atm_K * 0.05  (rough but realistic for most elements)
+function adjustedBp(el) {
+  if (el.bp === null) return null;
+  const bpK = el.bp + 273.15;
+  const k = bpK * 0.05; // scaling factor
+  return el.bp + k * Math.log(pressAtm);
+}
+
+// Adjusted melting point — pressure has small effect on mp for most elements
+// For helium: requires ~25 atm to solidify; mp rises roughly linearly
+function adjustedMp(el) {
+  if (el.z === 2) {
+    // Helium: only solid above ~25 atm
+    if (pressAtm < 25) return null;
+    return -272.2 + (pressAtm - 25) * 0.01;
+  }
+  if (el.z === 33) {
+    // Arsenic: sublimes at 1 atm — only melts above ~28 atm (triple point)
+    if (pressAtm < 28) return null;
+    return 817;
+  }
+  if (el.mp === null) return null;
+  return el.mp;
+}
+
+function getState(el) {
+  const mp = adjustedMp(el);
+  const bp = adjustedBp(el);
+  if (mp === null && bp === null) return 'unknown';
+  if (mp !== null && tempC < mp) return 'solid';
+  if (bp === null) return 'liquid';
+  if (tempC < bp) return 'liquid';
+  return 'gas';
+}
+
+function formatTemp(c) {
+  if (c === null) return '—';
+  const v = cToDisplay(c);
+  const u = unit === 'C' ? '°C' : unit === 'F' ? '°F' : ' K';
+  return `${v}${u}`;
+}
+
+// ─────────────────────────────────────────────
+// BUILD TABLE
+// ─────────────────────────────────────────────
+const tableEl = document.getElementById('periodicTable');
+
+// Create a map: "row,col" -> element
+const elMap = {};
+ELEMENTS.forEach(e => { elMap[`${e.row},${e.col}`] = e; });
+
+// Element cells keyed by atomic number
+const cells = {};
+
+function buildTable() {
+  tableEl.innerHTML = '';
+
+  // Rows 1–7: main table (rows 1-7 in our data)
+  // Row 8: lanthanides, Row 9: actinides
+  // We render rows 1-7, then a gap, then 8-9
+
+  const mainRows = 7;
+
+  for (let r = 1; r <= mainRows; r++) {
+    for (let c = 1; c <= 18; c++) {
+      const e = elMap[`${r},${c}`];
+      if (e) {
+        const div = makeCell(e);
+        tableEl.appendChild(div);
+        cells[e.z] = div;
+      } else {
+        // Special placeholder at row 6 col 3 and row 7 col 3 for lanthanide/actinide pointer
+        if ((r === 6 && c === 3) || (r === 7 && c === 3)) {
+          const ph = document.createElement('div');
+          ph.className = 'el unknown';
+          ph.style.opacity = '0.4';
+          ph.innerHTML = `<div class="el-sym" style="font-size:10px;color:var(--text-muted)">${r===6?'57–71':'89–103'}</div>`;
+          tableEl.appendChild(ph);
+        } else {
+          const gap = document.createElement('div');
+          gap.className = 'gap';
+          tableEl.appendChild(gap);
+        }
+      }
+    }
+  }
+
+  // Separator gap
+  for (let c = 0; c < 18; c++) {
+    const g = document.createElement('div');
+    g.className = 'gap';
+    g.style.height = '10px';
+    tableEl.appendChild(g);
+  }
+
+  // Lanthanide row (row 8, cols 4-18 = La–Lu)
+  // Actinide row (row 9)
+  for (let series = 8; series <= 9; series++) {
+    // cols 1–2: gaps
+    for (let i = 0; i < 2; i++) {
+      const g = document.createElement('div'); g.className = 'gap'; tableEl.appendChild(g);
+    }
+    // col 3: series label
+    const label = document.createElement('div');
+    label.className = 'period-label';
+    label.style.fontSize = '9px';
+    label.style.color = 'var(--text-muted)';
+    label.style.textAlign = 'center';
+    label.style.lineHeight = '1.2';
+    label.textContent = series === 8 ? 'Lantha\u00adnides' : 'Actin\u00adides';
+    tableEl.appendChild(label);
+    // cols 4–18: elements (15 cells)
+    for (let c = 4; c <= 18; c++) {
+      const e = elMap[`${series},${c}`];
+      if (e) {
+        const div = makeCell(e);
+        tableEl.appendChild(div);
+        cells[e.z] = div;
+      } else {
+        const gap = document.createElement('div'); gap.className = 'gap'; tableEl.appendChild(gap);
+      }
+    }
+  }
+}
+
+function makeCell(e) {
+  const div = document.createElement('div');
+  div.className = 'el';
+  div.innerHTML = `
+    <div class="el-z">${e.z}</div>
+    <div class="el-sym">${formatSymbol(e.sym)}</div>
+    <div class="el-name">${e.name}</div>
+  `;
+  // Tooltip
+  div.addEventListener('mouseenter', ev => showTooltip(e, ev));
+  div.addEventListener('mousemove', ev => moveTooltip(ev));
+  div.addEventListener('mouseleave', hideTooltip);
+  div.addEventListener('touchstart', ev => { showTooltip(e, ev.touches[0]); });
+  return div;
+}
+
+function formatSymbol(sym) {
+  if (sym.length === 1) return sym;
+  return `${sym[0]}<span style="font-size:0.65em;vertical-align:0.05em">${sym[1].toLowerCase()}</span>`;
+}
+
+// ─────────────────────────────────────────────
+// UPDATE STATES
+// ─────────────────────────────────────────────
+function updateStates() {
+  let counts = { solid: 0, liquid: 0, gas: 0, unknown: 0 };
+  ELEMENTS.forEach(e => {
+    const state = getState(e);
+    const cell = cells[e.z];
+    if (!cell) return;
+    cell.className = `el ${state}`;
+    counts[state]++;
+  });
+  document.getElementById('countSolid').textContent   = counts.solid;
+  document.getElementById('countLiquid').textContent  = counts.liquid;
+  document.getElementById('countGas').textContent     = counts.gas;
+  document.getElementById('countUnknown').textContent = counts.unknown;
+}
+
+// ─────────────────────────────────────────────
+// DISPLAYS
+// ─────────────────────────────────────────────
+function updateTempDisplay() {
+  const val = cToDisplay(tempC);
+  const unitStr = unit === 'C' ? '°C' : unit === 'F' ? '°F' : ' K';
+  document.getElementById('tempDisplay').innerHTML =
+    `${val}<span class="temp-unit">${unitStr}</span>`;
+}
+
+function updatePressDisplay() {
+  let p = pressAtm;
+  let str;
+  if (p < 0.01) str = p.toFixed(3);
+  else if (p < 1) str = p.toFixed(2);
+  else if (p < 10) str = p.toFixed(1);
+  else str = Math.round(p);
+  document.getElementById('pressDisplay').innerHTML =
+    `${str}<span class="temp-unit">atm</span>`;
+}
+
+// ─────────────────────────────────────────────
+// SLIDERS
+// ─────────────────────────────────────────────
+const slider = document.getElementById('tempSlider');
+slider.addEventListener('input', () => {
+  tempC = parseInt(slider.value);
+  updateTempDisplay();
+  updateStates();
+  if (activeEl) updateTooltipContent(activeEl);
+});
+
+const pressSlider = document.getElementById('pressSlider');
+pressSlider.addEventListener('input', () => {
+  pressAtm = sliderToAtm(parseInt(pressSlider.value));
+  updatePressDisplay();
+  updateStates();
+  if (activeEl) updateTooltipContent(activeEl);
+});
+
+// ─────────────────────────────────────────────
+// UNIT BUTTONS
+// ─────────────────────────────────────────────
+document.querySelectorAll('.unit-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    unit = btn.dataset.unit;
+    updateTempDisplay();
+    if (activeEl) updateTooltipContent(activeEl);
+  });
+});
+
+
+
+// ─────────────────────────────────────────────
+// THEME TOGGLE
+// ─────────────────────────────────────────────
+const themeBtn = document.getElementById('themeBtn');
+let isDark = false;
+themeBtn.addEventListener('click', () => {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  themeBtn.textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
+});
+
+// ─────────────────────────────────────────────
+// TOOLTIP
+// ─────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+let activeEl = null;
+
+function updateTooltipContent(e) {
+  const state = getState(e);
+  document.getElementById('ttSym').textContent = e.sym;
+  document.getElementById('ttSym').style.color =
+    state === 'solid' ? 'var(--solid-text)' :
+    state === 'liquid' ? 'var(--liquid-text)' :
+    state === 'gas' ? 'var(--gas-text)' : 'var(--unknown-text)';
+  document.getElementById('ttName').textContent = `${e.name} (#${e.z})`;
+  const mp = adjustedMp(e);
+  const bp = adjustedBp(e);
+  document.getElementById('ttMp').textContent = mp !== null ? formatTemp(mp) : '—';
+  document.getElementById('ttBp').textContent = bp !== null ? formatTemp(bp) : '—';
+  const stateEl = document.getElementById('ttState');
+  stateEl.textContent =
+    state === 'solid'   ? '● SOLID' :
+    state === 'liquid'  ? '● LIQUID' :
+    state === 'gas'     ? '● GAS' : '● UNKNOWN';
+  stateEl.className = `tt-state ${state}`;
+}
+
+function showTooltip(e, ev) {
+  activeEl = e;
+  updateTooltipContent(e);
+  tooltip.classList.add('visible');
+  positionTooltip(ev);
+}
+function moveTooltip(ev) { positionTooltip(ev); }
+function hideTooltip() { tooltip.classList.remove('visible'); activeEl = null; }
+function positionTooltip(ev) {
+  const x = ev.clientX, y = ev.clientY;
+  const tw = 220, th = 160;
+  let left = x + 16, top = y + 16;
+  if (left + tw > window.innerWidth - 10) left = x - tw - 16;
+  if (top + th > window.innerHeight - 10) top = y - th - 16;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+buildTable();
+updateStates();
+updateTempDisplay();
+updatePressDisplay();
+</script>
+</body>
+</html>
