@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MathsForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -27,7 +28,6 @@
     flex-direction: column;
   }
 
-  /* ===================== HEADER ===================== */
   header {
     padding: 14px 24px;
     border-bottom: 1.5px solid var(--border);
@@ -40,7 +40,6 @@
   .header-byline { font-size: 11px; color: #111111; font-weight: 400; letter-spacing: 0.3px; text-align: right; }
   .header-byline strong { font-weight: 700; color: var(--accent); }
 
-  /* ===================== MAIN ===================== */
   .main {
     flex: 1;
     display: flex;
@@ -50,22 +49,6 @@
     gap: 16px;
   }
 
-  .main-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(28px, 5vw, 42px);
-    letter-spacing: 3px;
-    color: var(--text);
-    text-align: center;
-  }
-  .main-title .forge { font-weight: 700; color: var(--accent); }
-  .main-sub {
-    font-size: 13px;
-    color: var(--text-muted);
-    font-weight: 500;
-    letter-spacing: 0.4px;
-    margin-bottom: 8px;
-    text-align: center;
-  }
   .back-link {
     font-size: 12px;
     font-weight: 600;
@@ -79,7 +62,6 @@
   }
   .back-link:hover { text-decoration: underline; }
 
-  /* ===================== TOPIC GRID ===================== */
   .topic-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -106,50 +88,27 @@
     overflow: hidden;
     min-height: 170px;
   }
-  .topic-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(0,0,0,0.10);
-  }
+  .topic-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.10); }
   .topic-card:active { transform: translateY(-1px) scale(0.99); }
-
   .topic-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0.07;
-    background: var(--card-color);
-    transition: opacity 0.18s ease;
+    content: ''; position: absolute; inset: 0; opacity: 0.07;
+    background: var(--card-color); transition: opacity 0.18s ease;
   }
   .topic-card:hover::before { opacity: 0.13; }
-
   .topic-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: var(--card-color);
-    border-radius: 16px 16px 0 0;
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px; background: var(--card-color); border-radius: 16px 16px 0 0;
   }
 
   .topic-icon { font-size: 28px; line-height: 1; }
   .topic-name {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(13px, 4.2vw, 22px);
-    letter-spacing: 2px;
-    color: var(--text);
-    line-height: 1.1;
-    white-space: nowrap;
+    letter-spacing: 2px; color: var(--text); line-height: 1.1; white-space: nowrap;
   }
   .topic-name .forge { color: var(--card-color); }
-  .topic-desc {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--text-muted);
-    letter-spacing: 0.2px;
-    line-height: 1.5;
-  }
+  .topic-desc { font-size: 11.5px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.2px; line-height: 1.5; }
 
-  /* 15 card colours for MathsForge tools (blue palette) */
   .tc-1  { --card-color: #2563eb; --card-border: #bdd0f7; --card-bg: #f0f5ff; }
   .tc-2  { --card-color: #1d4ed8; --card-border: #b3c6f5; --card-bg: #eef2ff; }
   .tc-3  { --card-color: #3b82f6; --card-border: #bfdbfe; --card-bg: #eff6ff; }
@@ -168,44 +127,19 @@
   .tc-16 { --card-color: #0c46b2; --card-border: #5590e5; --card-bg: #edf3ff; }
   .tc-17 { --card-color: #0939a8; --card-border: #4880df; --card-bg: #eaf2ff; }
 
-  /* Coming soon cards */
-  .topic-card.coming-soon {
-    opacity: 0.5;
-    cursor: default;
-    pointer-events: none;
-  }
-  .coming-soon-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    background: var(--card-border);
-    border-radius: 20px;
-    padding: 2px 10px;
-  }
-
-  /* Section labels */
   .section-label {
     width: min(960px, 100%);
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 3px;
-    color: var(--text-muted);
-    padding-bottom: 4px;
-    border-bottom: 1.5px solid var(--border);
-    margin-top: 8px;
+    font-size: 18px; letter-spacing: 3px; color: var(--text-muted);
+    padding-bottom: 4px; border-bottom: 1.5px solid var(--border); margin-top: 8px;
   }
 
-  /* ===================== FOOTER ===================== */
   footer {
     border-top: 1.5px solid var(--border); padding: 11px 24px;
-    font-size: 11.5px; color: #111111;
-    background: var(--surface); line-height: 1.5; flex-shrink: 0;
+    font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0;
   }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
-  /* ===================== RESPONSIVE ===================== */
   @media (max-width: 700px) {
     .topic-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
     .topic-card { padding: 22px 16px; min-height: 140px; }
@@ -217,18 +151,17 @@
     footer { padding: 10px 16px; font-size: 10.5px; }
   }
 </style>
-
 <script>sessionStorage.setItem('visited','1');</script>
 </head>
 <body>
 
 <header>
-  <a href="../index.html" class="logo"><span class="logo-study">Maths</span><span class="logo-forge">Forge</span></a>
+  <a href="index.html" class="logo"><span class="logo-study">Maths</span><span class="logo-forge">Forge</span></a>
   <div class="header-byline">A website by <strong>Leon Dudhill</strong></div>
 </header>
 
 <main class="main">
-  <a href="../index.html" class="back-link">← Back to ReviseForge</a>
+  <a href="index.html" class="back-link">← Back to ReviseForge</a>
 
   <div class="section-label">Tools</div>
   <div class="topic-grid">
@@ -241,13 +174,13 @@
 
     <a href="GeometryForge2D.html" class="topic-card tc-2">
       <div class="topic-icon">📐</div>
-      <div class="topic-name">Geometry<span class="forge">Forge</span><span style="color:#111111">2D</span></div>
+      <div class="topic-name">Geometry<span class="forge">Forge</span> 2D</div>
       <div class="topic-desc">Interactive 2D shape explorer</div>
     </a>
 
     <a href="GeometryForge3D.html" class="topic-card tc-3">
       <div class="topic-icon">🧊</div>
-      <div class="topic-name">Geometry<span class="forge">Forge</span><span style="color:#111111">3D</span></div>
+      <div class="topic-name">Geometry<span class="forge">Forge</span> 3D</div>
       <div class="topic-desc">Interactive 3D shape explorer</div>
     </a>
 
@@ -320,12 +253,6 @@
       <div class="topic-icon">^</div>
       <div class="topic-name">Power<span class="forge">Forge</span></div>
       <div class="topic-desc">Laws of indices &amp; negative powers</div>
-    </a>
-
-    <a href="RatioForge.html" class="topic-card tc-11">
-      <div class="topic-icon">⚖️</div>
-      <div class="topic-name">Ratio<span class="forge">Forge</span></div>
-      <div class="topic-desc">Simplify ratios to lowest terms</div>
     </a>
 
     <a href="RatioForge.html" class="topic-card tc-11">

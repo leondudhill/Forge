@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReviseForge — Leon Dudhill</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -76,7 +77,6 @@
   .header-byline { font-size: 11px; color: #111111; font-weight: 400; letter-spacing: 0.3px; text-align: right; }
   .header-byline strong { font-weight: 700; color: var(--accent); }
 
-
   /* ===================== MAIN ===================== */
   .main {
     flex: 1;
@@ -96,8 +96,6 @@
     text-align: center;
   }
   .main-title strong { font-weight: 700; color: #444444; }
-  .main-title .title-study { color: var(--text); }
-  .main-title .title-forge { color: #444444; font-weight: 700; }
   .main-sub {
     font-size: 13px;
     color: var(--text-muted);
@@ -113,7 +111,7 @@
     flex-direction: column;
     align-items: stretch;
     width: min(700px, 100%);
-    gap: 8px;
+    gap: 20px;
   }
   .subject-grid {
     display: grid;
@@ -146,7 +144,6 @@
   }
   .subject-card:active { transform: translateY(-1px) scale(0.99); }
 
-  /* Subtle tinted background per subject */
   .subject-card::before {
     content: '';
     position: absolute;
@@ -157,7 +154,6 @@
   }
   .subject-card:hover::before { opacity: 0.14; }
 
-  /* Accent stripe at top */
   .subject-card::after {
     content: '';
     position: absolute;
@@ -167,10 +163,14 @@
     border-radius: 16px 16px 0 0;
   }
 
-  .card-icon {
-    font-size: 32px;
-    line-height: 1;
+  /* Coming soon — no pointer, no hover lift */
+  .subject-card.coming-soon {
+    cursor: default;
+    pointer-events: none;
+    opacity: 0.6;
   }
+
+  .card-icon { font-size: 32px; line-height: 1; }
   .card-name {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(12px, 4.2vw, 32px);
@@ -179,10 +179,7 @@
     line-height: 1.1;
     white-space: nowrap;
   }
-  .card-name span {
-    color: var(--card-color);
-    font-weight: 700;
-  }
+  .card-name span { color: var(--card-color); font-weight: 700; }
   .card-desc {
     font-size: 12px;
     font-weight: 500;
@@ -190,12 +187,27 @@
     letter-spacing: 0.3px;
     line-height: 1.5;
   }
+  .coming-soon-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #666;
+    background: #e5e5e5;
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-top: 2px;
+  }
 
   /* Per-subject colours */
   .card-maths    { --card-color: #2563eb; border-color: #bdd0f7; background: #f5f8ff; }
   .card-physics  { --card-color: #dc2626; border-color: #fbbcbc; background: #fff5f5; }
   .card-chem     { --card-color: #7c3aed; border-color: #d4b8f7; background: #f8f4ff; }
   .card-bio      { --card-color: #16a34a; border-color: #b6e4ca; background: #f4fbf6; }
+  .card-pastpaper { --card-color: #666666; border-color: #cccccc; background: #f7f7f7; }
+
+  /* Full-width card */
+  .card-full { grid-column: 1 / -1; min-height: 200px; }
 
   /* ===================== FOOTER ===================== */
   footer {
@@ -215,6 +227,7 @@
   }
   @media (max-width: 360px) {
     .subject-grid { grid-template-columns: 1fr; }
+    .card-full { grid-column: 1; }
   }
 </style>
 </head>
@@ -237,35 +250,43 @@
   <div class="grid-wrapper">
     <div class="subject-grid">
 
-    <!-- MATHS -->
-    <a href="maths/index.html" class="subject-card card-maths">
-      <div class="card-icon">📐</div>
-      <div class="card-name">Maths<span>Forge</span></div>
-      <div class="card-desc">Numbers, algebra, geometry &amp; more</div>
-    </a>
+      <!-- MATHS -->
+      <a href="maths.html" class="subject-card card-maths">
+        <div class="card-icon">📐</div>
+        <div class="card-name">Maths<span>Forge</span></div>
+        <div class="card-desc">Numbers, algebra, geometry &amp; more</div>
+      </a>
 
-    <!-- PHYSICS -->
-    <a href="physics/index.html" class="subject-card card-physics">
-      <div class="card-icon">⚡</div>
-      <div class="card-name">Physics<span>Forge</span></div>
-      <div class="card-desc">Forces, energy, waves &amp; space</div>
-    </a>
+      <!-- PHYSICS -->
+      <a href="physics.html" class="subject-card card-physics">
+        <div class="card-icon">⚡</div>
+        <div class="card-name">Physics<span>Forge</span></div>
+        <div class="card-desc">Forces, energy, waves &amp; space</div>
+      </a>
 
-    <!-- CHEMISTRY -->
-    <a href="chemistry/index.html" class="subject-card card-chem">
-      <div class="card-icon">🧪</div>
-      <div class="card-name">Chemistry<span>Forge</span></div>
-      <div class="card-desc">Atoms, reactions &amp; the periodic table</div>
-    </a>
+      <!-- CHEMISTRY -->
+      <a href="chemistry.html" class="subject-card card-chem">
+        <div class="card-icon">🧪</div>
+        <div class="card-name">Chemistry<span>Forge</span></div>
+        <div class="card-desc">Atoms, reactions &amp; the periodic table</div>
+      </a>
 
-    <!-- BIOLOGY -->
-    <a href="biology/index.html" class="subject-card card-bio">
-      <div class="card-icon">🧬</div>
-      <div class="card-name">Biology<span>Forge</span></div>
-      <div class="card-desc">Cells, genetics, ecosystems &amp; more</div>
-    </a>
+      <!-- BIOLOGY -->
+      <a href="biology.html" class="subject-card card-bio">
+        <div class="card-icon">🧬</div>
+        <div class="card-name">Biology<span>Forge</span></div>
+        <div class="card-desc">Cells, genetics, ecosystems &amp; more</div>
+      </a>
 
-  </div>
+      <!-- PAST PAPER FORGE — full width, coming soon -->
+      <a href="#" class="subject-card card-pastpaper card-full coming-soon">
+        <div class="card-icon">📝</div>
+        <div class="card-name">PastPaper<span>Forge</span></div>
+        <div class="card-desc">Answer questions from all past papers...</div>
+        <div class="coming-soon-badge">Coming Soon</div>
+      </a>
+
+    </div>
   </div>
 </main>
 
@@ -276,8 +297,6 @@
 
 <script>
   const splash = document.getElementById('splash');
-
-  // Only show splash on first visit, not when navigating back
   if (sessionStorage.getItem('visited')) {
     splash.style.display = 'none';
   } else {
