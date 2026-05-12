@@ -225,6 +225,12 @@
   @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
 
   .hidden { display: none !important; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
 </style>
 </head>
 <body>
@@ -292,11 +298,7 @@
     <div class="sidebar-title">Score</div>
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
-      <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
-      </div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Accuracy</div>
@@ -358,19 +360,19 @@ const bank = [
   { type: 'mc', q: 'During which stage does the nuclear envelope re-form?',               correct: 'Telophase', options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'] },
 
   // ── TYPED ──
-  { type: 'typed', q: 'How many daughter cells does mitosis produce?',          correct: ['2', 'two'],                         display: '2' },
-  { type: 'typed', q: 'How many daughter cells does meiosis produce?',          correct: ['4', 'four'],                        display: '4' },
-  { type: 'typed', q: 'What is the chromosome number in a human body cell?',    correct: ['46'],                               display: '46' },
-  { type: 'typed', q: 'What is the chromosome number in a human gamete?',       correct: ['23'],                               display: '23' },
-  { type: 'typed', q: 'What term describes a cell with two sets of chromosomes?', correct: ['diploid'],                        display: 'Diploid' },
-  { type: 'typed', q: 'What term describes a cell with one set of chromosomes?',  correct: ['haploid'],                        display: 'Haploid' },
-  { type: 'typed', q: 'Name the first stage of mitosis.',                        correct: ['prophase'],                        display: 'Prophase' },
-  { type: 'typed', q: 'In which stage do chromosomes align at the cell equator?', correct: ['metaphase'],                      display: 'Metaphase' },
-  { type: 'typed', q: 'In which stage do chromatids move to opposite poles?',    correct: ['anaphase'],                        display: 'Anaphase' },
-  { type: 'typed', q: 'What is the purpose of meiosis in humans?',               correct: ['make gametes','produce gametes','make sex cells','produce sex cells'], display: 'Make gametes' },
-  { type: 'typed', q: 'What is the purpose of mitosis?',                         correct: ['growth and repair','growth','repair'], display: 'Growth and repair' },
-  { type: 'typed', q: 'Name the male gamete in humans.',                         correct: ['sperm','sperm cell'],               display: 'Sperm' },
-  { type: 'typed', q: 'Name the female gamete in humans.',                       correct: ['egg','egg cell','ovum','ova'],      display: 'Egg / Ovum' },
+  { type: 'mc', q: 'How many daughter cells does mitosis produce?',          correct: '2', options: ['1', '2', '4', '8'] },
+  { type: 'mc', q: 'How many daughter cells does meiosis produce?',          correct: '4', options: ['1', '2', '4', '8'] },
+  { type: 'mc', q: 'What is the chromosome number in a human body cell?',    correct: '46', options: ['23', '46', '92', '44'] },
+  { type: 'mc', q: 'What is the chromosome number in a human gamete?',       correct: '23', options: ['46', '23', '92', '22'] },
+  { type: 'mc', q: 'What term describes a cell with two sets of chromosomes?', correct: 'Diploid', options: ['Haploid', 'Diploid', 'Triploid', 'Monoploid'] },
+  { type: 'mc', q: 'What term describes a cell with one set of chromosomes?',  correct: 'Haploid', options: ['Diploid', 'Haploid', 'Triploid', 'Monoploid'] },
+  { type: 'mc', q: 'Name the first stage of mitosis.',                        correct: 'Prophase', options: ['Metaphase', 'Prophase', 'Anaphase', 'Telophase'] },
+  { type: 'mc', q: 'In which stage do chromosomes align at the cell equator?', correct: 'Metaphase', options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'] },
+  { type: 'mc', q: 'In which stage do chromatids move to opposite poles?',    correct: 'Anaphase', options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'] },
+  { type: 'mc', q: 'What is the purpose of meiosis in humans?',               correct: 'Make gametes (sex cells)', options: ['Growth and repair', 'Make gametes (sex cells)', 'Replace damaged cells', 'Produce antibodies'] },
+  { type: 'mc', q: 'What is the purpose of mitosis?',                         correct: 'Growth and repair', options: ['Growth and repair', 'Make gametes', 'Produce variation', 'Halve chromosome number'] },
+  { type: 'mc', q: 'Name the male gamete in humans.',                         correct: 'Sperm', options: ['Sperm', 'Egg', 'Ovum', 'Zygote'] },
+  { type: 'mc', q: 'Name the female gamete in humans.',                       correct: 'Egg / Ovum', options: ['Sperm', 'Egg / Ovum', 'Zygote', 'Embryo'] },
 ];
 
 // ── STATE ──
@@ -406,8 +408,6 @@ const statCorrect  = document.getElementById('statCorrect');
 const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
-const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
@@ -537,7 +537,6 @@ function updateStats() {
   const pctStr = pct!==null ? pct+'%' : '—';
   const pctW   = pct!==null ? pct+'%' : '0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent = ss>=3 ? `🔥 ${ss} in a row` : '';
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
   const col = pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
@@ -547,6 +546,11 @@ function updateStats() {
 // ── EVENTS ──
 submitBtn.addEventListener('click', submitAnswer);
 answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', () => { shuffled=[]; shuffleIdx=0; nextQuestion(); });
+document.getElementById('resetBtnDesktop').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion();
+});
 document.getElementById('drawerToggle').addEventListener('click', () => {
   const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
   const open=d.classList.toggle('open'); t.classList.toggle('open',open);
