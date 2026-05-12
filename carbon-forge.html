@@ -188,9 +188,7 @@
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
       <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
+        <span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span>
       </div>
     </div>
     <div class="stat-block">
@@ -296,27 +294,36 @@ const bank = [
     options: ['Increasing decomposition', 'Reducing photosynthesis so less CO₂ is absorbed', 'Stopping respiration', 'Increasing fossilisation'] },
 
   // ── TYPED ──
-  { type: 'typed', q: 'Name the process that removes CO₂ from the atmosphere.',
-    correct: ['photosynthesis'], display: 'Photosynthesis' },
-  { type: 'typed', q: 'Name the process by which all living organisms release CO₂.',
-    correct: ['respiration'], display: 'Respiration' },
-  { type: 'typed', q: 'Name the process that releases CO₂ when fossil fuels are burned.',
-    correct: ['combustion'], display: 'Combustion' },
-  { type: 'typed', q: 'Name the process where bacteria and fungi break down dead matter.',
-    correct: ['decomposition'], display: 'Decomposition' },
-  { type: 'typed', q: 'How does carbon move from plants to animals in the carbon cycle?',
-    correct: ['feeding', 'eating', 'consumption'], display: 'Feeding' },
-  { type: 'typed', q: 'What are organisms that break down dead material called?',
-    correct: ['decomposers'], display: 'Decomposers' },
-  { type: 'typed', q: 'Name one type of decomposer.',
-    correct: ['bacteria', 'fungi', 'fungus'], display: 'Bacteria / Fungi' },
-  { type: 'typed', q: 'What carbon-containing gas is released by respiration and combustion?',
-    correct: ['carbon dioxide', 'co2', 'co₂'], display: 'Carbon dioxide' },
-  { type: 'typed', q: 'What process over millions of years turns dead organisms into fossil fuels?',
-    correct: ['fossilisation', 'fossilization'], display: 'Fossilisation' },
-  { type: 'typed', q: 'Name THREE processes that return CO₂ to the atmosphere.',
-    correct: ['respiration combustion decomposition', 'combustion respiration decomposition', 'decomposition respiration combustion'],
-    display: 'Respiration, combustion, decomposition' },
+  { type: 'mc', q: 'Name the process that removes CO₂ from the atmosphere.',
+    correct: 'Photosynthesis',
+    options: ['Photosynthesis', 'Respiration', 'Combustion', 'Decomposition'] },
+  { type: 'mc', q: 'Name the process by which all living organisms release CO₂.',
+    correct: 'Respiration',
+    options: ['Photosynthesis', 'Respiration', 'Combustion', 'Fossilisation'] },
+  { type: 'mc', q: 'Name the process that releases CO₂ when fossil fuels are burned.',
+    correct: 'Combustion',
+    options: ['Respiration', 'Combustion', 'Decomposition', 'Photosynthesis'] },
+  { type: 'mc', q: 'Name the process where bacteria and fungi break down dead matter.',
+    correct: 'Decomposition',
+    options: ['Combustion', 'Respiration', 'Decomposition', 'Fossilisation'] },
+  { type: 'mc', q: 'How does carbon move from plants to animals in the carbon cycle?',
+    correct: 'Feeding / consumption',
+    options: ['Photosynthesis', 'Respiration', 'Feeding / consumption', 'Decomposition'] },
+  { type: 'mc', q: 'What are organisms that break down dead material called?',
+    correct: 'Decomposers',
+    options: ['Producers', 'Consumers', 'Decomposers', 'Predators'] },
+  { type: 'mc', q: 'Name one type of decomposer.',
+    correct: 'Bacteria',
+    options: ['Bacteria', 'Algae', 'Moss', 'Fern'] },
+  { type: 'mc', q: 'What carbon-containing gas is released by respiration and combustion?',
+    correct: 'Carbon dioxide (CO₂)',
+    options: ['Oxygen', 'Nitrogen', 'Carbon dioxide (CO₂)', 'Methane'] },
+  { type: 'mc', q: 'What process over millions of years turns dead organisms into fossil fuels?',
+    correct: 'Fossilisation',
+    options: ['Decomposition', 'Combustion', 'Fossilisation', 'Respiration'] },
+  { type: 'mc', q: 'Which THREE processes return CO₂ to the atmosphere?',
+    correct: 'Respiration, combustion & decomposition',
+    options: ['Respiration, combustion & decomposition', 'Photosynthesis, feeding & respiration', 'Combustion, fossilisation & feeding', 'Decomposition, photosynthesis & combustion'] },
 ];
 
 // ── STATE ──
