@@ -329,7 +329,7 @@
     </div>
     <hr class="divider">
     <div class="stat-block">
-      <div class="stat-label">Recent correct</div>
+      <div class="stat-label">Mastered</div>
       <div class="mastered-list" id="masteredList">
         <div style="font-size:12px;color:var(--text-muted)">None yet</div>
       </div>
@@ -367,7 +367,7 @@
 // hint: the formula shown below the question
 // Mastery note: unlike squares/multiplication, conversions are
 // infinite — mastery tracks the specific (value, from, to) triple
-// answered correctly 6x in time. We show "recent correct" not mastered.
+// answered correctly 6x in time. We show "Mastered" not mastered.
 // ============================================================
 
 const CATEGORIES = [
@@ -689,7 +689,7 @@ function submitAnswer() {
     const streak = streaks[currentQ.key];
     renderStreakDots(streak);
 
-    // Add to recent correct log
+    // Add to Mastered log
     const entry = `${currentQ.value}${currentQ.conv.from} = ${correct}${currentQ.conv.to}`;
     recentCorrect.unshift(entry);
     if (recentCorrect.length > 20) recentCorrect.pop();

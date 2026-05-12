@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CellDivisionForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -40,7 +41,7 @@
     justify-content: space-between;
     flex-shrink: 0;
   }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
   .logo span { color: var(--accent); }
   .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
   .byline strong { font-weight: 700; color: var(--accent); }
@@ -116,7 +117,7 @@
   }
   .question-text {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(22px, 3.5vw, 32px);
+    font-size: clamp(32px, 5vw, 52px);
     letter-spacing: 2px; line-height: 1.25; color: var(--text);
   }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
@@ -258,41 +259,13 @@
 
   <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Quick Ref</div>
-
-    <div class="info-block">
-      <div class="info-block-title">Key differences</div>
-      <table class="compare-table">
-        <tr><th></th><th>Mitosis</th><th>Meiosis</th></tr>
-        <tr><td>Purpose</td><td>Growth &amp; repair</td><td>Sex cells</td></tr>
-        <tr><td>Divisions</td><td>1</td><td>2</td></tr>
-        <tr><td>Cells made</td><td>2</td><td>4</td></tr>
-        <tr><td>Chromosome #</td><td>46 (diploid)</td><td>23 (haploid)</td></tr>
-        <tr><td>Identical?</td><td>Yes</td><td>No</td></tr>
-        <tr><td>Variation</td><td>None</td><td>Genetic</td></tr>
-      </table>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Mitosis stages</div>
-      <p>Prophase → Metaphase → Anaphase → Telophase</p>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
   <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
       <div class="question-sub" id="questionSub">6 seconds per question</div>
     </div>
@@ -300,7 +273,7 @@
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
       <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-      <div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
 
     <div class="mc-grid hidden" id="mcGrid"></div>
@@ -331,9 +304,8 @@
     </div>
     <hr class="divider">
     <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
     </div>
   </div>
 
@@ -421,7 +393,6 @@ function getNextQ() {
 
 // ── DOM ──
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
@@ -454,12 +425,10 @@ function nextQuestion() {
   currentQ = getNextQ();
 
   if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
     mcGrid.classList.remove('hidden');
     typedRow.classList.add('hidden');
     renderMC(currentQ);
   } else {
-    qTypeBadge.textContent = 'Typed Answer';
     mcGrid.classList.add('hidden');
     typedRow.classList.remove('hidden');
     answerInput.value = ''; answerInput.className = 'answer-input';
@@ -490,7 +459,7 @@ function handleMC(chosen, btn) {
   } else {
     btn.classList.add('wrong-flash');
     document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
-    recordWrong('Answer: ' + currentQ.correct);
+    recordWrong( currentQ.correct);
   }
   setTimeout(nextQuestion, 1100);
 }
@@ -505,7 +474,7 @@ function submitAnswer() {
   if (isCorrect(val, currentQ.correct)) {
     answerInput.className = 'answer-input correct-flash'; recordCorrect();
   } else {
-    answerInput.className = 'answer-input wrong-flash'; recordWrong('Answer: ' + currentQ.display);
+    answerInput.className = 'answer-input wrong-flash'; recordWrong( currentQ.display);
   }
   setTimeout(nextQuestion, 1100);
 }
@@ -531,7 +500,7 @@ function recordCorrect() {
 }
 function recordWrong(msg) {
   stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = '✗  ' + msg;
+  feedbackMsg.textContent = '✗  Answer was ' + msg;
   feedbackMsg.className = 'feedback-msg wrong'; updateStats();
 }
 
@@ -552,8 +521,7 @@ function startTimer() {
       timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
       if (!answered) {
         questionSub.textContent = '⏱  Time\'s up — still answer!';
-        feedbackMsg.textContent = 'Time up — what is it?';
-        feedbackMsg.className = 'feedback-msg timeout';
+        
         if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
       }
     }

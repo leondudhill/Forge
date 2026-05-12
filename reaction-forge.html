@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReactionForge — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -24,7 +25,7 @@
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
   header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
   .logo span { color: var(--accent); }
   .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
   .byline strong { font-weight: 700; color: var(--accent); }
@@ -60,7 +61,7 @@
   .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
   .question-card { text-align: center; max-width: 480px; width: 100%; }
   .q-type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
-  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 3.2vw, 30px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
 
   .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
@@ -119,6 +120,15 @@
   @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
   @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
   @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
+
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -146,40 +156,13 @@
 
   <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Equations</div>
-
-    <div class="info-block">
-      <div class="eq-card">
-        <div class="eq-label">Photosynthesis</div>
-        <div class="eq-text">CO₂ + H₂O<br><span class="eq-arrow">→</span> glucose + O₂<br><br>light energy needed<br>in chloroplasts</div>
-      </div>
-      <div class="eq-card">
-        <div class="eq-label">Aerobic Respiration</div>
-        <div class="eq-text">glucose + O₂<br><span class="eq-arrow">→</span> CO₂ + H₂O<br><br>releases ATP energy<br>in mitochondria</div>
-      </div>
-      <div class="eq-card">
-        <div class="eq-label">Anaerobic (Animals)</div>
-        <div class="eq-text">glucose<br><span class="eq-arrow">→</span> lactic acid<br><br>in cytoplasm<br>no oxygen needed</div>
-      </div>
-      <div class="eq-card">
-        <div class="eq-label">Anaerobic (Plants/Yeast)</div>
-        <div class="eq-text">glucose<br><span class="eq-arrow">→</span> ethanol + CO₂<br><br>fermentation<br>no oxygen needed</div>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
   <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
       <div class="question-sub" id="questionSub">6 seconds per question</div>
     </div>
@@ -187,7 +170,7 @@
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
       <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-      <div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
 
     <div class="mc-grid hidden" id="mcGrid"></div>
@@ -218,32 +201,24 @@
     </div>
     <hr class="divider">
     <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
     </div>
   </div>
 
 </div>
 
-<button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ Equations reference</span>
-  <span class="arrow">▼</span>
-</button>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Options</span><span class="arrow">▼</span></button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <span class="label">Photosynthesis</span>
-  <p>CO₂ + H₂O → glucose + O₂</p>
-  <span class="label">Aerobic Respiration</span>
-  <p>glucose + O₂ → CO₂ + H₂O</p>
-  <span class="label">Anaerobic (Animals)</span>
-  <p>glucose → lactic acid</p>
-  <span class="label">Anaerobic (Plants/Yeast)</span>
-  <p>glucose → ethanol + CO₂</p>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Shuffle</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset</button>
+  </div>
 </div>
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
 
 <script>
@@ -388,7 +363,6 @@ function getNextQ() {
 }
 
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
@@ -401,8 +375,8 @@ const statCorrect  = document.getElementById('statCorrect');
 const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
-const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
+
+
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
@@ -419,11 +393,9 @@ function nextQuestion() {
   feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
   if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
     mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
     renderMC(currentQ);
   } else {
-    qTypeBadge.textContent = 'Typed Answer';
     mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
     answerInput.value = ''; answerInput.className = 'answer-input';
     answerInput.disabled = false; submitBtn.disabled = false;
@@ -452,7 +424,7 @@ function handleMC(chosen, btn) {
   } else {
     btn.classList.add('wrong-flash');
     document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
-    recordWrong('Answer: ' + currentQ.correct);
+    recordWrong( currentQ.correct);
   }
   setTimeout(nextQuestion, 1100);
 }
@@ -466,7 +438,7 @@ function submitAnswer() {
   if (isCorrect(val, currentQ.correct)) {
     answerInput.className = 'answer-input correct-flash'; recordCorrect();
   } else {
-    answerInput.className = 'answer-input wrong-flash'; recordWrong('Answer: ' + currentQ.display);
+    answerInput.className = 'answer-input wrong-flash'; recordWrong( currentQ.display);
   }
   setTimeout(nextQuestion, 1100);
 }
@@ -491,7 +463,7 @@ function recordCorrect() {
 }
 function recordWrong(msg) {
   stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = '✗  ' + msg;
+  feedbackMsg.textContent = '✗  Answer was ' + msg;
   feedbackMsg.className = 'feedback-msg wrong'; updateStats();
 }
 
@@ -511,8 +483,7 @@ function startTimer() {
       timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
       if (!answered) {
         questionSub.textContent = '⏱  Time\'s up — still answer!';
-        feedbackMsg.textContent = 'Time up — what is it?';
-        feedbackMsg.className = 'feedback-msg timeout';
+        
         if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
       }
     }
@@ -525,7 +496,7 @@ function updateStats() {
   const pct=t>0?Math.round((c/t)*100):null;
   const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
+  if(document.getElementById('masteredCount'))document.getElementById('masteredCount').textContent=0; 
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
   const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';

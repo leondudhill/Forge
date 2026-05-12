@@ -522,7 +522,7 @@ function nextQuestion() {
   const anyEnabled = LEVELS.some(l => enabledLevels[l.id]);
   if (!anyEnabled) {
     nameText.textContent = '—';
-    questionSub.textContent = 'Enable a category to begin.';
+    questionSub.textContent = '';
     choiceBtns.forEach(btn => btn.disabled = true);
     currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0);
     return;

@@ -107,6 +107,8 @@
   }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
+  .tc-density { --card-color: #c2410c; --card-border: #fdba74; --card-bg: #fff7ed; }
+  .tc-moment { --card-color: #b45309; --card-border: #fcd34d; --card-bg: #fffbeb; }
   @media (max-width: 700px) {
     .topic-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
     .topic-card { padding: 22px 16px; min-height: 140px; }
@@ -150,10 +152,16 @@
       <div class="topic-desc">Voltage, current &amp; resistance</div>
     </a>
 
-    <a href="densityforge.html" class="topic-card tc-2">
+    <a href="densityforge.html" class="topic-card tc-density">
       <div class="topic-icon">⚖️</div>
       <div class="topic-name">Density<span class="forge">Forge</span></div>
       <div class="topic-desc">Mass, volume &amp; density calculations</div>
+    </a>
+
+        <a href="equationforge.html" class="topic-card tc-3">
+      <div class="topic-icon">🔣</div>
+      <div class="topic-name">Equation<span class="forge">Forge</span></div>
+      <div class="topic-desc">Rearrange &amp; solve physics equations</div>
     </a>
 
     <a href="energyforge.html" class="topic-card tc-3">
@@ -174,7 +182,7 @@
       <div class="topic-desc">Radioactive decay &amp; half-life calculations</div>
     </a>
 
-    <a href="momentforge.html" class="topic-card tc-6">
+    <a href="momentforge.html" class="topic-card tc-moment">
       <div class="topic-icon">⚖️</div>
       <div class="topic-name">Moment<span class="forge">Forge</span></div>
       <div class="topic-desc">Moments, levers &amp; turning forces</div>
