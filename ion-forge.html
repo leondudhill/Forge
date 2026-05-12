@@ -235,7 +235,7 @@
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
 <div class="toast" id="toast"></div>
 
@@ -406,7 +406,6 @@ function stopTimer() { clearInterval(timerInterval); }
 function handleTimeout() {
   if (!currentQ) return;
   timedOut = true; streaks[currentQ.correct.key] = 0; renderStreakDots(0);
-  feedbackMsg.textContent = 'Too slow — still try!'; feedbackMsg.className = 'feedback-msg wrong';
   ionCard.classList.add('wrong-flash');
   setTimeout(() => { ionCard.className = 'ion-card'; feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg'; }, 800);
 }
@@ -453,7 +452,7 @@ function submitAnswer(idx) {
     stats.correct++; stats.sessionStreak = (stats.sessionStreak || 0) + 1;
     choiceBtns[idx].classList.add('correct-reveal'); ionCard.classList.add('correct-flash');
     if (timedOut) {
-      feedbackMsg.textContent = 'Correct — but too slow!'; feedbackMsg.className = 'feedback-msg correct';
+      const _tmsgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_tmsgs[Math.floor(Math.random()*_tmsgs.length)];feedbackMsg.className='feedback-msg correct';
     } else {
       streaks[currentQ.correct.key] = (streaks[currentQ.correct.key] || 0) + 1;
       const streak = streaks[currentQ.correct.key]; renderStreakDots(streak);
@@ -471,7 +470,7 @@ function submitAnswer(idx) {
     stats.sessionStreak = 0; streaks[currentQ.correct.key] = 0; renderStreakDots(0);
     choiceBtns[idx].classList.add('wrong-reveal'); ionCard.classList.add('wrong-flash');
     currentQ.choices.forEach((ion, i) => { if (ion.key === currentQ.correct.key) choiceBtns[i].classList.add('correct-reveal'); });
-    feedbackMsg.textContent = `✗  ${currentQ.correct.name}`; feedbackMsg.className = 'feedback-msg wrong';
+    feedbackMsg.textContent = `✗  ${currentQ.correct.name}`;
   }
   updateStats(); saveState();
   setTimeout(() => nextQuestion(), 1000);

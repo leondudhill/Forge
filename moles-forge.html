@@ -200,7 +200,7 @@
   </div>
 </div>
 
-<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill</footer>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -404,7 +404,6 @@ function stopTimer() { clearInterval(timerInterval); }
 function handleTimeout() {
   if (!currentQ) return;
   timedOut = true; currentStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = 'Too slow — still try!'; feedbackMsg.className = 'feedback-msg wrong';
   questionCard.classList.add('wrong-flash');
   setTimeout(() => { questionCard.className = 'question-card'; feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg'; }, 800);
 }
@@ -447,7 +446,7 @@ function submitAnswer() {
     answerInput.className = 'answer-input correct-flash';
     questionCard.classList.add('correct-flash');
     if (timedOut) {
-      feedbackMsg.textContent = 'Correct — but too slow!'; feedbackMsg.className = 'feedback-msg correct';
+      const _tmsgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_tmsgs[Math.floor(Math.random()*_tmsgs.length)];feedbackMsg.className='feedback-msg correct';
       currentStreak = 0;
     } else {
       currentStreak++;
@@ -466,7 +465,7 @@ function submitAnswer() {
     stats.sessionStreak = 0; currentStreak = 0; renderStreakDots(0);
     answerInput.className = 'answer-input wrong-flash';
     questionCard.classList.add('wrong-flash');
-    feedbackMsg.textContent = `✗  Answer: ${currentQ.answer}`; feedbackMsg.className = 'feedback-msg wrong';
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.answer}`;
   }
   updateStats(); saveState();
   setTimeout(() => nextQuestion(), 1400);

@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CircuitBuilderForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff5f5;
+    --surface2: #fecaca;
+    --border: #fbbcbc;
+    --text: #3b0a0a;
+    --text-muted: #8b4444;
+    --accent: #dc2626;
+    --accent-light: #fff5f5;
+    --correct: #15803d;
+    --correct-light: #f0fdf4;
+    --wrong: #dc2626;
+    --wrong-light: #fff5f5;
+    --wire-idle: #3b0a0a;
+    --wire-live: #dc2626;
+    --terminal: #2563eb;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 10px 20px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; background: #fff; z-index: 10;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 2px;
+    color: var(--text); line-height: 1; text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .byline { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .byline strong { color: var(--accent); font-weight: 700; }
+
+  /* ── MAIN LAYOUT ── */
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    flex: 1;
+    min-height: 0;
+    height: calc(100vh - 64px - 40px);
+  }
+
+  /* ── CANVAS SIDE ── */
+  #canvas-area {
+    display: flex; flex-direction: column;
+    padding: 12px 12px 12px 14px; gap: 8px;
+    min-width: 0; background: var(--bg);
+  }
+
+  /* ── TOOLBAR ── */
+  #toolbar {
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    background: #fff; border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 7px 12px;
+    box-shadow: 0 1px 4px rgba(220,38,38,.06);
+  }
+  .ctrl-btn {
+    padding: 5px 14px; border: 1.5px solid var(--border); border-radius: 20px;
+    background: #fff; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; color: var(--text); font-weight: 600;
+    transition: all .15s; white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .ctrl-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ctrl-btn.danger { color: var(--wrong); border-color: #fca5a5; }
+  .ctrl-btn.danger:hover { background: var(--wrong-light); border-color: var(--wrong); }
+  .ctrl-btn.success { color: var(--correct); border-color: #86efac; }
+  .ctrl-btn.success:hover { background: var(--correct-light); border-color: var(--correct); }
+  .ctrl-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+  .mode-pill {
+    font-size: 10.5px; padding: 3px 10px; border-radius: 20px;
+    background: var(--surface); color: var(--text-muted);
+    margin-left: auto; font-family: 'DM Sans', sans-serif; font-weight: 500;
+  }
+
+  /* ── CANVAS ── */
+  #canvas-wrap {
+    flex: 1; position: relative; background: #fff;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(220,38,38,.06);
+    overflow: hidden; cursor: crosshair;
+  }
+  #circuit-canvas { display: block; width: 100%; height: 100%; }
+
+  /* ── STATUS BAR ── */
+  #status-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: #fff;
+    font-size: 12px; transition: background .3s, border-color .3s;
+  }
+  #status-bar.ok  { background: var(--correct-light); border-color: #86efac; }
+  #status-bar.err { background: var(--wrong-light);   border-color: #fca5a5; }
+  .sdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sdot-ok   { background: var(--correct); }
+  .sdot-err  { background: var(--wrong); }
+  .sdot-idle { background: #d1d5db; }
+  #smsg { font-weight: 600; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 12px; }
+  #sdetail { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+  #hint { font-size: 10.5px; color: var(--text-muted); padding: 0 2px; font-weight: 500; }
+
+  /* ── COMPONENT PANEL ── */
+  #comp-panel {
+    background: #fff; border-left: 1.5px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 14px 8px; border-bottom: 1.5px solid var(--border); flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px;
+    color: var(--text); margin-bottom: 1px;
+  }
+  .panel-title span { color: var(--accent); }
+  .panel-sub { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .panel-scroll {
+    flex: 1; overflow-y: auto; padding: 8px 10px 48px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .panel-scroll::-webkit-scrollbar { width: 4px; }
+  .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+  .panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .cat-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 11px;
+    letter-spacing: 2px; color: var(--text-muted);
+    padding: 8px 6px 3px;
+  }
+
+  .comp-card {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border: 1.5px solid var(--border);
+    border-radius: 8px; background: var(--surface);
+    cursor: grab; transition: all .15s; user-select: none;
+  }
+  .comp-card:hover {
+    background: #fff; border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(220,38,38,.10);
+    transform: translateX(2px);
+  }
+  .comp-card:active { cursor: grabbing; transform: scale(0.97); }
+  .comp-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .comp-desc { font-size: 9px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .panel-footer {
+    border-top: 1.5px solid var(--border); padding: 7px 12px;
+    font-size: 10px; color: var(--text-muted); text-align: center; flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 1fr 200px; height: auto; }
+    #comp-panel { border-left: none; border-top: 1.5px solid var(--border); height: 200px; }
+    .panel-scroll { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding: 8px; }
+    .cat-label { display: none; }
+  }
+  @media (max-width: 560px) {
+    .mode-pill { display: none; }
+    header { padding: 8px 14px; }
+    .logo { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">CircuitBuilder<span>Forge</span></a>
+  <div class="header-right">
+    <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- LEFT: CANVAS AREA -->
+  <div id="canvas-area">
+    <div id="toolbar">
+      <button class="ctrl-btn active" id="wire-btn">✏ Wire</button>
+      <button class="ctrl-btn" id="select-btn">↖ Select</button>
+      <div class="ctrl-sep"></div>
+      <div id="switch-btns" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"></div>
+      <div class="ctrl-sep" id="sw-sep" style="display:none;"></div>
+      <button class="ctrl-btn" id="rotate-btn">↻ Rotate</button>
+      <button class="ctrl-btn" id="undo-btn">↩ Undo</button>
+      <button class="ctrl-btn danger" id="clear-btn">🗑 Clear</button>
+      <span class="mode-pill" id="mode-pill">Wire mode — click a terminal, then click another to connect</span>
+    </div>
+
+    <div id="canvas-wrap">
+      <canvas id="circuit-canvas"></canvas>
+    </div>
+
+    <div id="status-bar">
+      <div class="sdot sdot-idle" id="sdot"></div>
+      <span id="smsg">Build your circuit</span>
+      <span id="sdetail">Drag components from the panel →</span>
+    </div>
+    <div id="hint">Double-click a component or wire to delete · Blue dots = terminals · Snap-to-grid keeps things neat · Select mode to drag & reposition</div>
+  </div>
+
+  <!-- RIGHT: COMPONENT PANEL -->
+  <div id="comp-panel">
+    <div class="panel-header">
+      <div class="panel-title">Components<span>.</span></div>
+      <div class="panel-sub">Drag onto the canvas to place</div>
+    </div>
+    <div class="panel-scroll" id="panel-scroll"></div>
+    <div class="panel-footer">GCSE Physics · All UK exam boards</div>
+  </div>
+
+</div>
+
+<footer style="border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111111;background:var(--surface);line-height:1.5;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:50;">
+  <span style="font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+
+<script>
+// ─── COMPONENT DEFINITIONS ───────────────────────────────────────────────────
+const COMPONENTS = [
+  // POWER SOURCES
+  {cat:'Power Sources', type:'cell',       name:'Cell',            desc:'Single 1.5 V cell',           w:80,  h:40},
+  {cat:'Power Sources', type:'battery',    name:'Battery',         desc:'Multiple cells in series',    w:100, h:40},
+  {cat:'Power Sources', type:'ac_supply',  name:'AC Supply',       desc:'Alternating current source',  w:60,  h:60},
+  {cat:'Power Sources', type:'dc_supply',  name:'DC Supply',       desc:'Direct current source',       w:60,  h:60},
+  // SWITCHES
+  {cat:'Switches',      type:'switch',     name:'Switch (SPST)',   desc:'Single pole open/close',      w:80,  h:40},
+  {cat:'Switches',      type:'push',       name:'Push Switch',     desc:'Normally open push button',   w:60,  h:40},
+  // OUTPUT DEVICES
+  {cat:'Output',        type:'bulb',       name:'Lamp / Bulb',     desc:'Light output device',         w:60,  h:60},
+  {cat:'Output',        type:'led',        name:'LED',             desc:'Light-emitting diode',        w:60,  h:40},
+  {cat:'Output',        type:'motor',      name:'Motor',           desc:'Electrical motor (M)',        w:60,  h:60},
+  {cat:'Output',        type:'buzzer',     name:'Buzzer',          desc:'Sound output device',         w:60,  h:40},
+  {cat:'Output',        type:'heater',     name:'Heater',          desc:'Heating element',             w:80,  h:40},
+  // RESISTORS
+  {cat:'Resistors',     type:'resistor',   name:'Resistor',        desc:'Fixed resistance (IEC rect)', w:80,  h:40},
+  {cat:'Resistors',     type:'rheostat',   name:'Rheostat',        desc:'Variable resistor (2-term)',  w:80,  h:60},
+  {cat:'Resistors',     type:'pot',        name:'Potentiometer',   desc:'Variable resistor (3-term)',  w:80,  h:60},
+  {cat:'Resistors',     type:'ldr',        name:'LDR',             desc:'Light-dependent resistor',    w:80,  h:60},
+  {cat:'Resistors',     type:'thermistor', name:'Thermistor',      desc:'Temperature-dep. resistor',   w:80,  h:60},
+  // CAPACITORS & DIODES
+  {cat:'Capacitors',    type:'capacitor',  name:'Capacitor',       desc:'Stores electrical charge',    w:60,  h:60},
+  {cat:'Diodes',        type:'diode',      name:'Diode',           desc:'One-way current flow',        w:60,  h:40},
+  // MEASURING
+  {cat:'Measuring',     type:'ammeter',    name:'Ammeter',         desc:'Measures current — (A)',      w:60,  h:60},
+  {cat:'Measuring',     type:'voltmeter',  name:'Voltmeter',       desc:'Measures voltage — (V)',      w:60,  h:60},
+  {cat:'Measuring',     type:'ohmmeter',   name:'Ohmmeter',        desc:'Measures resistance — (Ω)',   w:60,  h:60},
+  // PROTECTION
+  {cat:'Protection',    type:'fuse',       name:'Fuse',            desc:'Overcurrent protection',      w:80,  h:40},
+  // WIRES & JUNCTIONS
+  {cat:'Wires',         type:'wire_h',     name:'Wire (Horiz.)',   desc:'Horizontal wire segment',     w:80,  h:20},
+  {cat:'Wires',         type:'wire_v',     name:'Wire (Vert.)',    desc:'Vertical wire segment',       w:20,  h:80},
+  {cat:'Wires',         type:'junction',   name:'Junction',        desc:'Wire join / node point',      w:20,  h:20},
+];
+
+// ─── SYMBOL DRAWING ──────────────────────────────────────────────────────────
+function getSymbol(type, x, y, w, h, lit, closed, fg) {
+  const cx = x+w/2, cy = y+h/2;
+  const ops = [];
+
+  switch(type) {
+    case 'cell': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+18,cy); c.stroke();
+        c.lineWidth=3;   c.beginPath(); c.moveTo(x+18,cy-12); c.lineTo(x+18,cy+12); c.stroke();
+        c.lineWidth=1.5; c.beginPath(); c.moveTo(x+24,cy-7);  c.lineTo(x+24,cy+7);  c.stroke();
+        c.lineWidth=3;   c.beginPath(); c.moveTo(x+30,cy-12); c.lineTo(x+30,cy+12); c.stroke();
+        c.lineWidth=1.8; c.beginPath(); c.moveTo(x+30,cy); c.lineTo(x+w,cy); c.stroke();
+        c.font='9px DM Sans,sans-serif'; c.textAlign='center';
+        c.fillStyle=fg; c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
+      }); break;
+    }
+    case 'battery': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+8,cy); c.stroke();
+        let xp=x+8;
+        const pairs=[[0,3],[5,1.5],[10,3],[15,1.5],[20,3],[25,1.5],[30,3]];
+        for(let [off,lw] of pairs){
+          c.lineWidth=lw*1.8; const ht=lw===3?14:9;
+          c.beginPath(); c.moveTo(xp+off,cy-ht); c.lineTo(xp+off,cy+ht); c.stroke();
+        }
+        xp+=35;
+        c.lineWidth=1.8; c.beginPath(); c.moveTo(xp,cy); c.lineTo(x+w,cy); c.stroke();
+        c.font='9px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg;
+        c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
+      }); break;
+    }
+    case 'ac_supply': {
+      ops.push(c=>{
+        c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
+        c.beginPath(); c.moveTo(cx-10,cy);
+        for(let i=0;i<=40;i++) c.lineTo(cx-10+i*0.5, cy-7*Math.sin(i*Math.PI/10));
+        c.stroke();
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'dc_supply': {
+      ops.push(c=>{
+        c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
+        c.font='bold 10px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
+        c.fillText('DC',cx,cy); c.textBaseline='alphabetic';
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'switch': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
+        c.beginPath(); c.arc(x+14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+        if(closed){ c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-14,cy); c.stroke(); }
+        else       { c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-16,cy-14); c.stroke(); }
+        c.beginPath(); c.arc(x+w-14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+        c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center';
+        c.fillStyle=closed?'#15803d':'#dc2626';
+        c.fillText(closed?'CLOSED':'OPEN',cx,y+h-1);
+      }); break;
+    }
+    case 'push': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy+4); c.lineTo(x+14,cy+4); c.stroke();
+        c.beginPath(); c.moveTo(x+w-14,cy+4); c.lineTo(x+w,cy+4); c.stroke();
+        c.beginPath(); c.moveTo(cx-10,cy+4); c.lineTo(cx+10,cy+4); c.stroke();
+        c.beginPath(); c.moveTo(cx-10,cy-6); c.lineTo(cx+10,cy-6); c.stroke();
+        c.beginPath(); c.moveTo(cx,cy-6); c.lineTo(cx,cy-14); c.stroke();
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('push',cx,y+h);
+      }); break;
+    }
+    case 'bulb': {
+      const r=16;
+      ops.push(c=>{
+        if(lit){
+          c.save();
+          c.fillStyle='rgba(220,38,38,0.13)'; c.beginPath(); c.arc(cx,cy-2,r+12,0,Math.PI*2); c.fill();
+          c.fillStyle='rgba(220,38,38,0.22)'; c.beginPath(); c.arc(cx,cy-2,r+6,0,Math.PI*2); c.fill();
+          c.restore();
+        }
+        c.strokeStyle=lit?'#dc2626':fg; c.lineWidth=lit?2.4:1.8;
+        c.beginPath(); c.arc(cx,cy-2,r,0,Math.PI*2); c.stroke();
+        c.lineWidth=1.4;
+        c.beginPath(); c.moveTo(cx-5,cy-8); c.lineTo(cx+5,cy+2); c.stroke();
+        c.beginPath(); c.moveTo(cx+5,cy-8); c.lineTo(cx-5,cy+2); c.stroke();
+        c.lineWidth=1.8;
+        c.beginPath(); c.moveTo(cx,cy-2+r); c.lineTo(cx,cy+h/2); c.stroke();
+        c.beginPath(); c.moveTo(cx-6,cy-2+r); c.lineTo(cx+6,cy-2+r); c.stroke();
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-r,cy-2); c.stroke();
+        c.beginPath(); c.moveTo(cx+r,cy-2); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'led': {
+      ops.push(c=>{
+        if(lit){ c.save(); c.fillStyle='rgba(220,38,38,0.18)'; c.beginPath(); c.arc(cx-2,cy,14,0,Math.PI*2); c.fill(); c.restore(); }
+        c.strokeStyle=lit?'#dc2626':fg; c.lineWidth=lit?2.2:1.8;
+        const t1=x+14, t2=x+w-14;
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(t1,cy); c.stroke();
+        c.beginPath(); c.moveTo(t2,cy); c.lineTo(x+w,cy); c.stroke();
+        c.beginPath(); c.moveTo(t1,cy-11); c.lineTo(t1,cy+11); c.lineTo(t2,cy); c.closePath(); c.stroke();
+        c.lineWidth=1.8; c.beginPath(); c.moveTo(t2,cy-11); c.lineTo(t2,cy+11); c.stroke();
+        c.lineWidth=1.3;
+        c.beginPath(); c.moveTo(t2,cy-12); c.lineTo(t2+6,cy-18); c.stroke();
+        c.beginPath(); c.moveTo(t2+3,cy-9); c.lineTo(t2+9,cy-15); c.stroke();
+      }); break;
+    }
+    case 'motor': {
+      ops.push(c=>{
+        c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
+        c.font='bold 13px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
+        c.fillText('M',cx,cy+1); c.textBaseline='alphabetic';
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'buzzer': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
+        c.beginPath(); c.moveTo(x+14,cy-13); c.lineTo(x+14,cy+13); c.stroke();
+        c.beginPath(); c.moveTo(x+14,cy-13);
+        c.bezierCurveTo(x+38,cy-13,x+38,cy+13,x+14,cy+13); c.stroke();
+        c.beginPath(); c.moveTo(x+28,cy); c.lineTo(x+w,cy); c.stroke();
+        c.font='8px DM Mono,monospace'; c.textAlign='center'; c.fillStyle=fg; c.fillText('bz',cx+4,y+3);
+      }); break;
+    }
+    case 'heater': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.strokeRect(x+10,cy-10,w-20,20);
+        const zx=x+14, zw=w-28, steps=5;
+        c.beginPath(); c.moveTo(zx,cy+6);
+        for(let i=0;i<=steps;i++) c.lineTo(zx+i*zw/steps, i%2===0?cy-5:cy+5);
+        c.stroke();
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'resistor': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.strokeRect(x+10,cy-9,w-20,18);
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'rheostat': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.strokeRect(x+10,cy-9,w-20,18);
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        c.beginPath(); c.moveTo(cx,cy-20); c.lineTo(cx,cy-9); c.stroke();
+        c.beginPath(); c.moveTo(cx-5,cy-15); c.lineTo(cx,cy-9); c.lineTo(cx+5,cy-15); c.stroke();
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('var',cx,y+h);
+      }); break;
+    }
+    case 'pot': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy+6); c.lineTo(x+10,cy+6); c.stroke();
+        c.strokeRect(x+10,cy-3,w-20,18);
+        c.beginPath(); c.moveTo(x+w-10,cy+6); c.lineTo(x+w,cy+6); c.stroke();
+        c.beginPath(); c.moveTo(cx,cy-3); c.lineTo(cx,cy-16); c.stroke();
+        c.beginPath(); c.moveTo(cx-5,cy+3); c.lineTo(cx,cy-3); c.lineTo(cx+5,cy+3); c.stroke();
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('pot',cx,y+h);
+      }); break;
+    }
+    case 'ldr': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.strokeRect(x+10,cy-9,w-20,18);
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        c.lineWidth=1.2;
+        for(let i=0;i<2;i++){
+          const ax=cx-5+i*9, ay=cy-18;
+          c.beginPath(); c.moveTo(ax-4,ay-6); c.lineTo(ax,ay); c.stroke();
+          c.beginPath(); c.moveTo(ax-2,ay-2); c.lineTo(ax,ay); c.lineTo(ax-4,ay+1); c.stroke();
+        }
+        c.lineWidth=1.8;
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('LDR',cx,y+h);
+      }); break;
+    }
+    case 'thermistor': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.strokeRect(x+10,cy-9,w-20,18);
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        c.lineWidth=1.2;
+        c.beginPath(); c.moveTo(x+14,cy+7); c.lineTo(x+w-14,cy-7); c.stroke();
+        c.lineWidth=1.8;
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('NTC',cx,y+h);
+      }); break;
+    }
+    case 'capacitor': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-8,cy); c.stroke();
+        c.lineWidth=1.8; c.beginPath(); c.moveTo(cx-8,cy-14); c.lineTo(cx-8,cy+14); c.stroke();
+        c.lineWidth=2.5; c.beginPath(); c.moveTo(cx+8,cy-14); c.lineTo(cx+8,cy+14); c.stroke();
+        c.lineWidth=1.8; c.beginPath(); c.moveTo(cx+8,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'diode': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
+        c.beginPath(); c.moveTo(x+14,cy-11); c.lineTo(x+14,cy+11); c.lineTo(x+w-14,cy); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(x+w-14,cy-11); c.lineTo(x+w-14,cy+11); c.stroke();
+        c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'ammeter':
+    case 'voltmeter':
+    case 'ohmmeter': {
+      const label = type==='ammeter'?'A':type==='voltmeter'?'V':'Ω';
+      ops.push(c=>{
+        c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
+        c.font='bold 13px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
+        c.fillText(label,cx,cy+1); c.textBaseline='alphabetic';
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'fuse': {
+      ops.push(c=>{
+        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+        c.beginPath(); c.ellipse(cx,cy,w/2-10,9,0,0,Math.PI*2); c.stroke();
+        c.lineWidth=1; c.setLineDash([3,3]);
+        c.beginPath(); c.moveTo(cx,cy-8); c.lineTo(cx,cy+8); c.stroke();
+        c.setLineDash([]); c.lineWidth=1.8;
+        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+      }); break;
+    }
+    case 'wire_h': {
+      ops.push(c=>{ c.beginPath(); c.moveTo(x,cy); c.lineTo(x+w,cy); c.stroke(); }); break;
+    }
+    case 'wire_v': {
+      ops.push(c=>{ c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+h); c.stroke(); }); break;
+    }
+    case 'junction': {
+      ops.push(c=>{ c.beginPath(); c.arc(cx,cy,5,0,Math.PI*2); c.fillStyle=fg; c.fill(); }); break;
+    }
+  }
+  return ops;
+}
+
+function getTerminals(comp) {
+  const {x,y,w,h,type} = comp;
+  // ALL terminal coords snapped to grid — guarantees wire endpoints match
+  const S = v => Math.round(v/GRID)*GRID;
+  const lx=S(x),     rx=S(x+w);   // left and right x edges
+  const tx=S(x+w/2), cy=S(y+h/2); // centre x and centre y
+  const ty=S(y);                    // top y
+  switch(type){
+    case 'wire_h':  return [{x:lx, y:cy},  {x:rx,  y:cy}];
+    case 'wire_v':  return [{x:tx, y:ty},  {x:tx,  y:S(y+h)}];
+    case 'junction':return [{x:tx, y:cy}];
+    case 'pot':     return [{x:lx, y:cy},  {x:rx,  y:cy}, {x:tx, y:ty}];
+    default:        return [{x:lx, y:cy},  {x:rx,  y:cy}];
+  }
+}
+
+// ─── PANEL BUILDER ───────────────────────────────────────────────────────────
+function buildPanel() {
+  const scroll = document.getElementById('panel-scroll');
+  scroll.innerHTML = '';
+  const cats = [...new Set(COMPONENTS.map(c=>c.cat))];
+  cats.forEach(cat=>{
+    const lbl = document.createElement('div');
+    lbl.className='cat-label'; lbl.textContent=cat; scroll.appendChild(lbl);
+
+    COMPONENTS.filter(c=>c.cat===cat).forEach(comp=>{
+      const card = document.createElement('div');
+      card.className='comp-card'; card.draggable=true; card.dataset.type=comp.type;
+
+      // Mini canvas preview
+      const mc = document.createElement('canvas');
+      mc.style.cssText='width:50px;height:30px;flex-shrink:0;';
+      card.appendChild(mc);
+
+      const info = document.createElement('div');
+      info.style.minWidth='0';
+      info.innerHTML=`<div class="comp-name">${comp.name}</div><div class="comp-desc">${comp.desc}</div>`;
+      card.appendChild(info);
+
+      scroll.appendChild(card);
+
+      setTimeout(()=>{
+        const dpr=window.devicePixelRatio||1;
+        mc.width=50*dpr; mc.height=30*dpr;
+        mc.style.width='50px'; mc.style.height='30px';
+        const mctx=mc.getContext('2d');
+        mctx.scale(dpr,dpr);
+        mctx.strokeStyle='#3b0a0a'; mctx.lineWidth=1.5; mctx.lineCap='round'; mctx.lineJoin='round';
+        const mscale=Math.min(46/comp.w, 26/comp.h);
+        const dw=comp.w*mscale, dh=comp.h*mscale;
+        const ox=(50-dw)/2, oy=(30-dh)/2;
+        const ops=getSymbol(comp.type,ox,oy,dw,dh,false,false,'#3b0a0a');
+        ops.forEach(fn=>{ mctx.strokeStyle='#3b0a0a'; mctx.fillStyle='#3b0a0a'; mctx.lineWidth=1.5; fn(mctx); });
+      },0);
+
+      card.addEventListener('dragstart',e=>{
+        e.dataTransfer.setData('text/plain',comp.type);
+      });
+    });
+  });
+}
+
+// ─── CANVAS ENGINE ───────────────────────────────────────────────────────────
+const canvasEl = document.getElementById('circuit-canvas');
+const ctx = canvasEl.getContext('2d');
+let W=0, H=0, DPR=1;
+const GRID=20;
+let components=[], wires=[], mode='wire';
+let dragging=null, dragOff={x:0,y:0};
+let wireFrom=null, preview=null;
+let selected=null, nextId=1;
+let history=[];
+
+function snap(v){ return Math.round(v/GRID)*GRID; }
+
+function saveHistory(){ history.push({components:JSON.parse(JSON.stringify(components)),wires:JSON.parse(JSON.stringify(wires))}); if(history.length>40) history.shift(); }
+function undo(){ if(!history.length) return; const s=history.pop(); components=s.components; wires=s.wires; selected=null; render(); }
+
+function resize(){
+  DPR=window.devicePixelRatio||1;
+  const wrap=document.getElementById('canvas-wrap');
+  W=wrap.clientWidth; H=wrap.clientHeight;
+  canvasEl.width=W*DPR; canvasEl.height=H*DPR;
+  canvasEl.style.width=W+'px'; canvasEl.style.height=H+'px';
+  ctx.scale(DPR,DPR);
+  render();
+}
+
+function drawGrid(){
+  ctx.save(); ctx.strokeStyle='rgba(220,38,38,0.06)'; ctx.lineWidth=0.5;
+  for(let x=0;x<=W;x+=GRID){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<=H;y+=GRID){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.restore();
+}
+
+function drawComp(c, lit){
+  const fg='#3b0a0a';
+  ctx.save();
+  ctx.strokeStyle=fg; ctx.fillStyle=fg; ctx.lineWidth=1.8; ctx.lineCap='round'; ctx.lineJoin='round';
+  // Selection highlight
+  if(c===selected){
+    ctx.save(); ctx.strokeStyle='#dc2626'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.strokeRect(c.x-5,c.y-5,c.w+10,c.h+10); ctx.restore();
+  }
+  const ops=getSymbol(c.type,c.x,c.y,c.w,c.h,lit,c.closed,fg);
+  ops.forEach(fn=>{ ctx.strokeStyle=fg; ctx.fillStyle=fg; ctx.lineWidth=1.8; fn(ctx); });
+  ctx.restore();
+  // Draw terminals (skip wire/junction)
+  if(c.type!=='wire_h'&&c.type!=='wire_v'&&c.type!=='junction'){
+    for(let t of getTerminals(c)){
+      ctx.beginPath(); ctx.arc(t.x,t.y,4,0,Math.PI*2);
+      ctx.fillStyle='#2563eb'; ctx.fill();
+    }
+  }
+}
+
+function drawWire(w, lit){
+  ctx.save();
+  ctx.strokeStyle=lit?'#dc2626':'#3b0a0a';
+  ctx.lineWidth=lit?2.5:2;
+  ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(w.x1,w.y1); ctx.lineTo(w.x2,w.y2); ctx.stroke();
+  ctx.restore();
+}
+
+// ─── CIRCUIT ANALYSIS ────────────────────────────────────────────────────────
+function buildGraph(){
+  const eps=12, nodes=[], adj=[];
+  function gn(px,py){
+    for(let i=0;i<nodes.length;i++) if(Math.hypot(nodes[i].x-px,nodes[i].y-py)<eps) return i;
+    nodes.push({x:px,y:py}); adj.push([]); return nodes.length-1;
+  }
+  for(let c of components){
+    const terms=getTerminals(c);
+    if(terms.length>=2){ const a=gn(terms[0].x,terms[0].y),b=gn(terms[1].x,terms[1].y); adj[a].push(b); adj[b].push(a); }
+    if(terms.length===3){ const a=gn(terms[0].x,terms[0].y),c2=gn(terms[2].x,terms[2].y); adj[a].push(c2); adj[c2].push(a); }
+  }
+  for(let w of wires){ const a=gn(w.x1,w.y1),b=gn(w.x2,w.y2); adj[a].push(b); adj[b].push(a); }
+  return {nodes,adj,gn};
+}
+function findN(nodes,px,py){ let best=null,bd=14; for(let i=0;i<nodes.length;i++){const d=Math.hypot(nodes[i].x-px,nodes[i].y-py);if(d<bd){bd=d;best=i;}} return best; }
+function bfs(adj,start){ const vis=new Set([start]),q=[start]; while(q.length){const u=q.shift();for(let v of adj[u])if(!vis.has(v)){vis.add(v);q.push(v);}} return vis; }
+
+function checkCircuit(){
+  const bat=components.find(c=>['cell','battery','ac_supply','dc_supply'].includes(c.type));
+  const output=components.find(c=>['bulb','led','motor','buzzer','heater'].includes(c.type));
+  const openSw=components.find(c=>c.type==='switch'&&!c.closed);
+
+  if(!bat)    return {ok:false,lit:false,msg:'No power source',detail:'Add a cell, battery or power supply'};
+  if(!output) return {ok:false,lit:false,msg:'No output device',detail:'Add a bulb, LED, motor or buzzer'};
+  if(wires.length===0) return {ok:false,lit:false,msg:'No wires drawn',detail:'Switch to Wire mode and connect the components'};
+  if(openSw)  return {ok:false,lit:false,msg:'Switch is open',detail:'Click "Toggle Switch" to close it'};
+
+  // ── Step 1: collect all terminal points as named nodes ───────────────────
+  // Every terminal of every component gets a node ID.
+  // Two points within eps of each other share the same node (merge by proximity).
+  const EPS = GRID + 4;  // slightly over one grid cell — robust to any rounding
+  const pts  = [];   // {x, y}
+  const nodeOf = []; // parallel to components[i].terminals — maps terminal → node id
+
+  function getOrCreate(px, py){
+    for(let i=0;i<pts.length;i++) if(Math.hypot(pts[i].x-px, pts[i].y-py)<EPS) return i;
+    pts.push({x:px,y:py}); return pts.length-1;
+  }
+
+  // Assign node IDs to every component terminal
+  const compNodes = components.map(c => getTerminals(c).map(t => getOrCreate(t.x,t.y)));
+
+  // Also snap wire endpoints to nearest terminal node (or create new node)
+  const wireNodes = wires.map(w => [getOrCreate(w.x1,w.y1), getOrCreate(w.x2,w.y2)]);
+
+  const N = pts.length;
+  const adj = Array.from({length:N}, ()=>[]);
+  function edge(a,b){ if(a!==b){ adj[a].push(b); adj[b].push(a); } }
+
+  // ── Step 2: add edges ─────────────────────────────────────────────────────
+  // Each component internally connects its own terminals — EXCEPT the battery.
+  // (Battery's internal edge is omitted so the only path from bt0→bt1 must
+  //  go through external wiring, proving a real closed loop exists.)
+  for(let i=0;i<components.length;i++){
+    if(components[i]===bat) continue;
+    const ids=compNodes[i];
+    if(ids.length>=2) edge(ids[0],ids[1]);
+    if(ids.length>=3) edge(ids[0],ids[2]);
+  }
+  // Wires form edges between their (snapped) endpoint nodes
+  for(let [a,b] of wireNodes) edge(a,b);
+
+  // ── Step 3: BFS from bat terminal 0, check bat terminal 1 reachable ──────
+  const batIds = compNodes[components.indexOf(bat)];
+  const [bn0, bn1] = [batIds[0], batIds[1]];
+
+  function bfsReach(start){
+    const vis=new Set([start]),q=[start];
+    while(q.length){const u=q.shift();for(const v of adj[u])if(!vis.has(v)){vis.add(v);q.push(v);}}
+    return vis;
+  }
+
+  const reached = bfsReach(bn0);
+
+  if(!reached.has(bn1))
+    return {ok:false,lit:false,msg:'Circuit incomplete',detail:'There is a gap — wire both battery terminals into the loop'};
+
+  // ── Step 4: both battery terminals must have ≥1 wire each ────────────────
+  // This prevents a single wire directly between the two battery terminals
+  // (short circuit without going through any components) from lighting the bulb.
+  // Actually for GCSE we just need the output to be in the loop — see step 5.
+
+  // ── Step 5: output must have BOTH terminals in the reached set ────────────
+  const outIdx = components.indexOf(output);
+  const outIds  = compNodes[outIdx];
+  const [on0, on1] = [outIds[0], outIds[1]];
+
+  if(!reached.has(on0)||!reached.has(on1))
+    return {ok:false,lit:false,msg:'Output not in the loop',detail:'Wire both terminals of the output device into the circuit'};
+
+  // ── Step 6: the two output terminals must be DIFFERENT nodes ─────────────
+  // (Same node = both wires go to the same terminal = not properly wired)
+  if(on0===on1)
+    return {ok:false,lit:false,msg:'Output not in the loop',detail:'Wire both terminals of the output device into the circuit'};
+
+  const name=output.type==='bulb'?'Bulb':output.type==='led'?'LED':output.type==='motor'?'Motor':output.type==='buzzer'?'Buzzer':'Heater';
+  return {ok:true,lit:true,msg:`✓ Complete circuit — ${name} is active!`,detail:'Current is flowing around the closed loop'};
+}
+
+function setStatus(r){
+  const bar=document.getElementById('status-bar');
+  const dot=document.getElementById('sdot');
+  document.getElementById('smsg').textContent=r.msg;
+  document.getElementById('sdetail').textContent=r.detail;
+  bar.className=r.ok?'ok':(components.length===0?'':'err');
+  dot.className='sdot '+(r.ok?'sdot-ok':(components.length===0?'sdot-idle':'sdot-err'));
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  drawGrid();
+  const res=components.length ? checkCircuit() : {ok:false,lit:false,msg:'Build your circuit',detail:'Drag components from the panel on the right'};
+  for(let w of wires) drawWire(w,res.lit);
+  // Wire preview
+  if(preview){
+    ctx.save(); ctx.strokeStyle='#dc2626'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(preview.x1,preview.y1); ctx.lineTo(preview.x2,preview.y2); ctx.stroke();
+    ctx.restore();
+  }
+  for(let c of components) drawComp(c,res.lit);
+  setStatus(res);
+  renderSwitchButtons();
+}
+
+// ─── INPUT HANDLING ──────────────────────────────────────────────────────────
+function canvasXY(e){
+  const r=canvasEl.getBoundingClientRect();
+  return {x:(e.clientX-r.left), y:(e.clientY-r.top)};
+}
+function nearTerminal(px,py,c){
+  for(let t of getTerminals(c)) if(Math.hypot(px-t.x,py-t.y)<20) return t;
+  return null;
+}
+
+// ── Drop from panel ──
+canvasEl.addEventListener('dragover',e=>e.preventDefault());
+canvasEl.addEventListener('drop',e=>{
+  e.preventDefault();
+  const type=e.dataTransfer.getData('text/plain');
+  if(!type) return;
+  const def=COMPONENTS.find(c=>c.type===type);
+  if(!def) return;
+  const {x,y}=canvasXY(e);
+  // Snap position to grid
+  const px=Math.max(0,Math.min(W-def.w, snap(x-def.w/2)));
+  const py=Math.max(0,Math.min(H-def.h, snap(y-def.h/2)));
+  // Round width and height up to nearest grid multiple so terminals land on grid
+  const sw=Math.ceil(def.w/GRID)*GRID;
+  const sh=Math.ceil(def.h/GRID)*GRID;
+  saveHistory();
+  components.push({id:nextId++, type, x:px, y:py, w:sw, h:sh, closed:type==='switch'?false:undefined, rotation:0});
+  render();
+});
+
+// ── Mouse events ──
+canvasEl.addEventListener('mousedown',e=>{
+  const {x,y}=canvasXY(e);
+  if(mode==='select'){
+    selected=null;
+    for(let i=components.length-1;i>=0;i--){
+      const c=components[i];
+      if(x>=c.x-4&&x<=c.x+c.w+4&&y>=c.y-4&&y<=c.y+c.h+4){
+        selected=c; dragging=c; dragOff={x:x-c.x,y:y-c.y}; break;
+      }
+    }
+    render();
+  } else {
+    let ft=null;
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ft=t;break;} }
+    wireFrom=ft?{x:ft.x,y:ft.y}:{x:snap(x),y:snap(y)};
+  }
+});
+
+canvasEl.addEventListener('mousemove',e=>{
+  const {x,y}=canvasXY(e);
+  if(dragging&&mode==='select'){
+    dragging.x=Math.max(0,Math.min(W-dragging.w, snap(x-dragOff.x)));
+    dragging.y=Math.max(0,Math.min(H-dragging.h, snap(y-dragOff.y)));
+    render();
+  } else if(wireFrom&&mode==='wire'){
+    let ex=snap(x),ey=snap(y);
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ex=t.x;ey=t.y;break;} }
+    preview={x1:wireFrom.x,y1:wireFrom.y,x2:ex,y2:ey}; render();
+  }
+});
+
+canvasEl.addEventListener('mouseup',e=>{
+  const {x,y}=canvasXY(e);
+  if(dragging){ dragging=null; render(); return; }
+  if(wireFrom&&mode==='wire'){
+    let ex=snap(x),ey=snap(y);
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ex=t.x;ey=t.y;break;} }
+    if(Math.hypot(ex-wireFrom.x,ey-wireFrom.y)>10){
+      saveHistory(); wires.push({x1:wireFrom.x,y1:wireFrom.y,x2:ex,y2:ey});
+    }
+    wireFrom=null; preview=null; render();
+  }
+});
+
+canvasEl.addEventListener('mouseleave',()=>{ dragging=null; wireFrom=null; preview=null; render(); });
+
+// ── Touch support ──
+function touchXY(e){ const t=e.touches[0]; const r=canvasEl.getBoundingClientRect(); return {x:t.clientX-r.left,y:t.clientY-r.top}; }
+
+canvasEl.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const {x,y}=touchXY(e);
+  if(mode==='select'){
+    selected=null;
+    for(let i=components.length-1;i>=0;i--){
+      const c=components[i];
+      if(x>=c.x-8&&x<=c.x+c.w+8&&y>=c.y-8&&y<=c.y+c.h+8){
+        selected=c; dragging=c; dragOff={x:x-c.x,y:y-c.y}; break;
+      }
+    }
+    render();
+  } else {
+    let ft=null;
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ft=t;break;} }
+    wireFrom=ft?{x:ft.x,y:ft.y}:{x:snap(x),y:snap(y)};
+  }
+},{passive:false});
+
+canvasEl.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const {x,y}=touchXY(e);
+  if(dragging&&mode==='select'){
+    dragging.x=Math.max(0,Math.min(W-dragging.w, snap(x-dragOff.x)));
+    dragging.y=Math.max(0,Math.min(H-dragging.h, snap(y-dragOff.y)));
+    render();
+  } else if(wireFrom&&mode==='wire'){
+    let ex=snap(x),ey=snap(y);
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ex=t.x;ey=t.y;break;} }
+    preview={x1:wireFrom.x,y1:wireFrom.y,x2:ex,y2:ey}; render();
+  }
+},{passive:false});
+
+canvasEl.addEventListener('touchend',e=>{
+  e.preventDefault();
+  if(dragging){ dragging=null; render(); return; }
+  if(wireFrom&&mode==='wire'&&e.changedTouches.length){
+    const r=canvasEl.getBoundingClientRect();
+    const x=e.changedTouches[0].clientX-r.left, y=e.changedTouches[0].clientY-r.top;
+    let ex=snap(x),ey=snap(y);
+    for(let c of components){ const t=nearTerminal(x,y,c); if(t){ex=t.x;ey=t.y;break;} }
+    if(Math.hypot(ex-wireFrom.x,ey-wireFrom.y)>10){
+      saveHistory(); wires.push({x1:wireFrom.x,y1:wireFrom.y,x2:ex,y2:ey});
+    }
+    wireFrom=null; preview=null; render();
+  }
+},{passive:false});
+
+// ── Double click to delete ──
+canvasEl.addEventListener('dblclick',e=>{
+  const {x,y}=canvasXY(e);
+  for(let i=components.length-1;i>=0;i--){
+    const c=components[i];
+    if(x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h){
+      saveHistory();
+      const terms=getTerminals(c);
+      wires=wires.filter(w=>{
+        for(let t of terms)
+          if(Math.hypot(w.x1-t.x,w.y1-t.y)<8||Math.hypot(w.x2-t.x,w.y2-t.y)<8) return false;
+        return true;
+      });
+      components.splice(i,1); selected=null; render(); return;
+    }
+  }
+  const wi=wires.findIndex(w=>{
+    const dx=w.x2-w.x1, dy=w.y2-w.y1, len=Math.hypot(dx,dy);
+    if(len<5) return false;
+    const t=((x-w.x1)*dx+(y-w.y1)*dy)/(len*len);
+    if(t<0||t>1) return false;
+    return Math.hypot(x-(w.x1+t*dx),y-(w.y1+t*dy))<10;
+  });
+  if(wi>=0){ saveHistory(); wires.splice(wi,1); render(); }
+});
+
+// ─── BUTTON CONTROLS ─────────────────────────────────────────────────────────
+function setMode(m){
+  mode=m;
+  document.getElementById('wire-btn').className='ctrl-btn'+(m==='wire'?' active':'');
+  document.getElementById('select-btn').className='ctrl-btn'+(m==='select'?' active':'');
+  canvasEl.style.cursor=m==='wire'?'crosshair':'default';
+  document.getElementById('mode-pill').textContent=
+    m==='wire'?'Wire mode — click a terminal, then click another to connect'
+              :'Select mode — drag to move, double-click to delete';
+}
+
+document.getElementById('wire-btn').addEventListener('click',()=>setMode('wire'));
+document.getElementById('select-btn').addEventListener('click',()=>setMode('select'));
+
+// ─── DYNAMIC SWITCH BUTTONS ───────────────────────────────────────────────────
+function renderSwitchButtons(){
+  const sws=components.filter(c=>c.type==='switch'||c.type==='push');
+  const container=document.getElementById('switch-btns');
+  const sep=document.getElementById('sw-sep');
+
+  // Only rebuild if count changed (avoids flicker)
+  const currentCount=container.querySelectorAll('button').length;
+  // Count = individual buttons + 1 "toggle all" if >1 switch
+  const expectedCount=sws.length===0 ? 0 : sws.length>1 ? sws.length+1 : 1;
+  if(currentCount===expectedCount){
+    // Just update labels/states without rebuilding
+    const btns=container.querySelectorAll('button');
+    if(sws.length===1){
+      btns[0].textContent=`⚡ Switch 1 — ${sws[0].closed?'CLOSED':'OPEN'}`;
+      btns[0].className='ctrl-btn '+(sws[0].closed?'success':'');
+    } else if(sws.length>1){
+      sws.forEach((sw,i)=>{
+        btns[i].textContent=`S${i+1} — ${sw.closed?'CLOSED':'OPEN'}`;
+        btns[i].className='ctrl-btn '+(sw.closed?'success':'');
+      });
+      const allClosed=sws.every(s=>s.closed);
+      btns[sws.length].textContent=`⚡ Toggle All`;
+      btns[sws.length].className='ctrl-btn '+(allClosed?'success':'');
+    }
+    sep.style.display=sws.length>0?'':'none';
+    return;
+  }
+
+  // Rebuild buttons
+  container.innerHTML='';
+  sep.style.display=sws.length>0?'':'none';
+  if(sws.length===0) return;
+
+  // Individual button per switch
+  sws.forEach((sw,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ctrl-btn '+(sw.closed?'success':'');
+    btn.textContent=sws.length===1
+      ? `⚡ Switch 1 — ${sw.closed?'CLOSED':'OPEN'}`
+      : `S${i+1} — ${sw.closed?'CLOSED':'OPEN'}`;
+    btn.addEventListener('click',()=>{
+      saveHistory(); sw.closed=!sw.closed; render();
+    });
+    container.appendChild(btn);
+  });
+
+  // "Toggle All" button only when more than one switch
+  if(sws.length>1){
+    const allBtn=document.createElement('button');
+    const allClosed=sws.every(s=>s.closed);
+    allBtn.className='ctrl-btn '+(allClosed?'success':'');
+    allBtn.textContent='⚡ Toggle All';
+    allBtn.addEventListener('click',()=>{
+      saveHistory();
+      const target=!sws.every(s=>s.closed); // if all closed → open all; else close all
+      sws.forEach(sw=>sw.closed=target);
+      render();
+    });
+    container.appendChild(allBtn);
+  }
+}
+
+document.getElementById('rotate-btn').addEventListener('click',()=>{
+  if(!selected){ alert('Select a component first (use Select mode).'); return; }
+  saveHistory();
+  // Swap w and h to simulate 90° rotation, remap terminals
+  const tmp=selected.w; selected.w=selected.h; selected.h=tmp;
+  render();
+});
+
+document.getElementById('undo-btn').addEventListener('click',undo);
+
+document.getElementById('clear-btn').addEventListener('click',()=>{
+  if(confirm('Clear the entire circuit board?')){
+    saveHistory(); components=[]; wires=[]; selected=null; render();
+  }
+});
+
+// Keyboard shortcuts
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape') setMode('wire');
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); undo(); }
+  if(e.key==='w'||e.key==='W') setMode('wire');
+  if(e.key==='s'||e.key==='S') setMode('select');
+  if((e.key==='Delete'||e.key==='Backspace')&&selected){
+    saveHistory();
+    const terms=getTerminals(selected);
+    wires=wires.filter(w=>{
+      for(let t of terms)
+        if(Math.hypot(w.x1-t.x,w.y1-t.y)<8||Math.hypot(w.x2-t.x,w.y2-t.y)<8) return false;
+      return true;
+    });
+    const idx=components.indexOf(selected);
+    if(idx>=0) components.splice(idx,1);
+    selected=null; render();
+  }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.addEventListener('resize',resize);
+window.addEventListener('DOMContentLoaded',()=>{ buildPanel(); resize(); setMode('wire'); });
+</script>
+</body>
+</html>

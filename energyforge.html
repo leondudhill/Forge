@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnergyForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff8f3;
+    --surface2: #fed7aa;
+    --border: #fdba74;
+    --text: #3b1200;
+    --text-muted: #8b4a1a;
+    --accent: #ea580c;
+    --accent2: #facc15;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 14px 24px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; letter-spacing: 2px;
+    color: var(--text); line-height: 1; text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar {
+    display: none;
+    background: var(--surface); border-bottom: 1.5px solid var(--border);
+    padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0;
+  }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 210px 1fr 210px;
+    flex: 1; min-height: 0;
+  }
+
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 44px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--surface); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    transition: all 0.15s ease; user-select: none; padding: 0 14px;
+  }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 10px; height: 10px; background: var(--accent2);
+    border-radius: 50%; border: 1.5px solid #fff; display: none;
+  }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+
+  .toggle-all-btn {
+    margin-top: 12px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn {
+    margin-top: 8px; width: 100%; padding: 8px; background: none;
+    border: 1.5px solid #f2c4bb; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .reset-btn:hover { background: #fff0ed; }
+
+  .main {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 32px 20px; gap: 18px;
+  }
+
+  .question-card { text-align: center; max-width: 520px; width: 100%; }
+
+  .topic-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--accent);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 10px; margin-bottom: 12px;
+  }
+
+  .diagram-wrap {
+    width: 100%; max-width: 340px;
+    margin: 0 auto 14px;
+    border-radius: 12px; border: 1.5px solid var(--border);
+    background: #fff; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+
+  .question-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(14px, 2.8vw, 17px);
+    font-weight: 600; line-height: 1.45; color: var(--text); margin-bottom: 4px;
+  }
+  .question-sub {
+    font-size: 13px; color: var(--text-muted); margin-top: 4px;
+    font-weight: 500; letter-spacing: 0.4px; min-height: 20px;
+  }
+
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
+  .timer-bar.urgent         { background: var(--wrong); }
+
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(16px, 4vw, 24px);
+    font-weight: 500; width: 160px; text-align: center;
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; outline: none;
+    background: var(--surface); color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .answer-input:focus         { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+
+  .unit-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px; font-weight: 600; color: var(--text-muted);
+  }
+
+  .submit-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    padding: 12px 22px; border: none; border-radius: 10px;
+    background: var(--accent); color: #fff; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.3px;
+    min-height: 48px; min-width: 64px;
+  }
+  .submit-btn:hover  { filter: brightness(1.1); }
+  .submit-btn:active { transform: scale(0.97); }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
+  .feedback-msg.mastered { color: var(--accent2); }
+
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .mobile-drawer-toggle {
+    display: none; width: 100%; padding: 12px 20px;
+    background: var(--surface); border: none; border-top: 1.5px solid var(--border);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px;
+    align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn,
+  .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+    padding: 12px 24px; border-radius: 30px; pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  footer {
+    border-top: 1.5px solid var(--border); padding: 11px 24px;
+    font-size: 11.5px; color: #111111;
+    background: var(--surface); line-height: 1.5; flex-shrink: 0;
+  }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 200px 1fr; }
+    .sidebar-right { display: none; }
+    .score-bar { display: flex; }
+  }
+  @media (max-width: 580px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .score-bar { display: flex; }
+    .mobile-drawer-toggle { display: flex; }
+    .main { padding: 24px 14px; gap: 14px; }
+    header { padding: 12px 16px; }
+    .byline { display: none; }
+    footer { padding: 10px 16px; font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">Energy<span>Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="score-bar-label">Accuracy</span>
+      <span class="score-bar-pct-label" id="sbPct">—</span>
+    </div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="diagram-wrap" id="diagramWrap"></div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <span class="unit-label" id="unitLabel">J</span>
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList">
+        <div style="font-size:12px;color:var(--text-muted)">None yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle">
+  <span>⚙ Topics</span><span class="arrow">▼</span>
+</button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SVG DIAGRAM BUILDER
+// Sankey-style energy flow diagrams + efficiency bars
+// ViewBox 340×200
+// ============================================================
+
+const W=340, H=200;
+const AC  = '#ea580c';  // accent orange
+const GRN = '#15803d';  // useful energy
+const RED = '#dc2626';  // wasted energy
+const BLU = '#1d4ed8';  // input energy
+const GRY = '#64748b';
+const TXT = '#3b1200';
+const AMB = '#f59e0b';  // thermal/wasted
+
+function svgE(body) {
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:'DM Sans',sans-serif">${body}</svg>`;
+}
+
+function lbl(x, y, text, color=TXT, size=11, weight='700', anchor='middle') {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${color}" font-family="DM Mono,monospace">${text}</text>`;
+}
+
+function rect(x,y,w,h,fill,stroke=fill,rx=6) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" rx="${rx}" opacity="0.92"/>`;
+}
+
+function arrow(x1,y1,x2,y2,color=AC,sw=2.5) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  const ux=dx/len, uy=dy/len;
+  const hx=x2-ux*9, hy=y2-uy*9;
+  const px=-uy*5, py=ux*5;
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>
+          <polygon points="${x2},${y2} ${hx+px},${hy+py} ${hx-px},${hy-py}" fill="${color}"/>`;
+}
+
+// Device box in the middle
+function device(label, subLabel='') {
+  const bx=118, by=72, bw=104, bh=56;
+  let s = rect(bx,by,bw,bh,'#fff8f3','#fdba74',8);
+  s += lbl(bx+bw/2, by+bh/2-(subLabel?6:0), label, AC, 13, '700');
+  if (subLabel) s += lbl(bx+bw/2, by+bh/2+10, subLabel, GRY, 10, '400');
+  return s;
+}
+
+// Standard Sankey layout: input left, useful up/right, wasted down
+function sankey(deviceLabel, inputJ, usefulJ, wastedJ, inputLabel='Input', usefulLabel='Useful', wastedLabel='Wasted', devSub='') {
+  const s =
+    device(deviceLabel, devSub) +
+    // Input arrow from left
+    arrow(18, 100, 118, 100, BLU, 3) +
+    lbl(64, 90, `${inputJ} J`, BLU, 11) +
+    lbl(64, 103, inputLabel, GRY, 9, '400') +
+    // Useful arrow to right
+    arrow(222, 100, 310, 100, GRN, 3) +
+    lbl(266, 90, `${usefulJ} J`, GRN, 11) +
+    lbl(266, 103, usefulLabel, GRY, 9, '400') +
+    // Wasted arrow downward
+    arrow(170, 128, 170, 185, RED, 2.5) +
+    lbl(228, 168, `${wastedJ} J`, RED, 11) +
+    lbl(228, 180, wastedLabel, GRY, 9, '400');
+  return svgE(s);
+}
+
+// Efficiency bar diagram
+function effBar(pct, inputJ, usefulJ) {
+  const bx=30, by=68, bw=280, bh=40;
+  const usefulW = Math.round(bw * pct / 100);
+  const wastedW = bw - usefulW;
+  let s = '';
+  // Outer border
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none" stroke="#fdba74" stroke-width="1.5" rx="6"/>`;
+  // Useful (green) fill
+  if (usefulW > 0) s += `<rect x="${bx}" y="${by}" width="${usefulW}" height="${bh}" fill="#dcfce7" stroke="none" rx="6"/>`;
+  // Wasted (red) fill
+  if (wastedW > 0) {
+    const wx = bx + usefulW;
+    s += `<rect x="${wx}" y="${by}" width="${wastedW}" height="${bh}" fill="#fee2e2" stroke="none" rx="6"/>`;
+  }
+  // Divider line
+  if (usefulW > 0 && wastedW > 0) {
+    s += `<line x1="${bx+usefulW}" y1="${by}" x2="${bx+usefulW}" y2="${by+bh}" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  }
+  // Labels inside bar
+  if (usefulW > 30) s += lbl(bx+usefulW/2, by+bh/2+4, `${usefulJ} J`, GRN, 11, '700');
+  if (wastedW > 40) s += lbl(bx+usefulW+wastedW/2, by+bh/2+4, `${inputJ-usefulJ} J`, RED, 11, '700');
+  // Axis labels
+  s += lbl(bx, by-10, `Input: ${inputJ} J`, BLU, 11, '700', 'start');
+  s += lbl(bx+bw, by-10, `Efficiency = ?`, AC, 11, '700', 'end');
+  s += lbl(bx, by+bh+14, 'Useful', GRN, 10, '600', 'start');
+  s += lbl(bx+bw, by+bh+14, 'Wasted', RED, 10, '600', 'end');
+  // GPE/KE stores sub-label
+  s += lbl(W/2, H-8, `Eff = (${usefulJ} ÷ ${inputJ}) × 100`, GRY, 10, '400');
+  return svgE(s);
+}
+
+// Energy stores diagram: labelled boxes with transfer arrow
+function storesFlow(store1, store2, transferLabel, e1J, e2J) {
+  const s =
+    rect(20, 72, 110, 56, '#eff6ff', '#93c5fd', 8) +
+    lbl(75, 96, store1, BLU, 11, '700') +
+    lbl(75, 110, `${e1J} J`, BLU, 12, '700') +
+    arrow(130, 100, 210, 100, AC, 3) +
+    lbl(170, 88, transferLabel, AC, 10, '700') +
+    rect(210, 72, 110, 56, '#f0fdf4', '#86efac', 8) +
+    lbl(265, 96, store2, GRN, 11, '700') +
+    lbl(265, 110, `${e2J} J`, GRN, 12, '700');
+  return svgE(s);
+}
+
+// Work done diagram: force + distance
+function workDone(force, dist, workJ, findWork=true) {
+  const cy = 100;
+  let s = '';
+  // Object box
+  s += rect(120, cy-28, 100, 56, '#fff8f3', '#fdba74', 8);
+  s += lbl(170, cy+5, 'object', AC, 12, '700');
+  // Force arrow
+  s += arrow(30, cy, 120, cy, BLU, 3);
+  s += lbl(75, cy-12, `F = ${force} N`, BLU, 11, '700');
+  // Distance line below
+  s += `<line x1="30" y1="${cy+42}" x2="300" y2="${cy+42}" stroke="${GRY}" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+  s += `<line x1="30" y1="${cy+36}" x2="30" y2="${cy+48}" stroke="${GRY}" stroke-width="1.5"/>`;
+  s += `<line x1="300" y1="${cy+36}" x2="300" y2="${cy+48}" stroke="${GRY}" stroke-width="1.5"/>`;
+  s += lbl(165, cy+56, `d = ${dist} m`, GRY, 11, '700');
+  if (findWork) {
+    s += lbl(165, cy+72, `W = F × d = ?`, AC, 11, '700');
+  } else {
+    s += lbl(165, cy+72, `W = ${workJ} J`, GRN, 11, '700');
+  }
+  return svgE(s);
+}
+
+// Power diagram
+function powerDiag(work, time, power, findPower=true) {
+  const cy=H/2;
+  let s = '';
+  s += rect(110, cy-38, 120, 76, '#fff8f3', '#fdba74', 8);
+  s += lbl(170, cy-14, 'W = ' + work + ' J', BLU, 12, '700');
+  s += lbl(170, cy+4,  't = ' + time + ' s',  GRY, 12, '400');
+  if (findPower) {
+    s += lbl(170, cy+22, 'P = W ÷ t = ?', AC, 11, '700');
+  } else {
+    s += lbl(170, cy+22, 'P = ' + power + ' W', GRN, 11, '700');
+  }
+  // Lightning bolt icon suggestion
+  s += lbl(W/2, 26, '⚡ Power', AC, 13, '700');
+  return svgE(s);
+}
+
+// KE diagram
+function keDiag(mass, vel, ke, findKE=true) {
+  const cy=H/2;
+  let s = '';
+  // Moving object with velocity arrow
+  s += rect(100, cy-30, 140, 60, '#eff6ff', '#93c5fd', 8);
+  s += lbl(170, cy-6, `m = ${mass} kg`, BLU, 12, '700');
+  s += lbl(170, cy+12, `v = ${vel} m/s`, BLU, 12, '700');
+  s += arrow(240, cy, 305, cy, GRN, 3);
+  if (findKE) {
+    s += lbl(170, H-16, `Ek = ½mv² = ?`, AC, 11, '700');
+  } else {
+    s += lbl(170, H-16, `Ek = ${ke} J`, GRN, 11, '700');
+  }
+  return svgE(s);
+}
+
+// GPE diagram
+function gpeDiag(mass, height, gpe, findGPE=true) {
+  const baseY=165, topY=50;
+  let s = '';
+  // Vertical height indicator
+  s += `<line x1="60" y1="${baseY}" x2="60" y2="${topY}" stroke="${GRY}" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+  s += `<line x1="48" y1="${topY}" x2="72" y2="${topY}" stroke="${GRY}" stroke-width="1.5"/>`;
+  s += `<line x1="48" y1="${baseY}" x2="72" y2="${baseY}" stroke="${GRY}" stroke-width="1.5"/>`;
+  s += lbl(38, (baseY+topY)/2+4, `h =`, GRY, 10, '600', 'end');
+  s += lbl(38, (baseY+topY)/2+16, `${height} m`, GRY, 11, '700', 'end');
+  // Ground line
+  s += `<line x1="0" y1="${baseY}" x2="${W}" y2="${baseY}" stroke="#d1d5db" stroke-width="1.5"/>`;
+  // Object at top
+  s += rect(140, topY-12, 80, 44, '#fff8f3', '#fdba74', 6);
+  s += lbl(180, topY+7, `${mass} kg`, AC, 13, '700');
+  // g label
+  s += lbl(W/2, baseY-10, 'g = 10 N/kg', GRY, 10, '400');
+  if (findGPE) {
+    s += lbl(W/2, H-6, `Ep = mgh = ?`, AC, 11, '700');
+  } else {
+    s += lbl(W/2, H-6, `Ep = ${gpe} J`, GRN, 11, '700');
+  }
+  return svgE(s);
+}
+
+// ============================================================
+// DIAGRAM LIBRARY
+// ============================================================
+const DIAGRAMS = {
+
+  // Sankeys
+  sankey_motor:      () => sankey('Electric\nMotor',   500, 350, 150, 'Electrical', 'Kinetic', 'Thermal'),
+  sankey_bulb:       () => sankey('Light\nBulb',       100,  10,  90, 'Electrical', 'Light',   'Thermal'),
+  sankey_boiler:     () => sankey('Gas\nBoiler',      2000,1500, 500, 'Chemical',   'Thermal', 'Wasted'),
+  sankey_car:        () => sankey('Car\nEngine',      1000, 250, 750, 'Chemical',   'Kinetic', 'Thermal'),
+  sankey_solar:      () => sankey('Solar\nPanel',      800, 320, 480, 'Light',      'Electrical','Thermal'),
+  sankey_kettle:     () => sankey('Electric\nKettle',  600, 540,  60, 'Electrical', 'Thermal', 'Sound'),
+  sankey_speaker:    () => sankey('Speaker',           200, 120,  80, 'Electrical', 'Sound',   'Thermal'),
+  sankey_find_waste: () => sankey('Device',            400, 280, 120, 'Input',      'Useful',  '? J'),
+
+  // Efficiency bars
+  effbar_75:  () => effBar(75,  400, 300),
+  effbar_25:  () => effBar(25,  400, 100),
+  effbar_60:  () => effBar(60,  500, 300),
+  effbar_90:  () => effBar(90, 1000, 900),
+  effbar_40:  () => effBar(40,  250, 100),
+
+  // Energy stores
+  stores_ke:  () => storesFlow('Gravitational\nPotential', 'Kinetic', 'falls', 500, 500),
+  stores_gpe: () => storesFlow('Chemical', 'Gravitational\nPotential', 'lifts', 600, 600),
+  stores_the: () => storesFlow('Kinetic', 'Thermal', 'friction', 300, 300),
+
+  // Work done
+  work_basic:    () => workDone(20, 5, 100, true),
+  work_find_f:   () => workDone('?', 8, 240, false),
+  work_find_d:   () => workDone(30, '?', 180, false),
+  work_heavy:    () => workDone(150, 4, 600, true),
+
+  // Power
+  power_basic:   () => powerDiag(600, 30, 20, true),
+  power_find_w:  () => powerDiag('?', 15, 50, false),
+  power_find_t:  () => powerDiag(900, '?', 45, false),
+
+  // KE
+  ke_basic:  () => keDiag(4, 6, 72, true),
+  ke_find_m: () => keDiag('?', 4, 64, false),
+  ke_find_v: () => keDiag(2, '?', 50, false),
+
+  // GPE
+  gpe_basic:  () => gpeDiag(5, 10, 500, true),
+  gpe_find_m: () => gpeDiag('?', 8, 400, false),
+  gpe_find_h: () => gpeDiag(3, '?', 300, false),
+};
+
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const QUESTIONS = [
+
+  // ── ENERGY TRANSFERS & STORES ──
+  { id:'et1', topic:'Energy Transfers', diagram:'sankey_motor',
+    question:'The motor takes in 500 J. It outputs 350 J as kinetic energy. How much is wasted as thermal energy?',
+    answer:'150', unit:'J' },
+  { id:'et2', topic:'Energy Transfers', diagram:'sankey_bulb',
+    question:'The bulb uses 100 J. Only 10 J is useful light energy. How much is wasted?',
+    answer:'90', unit:'J' },
+  { id:'et3', topic:'Energy Transfers', diagram:'sankey_boiler',
+    question:'The boiler takes in 2000 J of chemical energy. It transfers 1500 J usefully. Find the wasted energy.',
+    answer:'500', unit:'J' },
+  { id:'et4', topic:'Energy Transfers', diagram:'sankey_car',
+    question:'The car engine uses 1000 J of chemical energy. Only 250 J becomes kinetic. How much is wasted?',
+    answer:'750', unit:'J' },
+  { id:'et5', topic:'Energy Transfers', diagram:'sankey_solar',
+    question:'The solar panel receives 800 J of light energy and outputs 320 J as electrical energy. Find wasted energy.',
+    answer:'480', unit:'J' },
+  { id:'et6', topic:'Energy Transfers', diagram:'sankey_find_waste',
+    question:'A device takes in 400 J and outputs 280 J as useful energy. How much energy is wasted?',
+    answer:'120', unit:'J' },
+  { id:'et7', topic:'Energy Transfers', diagram:'sankey_kettle',
+    question:'The kettle uses 600 J. 540 J heats the water. How much is wasted as sound?',
+    answer:'60', unit:'J' },
+  { id:'et8', topic:'Energy Transfers', diagram:'sankey_speaker',
+    question:'The speaker uses 200 J and outputs 120 J as sound. How much is wasted?',
+    answer:'80', unit:'J' },
+
+  { id:'et9', topic:'Energy Transfers', diagram:'stores_ke',
+    question:'A 500 J gravitational store is fully converted to kinetic energy (no friction). Find the kinetic energy store.',
+    answer:'500', unit:'J' },
+  { id:'et10', topic:'Energy Transfers', diagram:'stores_the',
+    question:'A 300 J kinetic energy store is fully converted to thermal energy by friction. Find the thermal energy store.',
+    answer:'300', unit:'J' },
+
+  // ── EFFICIENCY ──
+  { id:'eff1', topic:'Efficiency', diagram:'effbar_75',
+    question:'Useful output = 300 J, Total input = 400 J. Calculate the efficiency.',
+    answer:'75', unit:'%' },
+  { id:'eff2', topic:'Efficiency', diagram:'effbar_25',
+    question:'Useful output = 100 J, Total input = 400 J. Calculate the efficiency.',
+    answer:'25', unit:'%' },
+  { id:'eff3', topic:'Efficiency', diagram:'effbar_60',
+    question:'Useful output = 300 J, Total input = 500 J. Calculate the efficiency.',
+    answer:'60', unit:'%' },
+  { id:'eff4', topic:'Efficiency', diagram:'effbar_90',
+    question:'Useful output = 900 J, Total input = 1000 J. Calculate the efficiency.',
+    answer:'90', unit:'%' },
+  { id:'eff5', topic:'Efficiency', diagram:'effbar_40',
+    question:'Useful output = 100 J, Total input = 250 J. Calculate the efficiency.',
+    answer:'40', unit:'%' },
+  { id:'eff6', topic:'Efficiency', diagram:'sankey_motor',
+    question:'Motor: input = 500 J, useful output = 350 J. Calculate the efficiency.',
+    answer:'70', unit:'%' },
+  { id:'eff7', topic:'Efficiency', diagram:'sankey_bulb',
+    question:'Bulb: input = 100 J, useful output = 10 J. Calculate the efficiency.',
+    answer:'10', unit:'%' },
+  { id:'eff8', topic:'Efficiency', diagram:'effbar_60',
+    question:'Efficiency = 60%, input = 500 J. Find the useful energy output.',
+    answer:'300', unit:'J' },
+  { id:'eff9', topic:'Efficiency', diagram:'effbar_75',
+    question:'Efficiency = 75%, useful output = 300 J. Find the total input energy.',
+    answer:'400', unit:'J' },
+  { id:'eff10', topic:'Efficiency', diagram:'sankey_car',
+    question:'Car engine: input = 1000 J, useful = 250 J. Calculate the efficiency.',
+    answer:'25', unit:'%' },
+
+  // ── WORK DONE ──
+  { id:'wd1', topic:'Work Done', diagram:'work_basic',
+    question:'Find the work done. (W = F × d)',
+    answer:'100', unit:'J' },
+  { id:'wd2', topic:'Work Done', diagram:'work_heavy',
+    question:'Find the work done. (W = F × d)',
+    answer:'600', unit:'J' },
+  { id:'wd3', topic:'Work Done', diagram:'work_find_f',
+    question:'W = 240 J, d = 8 m. Find the force applied.',
+    answer:'30', unit:'N' },
+  { id:'wd4', topic:'Work Done', diagram:'work_find_d',
+    question:'W = 180 J, F = 30 N. Find the distance moved.',
+    answer:'6', unit:'m' },
+  { id:'wd5', topic:'Work Done', diagram:'work_basic',
+    question:'A force of 45 N moves an object 3 m. Find the work done.',
+    answer:'135', unit:'J' },
+
+  // ── POWER ──
+  { id:'pw1', topic:'Power', diagram:'power_basic',
+    question:'Find the power. (P = W ÷ t)',
+    answer:'20', unit:'W' },
+  { id:'pw2', topic:'Power', diagram:'power_find_w',
+    question:'P = 50 W, t = 15 s. Find the work done.',
+    answer:'750', unit:'J' },
+  { id:'pw3', topic:'Power', diagram:'power_find_t',
+    question:'W = 900 J, P = 45 W. Find the time taken.',
+    answer:'20', unit:'s' },
+  { id:'pw4', topic:'Power', diagram:'power_basic',
+    question:'A motor does 1200 J of work in 60 s. Find its power.',
+    answer:'20', unit:'W' },
+  { id:'pw5', topic:'Power', diagram:'power_find_w',
+    question:'A 100 W device runs for 30 s. How much energy is transferred?',
+    answer:'3000', unit:'J' },
+
+  // ── KINETIC ENERGY ──
+  { id:'ke1', topic:'Kinetic Energy', diagram:'ke_basic',
+    question:'Find the kinetic energy. (Ek = ½mv²)',
+    answer:'72', unit:'J' },
+  { id:'ke2', topic:'Kinetic Energy', diagram:'ke_find_m',
+    question:'Ek = 64 J, v = 4 m/s. Find the mass. (m = 2Ek ÷ v²)',
+    answer:'8', unit:'kg' },
+  { id:'ke3', topic:'Kinetic Energy', diagram:'ke_basic',
+    question:'A 10 kg object moves at 4 m/s. Find its kinetic energy.',
+    answer:'80', unit:'J' },
+  { id:'ke4', topic:'Kinetic Energy', diagram:'ke_basic',
+    question:'A 3 kg ball moves at 10 m/s. Find its kinetic energy.',
+    answer:'150', unit:'J' },
+  { id:'ke5', topic:'Kinetic Energy', diagram:'ke_find_m',
+    question:'Ek = 200 J, v = 10 m/s. Find the mass.',
+    answer:'4', unit:'kg' },
+
+  // ── GRAVITATIONAL POTENTIAL ENERGY ──
+  { id:'gp1', topic:'GPE', diagram:'gpe_basic',
+    question:'Find the gravitational potential energy. (Ep = mgh)',
+    answer:'500', unit:'J' },
+  { id:'gp2', topic:'GPE', diagram:'gpe_find_m',
+    question:'Ep = 400 J, g = 10, h = 8 m. Find the mass.',
+    answer:'5', unit:'kg' },
+  { id:'gp3', topic:'GPE', diagram:'gpe_find_h',
+    question:'Ep = 300 J, m = 3 kg, g = 10. Find the height.',
+    answer:'10', unit:'m' },
+  { id:'gp4', topic:'GPE', diagram:'gpe_basic',
+    question:'A 8 kg object is raised 6 m (g = 10). Find its GPE.',
+    answer:'480', unit:'J' },
+  { id:'gp5', topic:'GPE', diagram:'gpe_basic',
+    question:'A 2 kg ball is dropped from 15 m (g = 10). Find its initial GPE.',
+    answer:'300', unit:'J' },
+];
+
+// ============================================================
+// TOPICS
+// ============================================================
+const TOPICS = ['Energy Transfers', 'Efficiency', 'Work Done', 'Power', 'Kinetic Energy', 'GPE'];
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'energyforge_v1';
+
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  return null;
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabledTopics, mastered: [...mastered], stats, streaks }));
+}
+
+const saved = loadState();
+let enabledTopics = saved?.enabledTopics || Object.fromEntries(TOPICS.map(t => [t, true]));
+let mastered  = new Set(Array.isArray(saved?.mastered) ? saved.mastered : []);
+let stats     = (saved?.stats && typeof saved.stats === 'object') ? saved.stats : { correct: 0, total: 0, sessionStreak: 0 };
+let streaks   = (saved?.streaks && typeof saved.streaks === 'object') ? saved.streaks : {};
+TOPICS.forEach(t => { if (enabledTopics[t] === undefined) enabledTopics[t] = true; });
+
+// ============================================================
+// QUESTION SELECTION
+// ============================================================
+function getPool() {
+  return QUESTIONS.filter(q => enabledTopics[q.topic] && !mastered.has(q.id));
+}
+function buildQuestion(prev) {
+  const pool = getPool();
+  if (!pool.length) return null;
+  const candidates = prev ? pool.filter(q => q.id !== prev.id) : pool;
+  return (candidates.length ? candidates : pool)[Math.floor(Math.random() * (candidates.length || pool.length))];
+}
+
+// ============================================================
+// DOM
+// ============================================================
+const topicBadge   = document.getElementById('topicBadge');
+const diagramWrap  = document.getElementById('diagramWrap');
+const questionText = document.getElementById('questionText');
+const questionSub  = document.getElementById('questionSub');
+const answerInput  = document.getElementById('answerInput');
+const submitBtn    = document.getElementById('submitBtn');
+const unitLabel    = document.getElementById('unitLabel');
+const feedbackMsg  = document.getElementById('feedbackMsg');
+const timerBar     = document.getElementById('timerBar');
+const streakDotsEl = document.getElementById('streakDots');
+const statCorrect  = document.getElementById('statCorrect');
+const statTotal    = document.getElementById('statTotal');
+const statPct      = document.getElementById('statPct');
+const pctBar       = document.getElementById('pctBar');
+const statStreak   = document.getElementById('statStreak');
+const masteredList = document.getElementById('masteredList');
+const masteredCount= document.getElementById('masteredCount');
+const sbCorrect    = document.getElementById('sbCorrect');
+const sbTotal      = document.getElementById('sbTotal');
+const sbPct        = document.getElementById('sbPct');
+const sbPctBar     = document.getElementById('sbPctBar');
+const sbMastered   = document.getElementById('sbMastered');
+const levelGridDesktop = document.getElementById('levelGridDesktop');
+const levelGridMobile  = document.getElementById('levelGridMobile');
+const toast        = document.getElementById('toast');
+const drawerToggle = document.getElementById('drawerToggle');
+const mobileDrawer = document.getElementById('mobileDrawer');
+
+// ============================================================
+// TOGGLES
+// ============================================================
+function renderLevelGrid(gridEl) {
+  gridEl.innerHTML = '';
+  TOPICS.forEach(topic => {
+    const hasMastered = QUESTIONS.some(q => q.topic === topic && mastered.has(q.id));
+    const wrapper = document.createElement('label');
+    wrapper.className = 'lv-toggle' + (hasMastered ? ' has-mastered' : '');
+    const input = document.createElement('input');
+    input.type = 'checkbox'; input.checked = enabledTopics[topic];
+    input.addEventListener('change', () => {
+      enabledTopics[topic] = input.checked;
+      syncToggle(topic, input.checked);
+      saveState(); nextQuestion();
+    });
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.innerHTML = `<span class="lv-name">${topic}</span>`;
+    const badge = document.createElement('div');
+    badge.className = 'mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge);
+    gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles() { renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncToggle(topic, checked) {
+  [levelGridDesktop, levelGridMobile].forEach(g => {
+    g.querySelectorAll('.lv-toggle').forEach(l => {
+      if (l.querySelector('.lv-name').textContent === topic) l.querySelector('input').checked = checked;
+    });
+  });
+}
+
+// ============================================================
+// STREAK DOTS
+// ============================================================
+function renderStreakDots(count) {
+  streakDotsEl.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const d = document.createElement('div');
+    d.className = 'streak-dot' + (i < count ? ' filled' : '');
+    streakDotsEl.appendChild(d);
+  }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let currentQ = null, timerInterval = null, timerStart = null;
+const TIME_LIMIT = 6000;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerStart = Date.now();
+  timerBar.style.transition = 'none';
+  timerBar.style.width = '100%';
+  timerBar.className = 'timer-bar';
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    timerBar.style.transition = 'width 0.1s linear';
+    timerBar.style.width = pct + '%';
+    if      (pct <= 16) timerBar.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBar.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBar.className = 'timer-bar warning';
+    else                timerBar.className = 'timer-bar';
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+function getElapsed() { return Date.now() - (timerStart || Date.now()); }
+
+// ============================================================
+// NEXT QUESTION
+// ============================================================
+function nextQuestion() {
+  stopTimer();
+  feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
+  answerInput.value = ''; answerInput.className = 'answer-input'; answerInput.disabled = false;
+  diagramWrap.innerHTML = '';
+
+  if (!TOPICS.some(t => enabledTopics[t])) {
+    topicBadge.textContent = '—';
+    questionText.textContent = 'Enable a topic to begin.';
+    questionSub.textContent = '';
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0); return;
+  }
+
+  const q = buildQuestion(currentQ);
+  if (!q) {
+    topicBadge.textContent = '🎉 DONE';
+    questionText.textContent = 'All questions mastered!';
+    questionSub.textContent = 'Enable more topics or reset progress.';
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0); return;
+  }
+
+  currentQ = q;
+  topicBadge.textContent = q.topic;
+  diagramWrap.innerHTML = DIAGRAMS[q.diagram]();
+  questionText.textContent = q.question;
+  unitLabel.textContent = q.unit || '';
+
+  const streak = streaks[q.id] || 0;
+  renderStreakDots(streak);
+  questionSub.textContent = streak > 0 ? `${streak}/6 mastery streak` : '';
+  startTimer();
+  if (!('ontouchstart' in window)) answerInput.focus();
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitAnswer() {
+  if (!currentQ || answerInput.disabled) return;
+  const raw = answerInput.value.trim();
+  if (!raw) { answerInput.focus(); return; }
+
+  stopTimer();
+  const elapsed = getElapsed();
+  stats.total++;
+
+  const userNum = parseFloat(raw);
+  const corrNum = parseFloat(currentQ.answer);
+  const isCorrect = raw === currentQ.answer ||
+    (!isNaN(userNum) && !isNaN(corrNum) && Math.abs(userNum - corrNum) < 0.001);
+
+  if (isCorrect) {
+    stats.correct++;
+    stats.sessionStreak = (stats.sessionStreak || 0) + 1;
+    answerInput.className = 'answer-input correct-flash';
+    streaks[currentQ.id] = elapsed <= TIME_LIMIT ? (streaks[currentQ.id] || 0) + 1 : 0;
+    const streak = streaks[currentQ.id];
+    renderStreakDots(streak);
+    if (streak >= 6) {
+      mastered.add(currentQ.id); streaks[currentQ.id] = 0;
+      feedbackMsg.textContent = '★ MASTERED!'; feedbackMsg.className = 'feedback-msg mastered';
+      showToast('Question mastered! 🔥', true);
+      renderToggles(); renderMastered();
+    } else {
+      const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];
+      feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+      feedbackMsg.className = 'feedback-msg correct';
+    }
+  } else {
+    stats.sessionStreak = 0; streaks[currentQ.id] = 0;
+    renderStreakDots(0);
+    answerInput.className = 'answer-input wrong-flash';
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.answer}${currentQ.unit ? ' ' + currentQ.unit : ''}`;
+    feedbackMsg.className = 'feedback-msg wrong';
+  }
+
+  updateStats(); saveState(); answerInput.disabled = true;
+  setTimeout(() => nextQuestion(), 1000);
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const c = stats.correct, t = stats.total;
+  const pct = t > 0 ? Math.round((c / t) * 100) : null;
+  const pctStr = pct !== null ? pct + '%' : '—';
+  const pctW   = pct !== null ? pct + '%' : '0%';
+  statCorrect.textContent = c; statTotal.textContent = t;
+  statPct.textContent = pctStr; pctBar.style.width = pctW;
+  sbCorrect.textContent = c; sbTotal.textContent = t;
+  sbPct.textContent = pctStr; sbPctBar.style.width = pctW;
+  sbMastered.textContent = mastered.size;
+  const col = pct === null ? 'var(--correct)' : pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background = col; sbPctBar.style.background = col;
+  const ss = stats.sessionStreak || 0;
+  statStreak.textContent = ss >= 5 ? '🔥'.repeat(Math.min(3,Math.floor(ss/5)))+' '+ss+' in a row' : '';
+}
+
+function renderMastered() {
+  masteredCount.textContent = mastered.size; sbMastered.textContent = mastered.size;
+  if (!mastered.size) { masteredList.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">None yet</div>'; return; }
+  masteredList.innerHTML = [...mastered].sort().map(id => {
+    const q = QUESTIONS.find(x => x.id === id);
+    return `<div class="mastered-item">★ ${q ? q.question.slice(0,30)+'…' : id}</div>`;
+  }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout;
+function showToast(msg, isMastered=false) {
+  toast.textContent = msg;
+  toast.className = 'toast'+(isMastered?' mastered-toast':'')+' show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'+(isMastered?' mastered-toast':''); }, 2500);
+}
+
+// ============================================================
+// TOGGLE ALL / RESET
+// ============================================================
+let allOn = true;
+function toggleAll() {
+  allOn = !allOn; TOPICS.forEach(t => enabledTopics[t] = allOn);
+  saveState(); renderToggles(); nextQuestion();
+}
+function doReset() {
+  if (!confirm('Reset all mastery progress and stats? This cannot be undone.')) return;
+  mastered = new Set(); streaks = {}; stats = { correct:0, total:0, sessionStreak:0 };
+  allOn = true; TOPICS.forEach(t => enabledTopics[t] = true);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion();
+  showToast('Progress reset.');
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click', toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click', doReset);
+document.getElementById('resetBtnMobile').addEventListener('click', doReset);
+drawerToggle.addEventListener('click', () => {
+  const open = mobileDrawer.classList.toggle('open');
+  drawerToggle.classList.toggle('open', open);
+});
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+
+// ============================================================
+// INIT
+// ============================================================
+renderToggles(); renderMastered(); updateStats(); nextQuestion();
+</script>
+</body>
+</html>

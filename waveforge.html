@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WaveForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff0f3;
+    --surface2: #fecdd3;
+    --border: #fda4af;
+    --text: #3b0010;
+    --text-muted: #8b2040;
+    --accent: #f43f5e;
+    --accent2: #f59e0b;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill { display: flex; align-items: center; justify-content: space-between; height: 44px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; user-select: none; padding: 0 14px; }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; background: var(--accent2); border-radius: 50%; border: 1.5px solid #fff; display: none; }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; gap: 18px; }
+  .question-card { text-align: center; max-width: 520px; width: 100%; }
+  .topic-badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 12px; }
+
+  .diagram-wrap { width: 100%; max-width: 360px; margin: 0 auto 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+
+  .question-text { font-family: 'DM Sans', sans-serif; font-size: clamp(14px, 2.8vw, 17px); font-weight: 600; line-height: 1.45; color: var(--text); margin-bottom: 4px; }
+  .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.4px; min-height: 20px; }
+
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning { background: #f5c518; } .timer-bar.warning-orange { background: #f07d20; } .timer-bar.urgent { background: var(--wrong); }
+
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(16px, 4vw, 24px); font-weight: 500; width: 160px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input:focus { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash { border-color: var(--wrong); background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+  .unit-label { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text-muted); }
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover { filter: brightness(1.1); } .submit-btn:active { transform: scale(0.97); }
+
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct { color: var(--correct); } .feedback-msg.wrong { color: var(--wrong); } .feedback-msg.mastered { color: var(--accent2); }
+
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 24px 14px; gap: 14px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">Wave<span>Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="diagram-wrap" id="diagramWrap"></div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <span class="unit-label" id="unitLabel"></span>
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SVG WAVE DIAGRAM BUILDER
+// ViewBox 360×180. Draws sinusoidal waves with labelled
+// wavelength brackets, amplitude arrows, and frequency hints.
+// ============================================================
+
+const W = 360, H = 180;
+const AC  = '#f43f5e';
+const BLU = '#2563eb';
+const GRN = '#15803d';
+const PRP = '#7c3aed';
+const GRY = '#64748b';
+const TXT = '#3b0010';
+const MID = H / 2;  // vertical centre = 90
+
+function svgW(body) {
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:'DM Sans',sans-serif">${body}</svg>`;
+}
+
+function lbl(x, y, text, color=TXT, size=11, weight='700', anchor='middle') {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${color}" font-family="DM Mono,monospace">${text}</text>`;
+}
+
+// Draw a sine wave between x=startX and x=endX, centred on cy
+// cycles = number of complete cycles to draw
+function sineWave(startX, endX, cy, amplitude, cycles, color=AC, strokeW=2.5) {
+  const points = [];
+  const steps = 200;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = startX + t * (endX - startX);
+    const y = cy - amplitude * Math.sin(t * cycles * 2 * Math.PI);
+    points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  return `<path d="${points.join(' ')}" fill="none" stroke="${color}" stroke-width="${strokeW}" stroke-linecap="round"/>`;
+}
+
+// Horizontal centre axis (dashed)
+function axis(startX, endX, cy) {
+  return `<line x1="${startX}" y1="${cy}" x2="${endX}" y2="${cy}" stroke="${GRY}" stroke-width="1" stroke-dasharray="5,4"/>`;
+}
+
+// Double-headed arrow for wavelength bracket below the wave
+function lambdaBracket(x1, x2, y, label, color=BLU) {
+  const my = y + 14;
+  let s = '';
+  // Horizontal line
+  s += `<line x1="${x1}" y1="${my}" x2="${x2}" y2="${my}" stroke="${color}" stroke-width="1.5"/>`;
+  // Left arrowhead
+  s += `<polygon points="${x1},${my} ${x1+8},${my-4} ${x1+8},${my+4}" fill="${color}"/>`;
+  // Right arrowhead
+  s += `<polygon points="${x2},${my} ${x2-8},${my-4} ${x2-8},${my+4}" fill="${color}"/>`;
+  // Tick marks
+  s += `<line x1="${x1}" y1="${my-6}" x2="${x1}" y2="${my+6}" stroke="${color}" stroke-width="1.5"/>`;
+  s += `<line x1="${x2}" y1="${my-6}" x2="${x2}" y2="${my+6}" stroke="${color}" stroke-width="1.5"/>`;
+  // Label below arrow
+  s += lbl((x1+x2)/2, my+16, label, color, 11, '700');
+  return s;
+}
+
+// Vertical amplitude arrow on left side
+function amplitudeArrow(x, cy, amp, label, color=GRN) {
+  const x2 = x;
+  let s = '';
+  // Up arrow from centre to peak
+  s += `<line x1="${x2}" y1="${cy}" x2="${x2}" y2="${cy - amp}" stroke="${color}" stroke-width="1.5"/>`;
+  s += `<polygon points="${x2},${cy-amp} ${x2-4},${cy-amp+8} ${x2+4},${cy-amp+8}" fill="${color}"/>`;
+  // Down arrow from centre to trough
+  s += `<line x1="${x2}" y1="${cy}" x2="${x2}" y2="${cy + amp}" stroke="${color}" stroke-width="1.5"/>`;
+  s += `<polygon points="${x2},${cy+amp} ${x2-4},${cy+amp-8} ${x2+4},${cy+amp-8}" fill="${color}"/>`;
+  s += lbl(x2 - 16, cy + 5, label, color, 10, '700');
+  return s;
+}
+
+// Info box top-left
+function infoBox(lines, color=AC) {
+  let s = `<rect x="8" y="6" width="120" height="${14*lines.length+8}" fill="#fff0f3" stroke="${color}" stroke-width="1" rx="4" opacity="0.9"/>`;
+  lines.forEach((line, i) => {
+    s += lbl(14, 20 + i*14, line, color, 10, '600', 'start');
+  });
+  return s;
+}
+
+// ── Named diagram builders ──
+// Each returns a complete SVG string.
+
+const DIAGRAMS = {
+
+  // Basic wave: 2 cycles, labelled wavelength + amplitude
+  wave_basic: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 44, 2) +
+    lambdaBracket(20, 20+(W-40)/2, MID+44, 'λ = ?') +
+    amplitudeArrow(26, MID, 44, 'A', GRN) +
+    infoBox(['v = f × λ'], AC)
+  ),
+
+  // Fast wave: 4 cycles (high frequency, short wavelength)
+  wave_fast: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 36, 4, '#7c3aed') +
+    lambdaBracket(20, 20+(W-40)/4, MID+36, 'λ') +
+    lbl(W/2, 22, 'High frequency wave', PRP, 11, '700')
+  ),
+
+  // Slow wave: 1 cycle (low frequency, long wavelength)
+  wave_slow: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 52, 1, BLU) +
+    lambdaBracket(20, W-20, MID+52, 'λ') +
+    lbl(W/2, 22, 'Low frequency wave', BLU, 11, '700')
+  ),
+
+  // Sound wave context
+  wave_sound: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 42, 3, '#ea580c') +
+    lambdaBracket(20, 20+(W-40)/3, MID+42, 'λ') +
+    infoBox(['Sound wave', 'v = 340 m/s'], '#ea580c')
+  ),
+
+  // Light wave context
+  wave_light: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 40, 2.5, '#f59e0b') +
+    lambdaBracket(20, 20+(W-40)/2.5, MID+40, 'λ') +
+    infoBox(['Light wave', 'v = 3×10⁸ m/s'], '#b45309')
+  ),
+
+  // Period diagram: one cycle labelled as T
+  wave_period: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 48, 2) +
+    // T bracket for first cycle
+    `<line x1="20" y1="${MID+58}" x2="${20+(W-40)/2}" y2="${MID+58}" stroke="${AC}" stroke-width="1.5"/>` +
+    `<polygon points="20,${MID+58} 28,${MID+54} 28,${MID+62}" fill="${AC}"/>` +
+    `<polygon points="${20+(W-40)/2},${MID+58} ${20+(W-40)/2-8},${MID+54} ${20+(W-40)/2-8},${MID+62}" fill="${AC}"/>` +
+    `<line x1="20" y1="${MID+52}" x2="20" y2="${MID+64}" stroke="${AC}" stroke-width="1.5"/>` +
+    `<line x1="${20+(W-40)/2}" y1="${MID+52}" x2="${20+(W-40)/2}" y2="${MID+64}" stroke="${AC}" stroke-width="1.5"/>` +
+    lbl((20 + 20+(W-40)/2)/2, MID+72, 'T = period', AC, 11, '700')
+  ),
+
+  // Amplitude comparison: two waves, one tall one short
+  wave_amplitude: () => {
+    const s1 = sineWave(20, W-20, MID-30, 28, 2, AC);
+    const s2 = sineWave(20, W-20, MID+30, 10, 2, BLU);
+    return svgW(
+      axis(20, W-20, MID-30) +
+      axis(20, W-20, MID+30) +
+      s1 + s2 +
+      lbl(W-30, MID-52, 'Large A', AC, 10, '700') +
+      lbl(W-30, MID+22, 'Small A', BLU, 10, '700')
+    );
+  },
+
+  // v=fλ triangle diagram
+  triangle: () => {
+    const cx=W/2, cy=MID-10, side=90;
+    const tx=cx, ty=cy-52;
+    const lx=cx-side/2, ly=cy+30;
+    const rx=cx+side/2, ry=cy+30;
+    let s = '';
+    // Triangle outline
+    s += `<polygon points="${tx},${ty} ${lx},${ly} ${rx},${ry}" fill="none" stroke="${GRY}" stroke-width="1.5"/>`;
+    // Dividing line
+    s += `<line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" stroke="${GRY}" stroke-width="1.5"/>`;
+    // Labels
+    s += lbl(cx, ty+18, 'v', AC, 22, '900');
+    s += lbl(cx-25, ly+4, 'f', BLU, 22, '900');
+    s += lbl(cx+25, ly+4, 'λ', GRN, 22, '900');
+    // Formula below
+    s += lbl(cx, H-14, 'v = f × λ', GRY, 12, '700');
+    return svgW(s);
+  },
+
+  // Wavefront diagram for diffraction hint
+  wave_refraction: () => svgW(
+    axis(20, W-20, MID) +
+    sineWave(20, W-20, MID, 44, 2.5, AC) +
+    infoBox(['v = f × λ', 'T = 1 / f'], AC)
+  ),
+
+  // Two waves same speed different freq
+  wave_compare: () => {
+    const y1 = 55, y2 = 130;
+    return svgW(
+      axis(20, W-20, y1) +
+      axis(20, W-20, y2) +
+      sineWave(20, W-20, y1, 30, 4, AC) +
+      sineWave(20, W-20, y2, 30, 2, BLU) +
+      lbl(W/2, 14, 'Same speed, different frequency', GRY, 10, '600') +
+      lbl(W-24, y1+8, 'f = 4 Hz', AC, 10, '700', 'end') +
+      lbl(W-24, y2+8, 'f = 2 Hz', BLU, 10, '700', 'end')
+    );
+  },
+};
+
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const QUESTIONS = [
+
+  // ── v = f × λ: find v ──
+  { id:'vfl1', topic:'v = f × λ', diagram:'wave_basic',
+    question:'Find the wave speed. f = 50 Hz, λ = 3 m',
+    answer:'150', unit:'m/s' },
+  { id:'vfl2', topic:'v = f × λ', diagram:'wave_fast',
+    question:'Find the wave speed. f = 200 Hz, λ = 1.5 m',
+    answer:'300', unit:'m/s' },
+  { id:'vfl3', topic:'v = f × λ', diagram:'wave_slow',
+    question:'Find the wave speed. f = 4 Hz, λ = 25 m',
+    answer:'100', unit:'m/s' },
+  { id:'vfl4', topic:'v = f × λ', diagram:'wave_sound',
+    question:'Find the wave speed. f = 340 Hz, λ = 1 m',
+    answer:'340', unit:'m/s' },
+  { id:'vfl5', topic:'v = f × λ', diagram:'wave_basic',
+    question:'Find the wave speed. f = 0.5 Hz, λ = 8 m',
+    answer:'4', unit:'m/s' },
+  { id:'vfl6', topic:'v = f × λ', diagram:'wave_compare',
+    question:'Find the wave speed. f = 400 Hz, λ = 0.85 m',
+    answer:'340', unit:'m/s' },
+
+  // ── v = f × λ: find f ──
+  { id:'vfl7',  topic:'v = f × λ', diagram:'wave_sound',
+    question:'Find the frequency. v = 340 m/s, λ = 2 m',
+    answer:'170', unit:'Hz' },
+  { id:'vfl8',  topic:'v = f × λ', diagram:'wave_light',
+    question:'Find the frequency. v = 300 000 000 m/s, λ = 0.01 m',
+    answer:'30000000000', unit:'Hz' },
+  { id:'vfl9',  topic:'v = f × λ', diagram:'wave_basic',
+    question:'Find the frequency. v = 600 m/s, λ = 3 m',
+    answer:'200', unit:'Hz' },
+  { id:'vfl10', topic:'v = f × λ', diagram:'wave_fast',
+    question:'Find the frequency. v = 1500 m/s, λ = 5 m',
+    answer:'300', unit:'Hz' },
+  { id:'vfl11', topic:'v = f × λ', diagram:'wave_compare',
+    question:'Find the frequency. v = 340 m/s, λ = 0.5 m',
+    answer:'680', unit:'Hz' },
+
+  // ── v = f × λ: find λ ──
+  { id:'vfl12', topic:'v = f × λ', diagram:'wave_basic',
+    question:'Find the wavelength. v = 330 m/s, f = 110 Hz',
+    answer:'3', unit:'m' },
+  { id:'vfl13', topic:'v = f × λ', diagram:'wave_sound',
+    question:'Find the wavelength. v = 340 m/s, f = 170 Hz',
+    answer:'2', unit:'m' },
+  { id:'vfl14', topic:'v = f × λ', diagram:'wave_light',
+    question:'Find the wavelength. v = 3 × 10⁸ m/s, f = 1 × 10⁶ Hz',
+    answer:'300', unit:'m' },
+  { id:'vfl15', topic:'v = f × λ', diagram:'wave_fast',
+    question:'Find the wavelength. v = 1200 m/s, f = 400 Hz',
+    answer:'3', unit:'m' },
+  { id:'vfl16', topic:'v = f × λ', diagram:'wave_slow',
+    question:'Find the wavelength. v = 100 m/s, f = 4 Hz',
+    answer:'25', unit:'m' },
+
+  // ── PERIOD ──
+  { id:'per1', topic:'Period', diagram:'wave_period',
+    question:'Find the period. f = 5 Hz  (T = 1 ÷ f)',
+    answer:'0.2', unit:'s' },
+  { id:'per2', topic:'Period', diagram:'wave_period',
+    question:'Find the period. f = 50 Hz',
+    answer:'0.02', unit:'s' },
+  { id:'per3', topic:'Period', diagram:'wave_period',
+    question:'Find the period. f = 0.25 Hz',
+    answer:'4', unit:'s' },
+  { id:'per4', topic:'Period', diagram:'wave_period',
+    question:'Find the frequency from the period. T = 0.5 s  (f = 1 ÷ T)',
+    answer:'2', unit:'Hz' },
+  { id:'per5', topic:'Period', diagram:'wave_period',
+    question:'Find the frequency from the period. T = 0.04 s',
+    answer:'25', unit:'Hz' },
+  { id:'per6', topic:'Period', diagram:'wave_period',
+    question:'Find the frequency from the period. T = 0.001 s',
+    answer:'1000', unit:'Hz' },
+  { id:'per7', topic:'Period', diagram:'wave_period',
+    question:'A wave has a period of 0.1 s. How many complete waves pass per second?',
+    answer:'10', unit:'Hz' },
+
+  // ── WAVE PROPERTIES ──
+  { id:'prop1', topic:'Wave Properties', diagram:'wave_basic',
+    question:'What is the name of the distance from one crest to the next?',
+    answer:'wavelength', unit:'' },
+  { id:'prop2', topic:'Wave Properties', diagram:'wave_amplitude',
+    question:'What is the name of the maximum displacement from the rest position?',
+    answer:'amplitude', unit:'' },
+  { id:'prop3', topic:'Wave Properties', diagram:'wave_period',
+    question:'What is the name for the time taken for one complete wave cycle?',
+    answer:'period', unit:'' },
+  { id:'prop4', topic:'Wave Properties', diagram:'wave_compare',
+    question:'Two waves have the same speed. The one with higher frequency has a ________ wavelength.',
+    answer:'shorter', unit:'' },
+  { id:'prop5', topic:'Wave Properties', diagram:'wave_compare',
+    question:'For waves travelling at the same speed, if frequency doubles, wavelength…',
+    answer:'halves', unit:'' },
+  { id:'prop6', topic:'Wave Properties', diagram:'triangle',
+    question:'What is the formula that links wave speed, frequency and wavelength?',
+    answer:'v=fl', unit:'', accept:['v=fλ','v = f × λ','v=f×λ','v=fxl','v=fx lambda'] },
+  { id:'prop7', topic:'Wave Properties', diagram:'wave_sound',
+    question:'Speed of sound in air (approximate value)?',
+    answer:'340', unit:'m/s' },
+  { id:'prop8', topic:'Wave Properties', diagram:'wave_light',
+    question:'Speed of light in a vacuum (as a number)?',
+    answer:'300000000', unit:'m/s', accept:['3e8','3×10⁸','3x10^8'] },
+
+  // ── SOUND WAVES ──
+  { id:'snd1', topic:'Sound Waves', diagram:'wave_sound',
+    question:'A sound wave has f = 440 Hz, v = 340 m/s. Find wavelength.',
+    answer:'0.77', unit:'m', accept:['0.77','0.772','0.773'] },
+  { id:'snd2', topic:'Sound Waves', diagram:'wave_sound',
+    question:'A sound wave has λ = 0.5 m, v = 340 m/s. Find frequency.',
+    answer:'680', unit:'Hz' },
+  { id:'snd3', topic:'Sound Waves', diagram:'wave_fast',
+    question:'A sound wave travels 1700 m in 5 s. Find its speed.',
+    answer:'340', unit:'m/s' },
+  { id:'snd4', topic:'Sound Waves', diagram:'wave_sound',
+    question:'A sound wave has f = 170 Hz, v = 340 m/s. Find wavelength.',
+    answer:'2', unit:'m' },
+  { id:'snd5', topic:'Sound Waves', diagram:'wave_slow',
+    question:'Ultrasound has f = 40 000 Hz, v = 1500 m/s (in tissue). Find λ.',
+    answer:'0.0375', unit:'m', accept:['0.0375','0.038','0.04'] },
+
+  // ── LIGHT & EM WAVES ──
+  { id:'em1', topic:'Light & EM', diagram:'wave_light',
+    question:'Light speed = 3 × 10⁸ m/s, f = 6 × 10¹⁴ Hz. Find wavelength.',
+    answer:'0.0000005', unit:'m', accept:['5e-7','0.0000005','5×10⁻⁷'] },
+  { id:'em2', topic:'Light & EM', diagram:'wave_light',
+    question:'A radio wave has λ = 300 m. Find its frequency. (v = 3 × 10⁸ m/s)',
+    answer:'1000000', unit:'Hz', accept:['1000000','1e6','1×10⁶'] },
+  { id:'em3', topic:'Light & EM', diagram:'wave_light',
+    question:'A microwave has f = 2.4 × 10⁹ Hz. v = 3 × 10⁸ m/s. Find λ.',
+    answer:'0.125', unit:'m', accept:['0.125','0.13','0.12'] },
+  { id:'em4', topic:'Light & EM', diagram:'wave_light',
+    question:'All EM waves travel at 3 × 10⁸ m/s. An X-ray has λ = 1 × 10⁻¹⁰ m. Find f.',
+    answer:'3000000000000000000', unit:'Hz', accept:['3e18','3×10¹⁸'] },
+  { id:'em5', topic:'Light & EM', diagram:'wave_light',
+    question:'Speed of light in glass is 2 × 10⁸ m/s, f = 5 × 10¹⁴ Hz. Find λ in glass.',
+    answer:'0.0000004', unit:'m', accept:['4e-7','4×10⁻⁷','0.0000004'] },
+];
+
+// ============================================================
+// TOPICS
+// ============================================================
+const TOPICS = ['v = f × λ', 'Period', 'Wave Properties', 'Sound Waves', 'Light & EM'];
+
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'waveforge_v1';
+function loadState() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {} return null; }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabledTopics, mastered: [...mastered], stats, streaks })); }
+
+const saved = loadState();
+let enabledTopics = saved?.enabledTopics || Object.fromEntries(TOPICS.map(t => [t, true]));
+let mastered  = new Set(Array.isArray(saved?.mastered) ? saved.mastered : []);
+let stats     = (saved?.stats && typeof saved.stats === 'object') ? saved.stats : { correct: 0, total: 0, sessionStreak: 0 };
+let streaks   = (saved?.streaks && typeof saved.streaks === 'object') ? saved.streaks : {};
+TOPICS.forEach(t => { if (enabledTopics[t] === undefined) enabledTopics[t] = true; });
+
+// ============================================================
+// QUESTION SELECTION
+// ============================================================
+function getPool() { return QUESTIONS.filter(q => enabledTopics[q.topic] && !mastered.has(q.id)); }
+function buildQuestion(prev) {
+  const pool = getPool(); if (!pool.length) return null;
+  const c = prev ? pool.filter(q => q.id !== prev.id) : pool;
+  return (c.length ? c : pool)[Math.floor(Math.random() * (c.length || pool.length))];
+}
+
+// ============================================================
+// DOM
+// ============================================================
+const topicBadge   = document.getElementById('topicBadge');
+const diagramWrap  = document.getElementById('diagramWrap');
+const questionText = document.getElementById('questionText');
+const questionSub  = document.getElementById('questionSub');
+const answerInput  = document.getElementById('answerInput');
+const submitBtn    = document.getElementById('submitBtn');
+const unitLabel    = document.getElementById('unitLabel');
+const feedbackMsg  = document.getElementById('feedbackMsg');
+const timerBar     = document.getElementById('timerBar');
+const streakDotsEl = document.getElementById('streakDots');
+const statCorrect  = document.getElementById('statCorrect');
+const statTotal    = document.getElementById('statTotal');
+const statPct      = document.getElementById('statPct');
+const pctBar       = document.getElementById('pctBar');
+const statStreak   = document.getElementById('statStreak');
+const masteredList = document.getElementById('masteredList');
+const masteredCount= document.getElementById('masteredCount');
+const sbCorrect    = document.getElementById('sbCorrect');
+const sbTotal      = document.getElementById('sbTotal');
+const sbPct        = document.getElementById('sbPct');
+const sbPctBar     = document.getElementById('sbPctBar');
+const sbMastered   = document.getElementById('sbMastered');
+const levelGridDesktop = document.getElementById('levelGridDesktop');
+const levelGridMobile  = document.getElementById('levelGridMobile');
+const toast        = document.getElementById('toast');
+const drawerToggle = document.getElementById('drawerToggle');
+const mobileDrawer = document.getElementById('mobileDrawer');
+
+// ============================================================
+// TOGGLES
+// ============================================================
+function renderLevelGrid(gridEl) {
+  gridEl.innerHTML = '';
+  TOPICS.forEach(topic => {
+    const hasMastered = QUESTIONS.some(q => q.topic === topic && mastered.has(q.id));
+    const wrapper = document.createElement('label');
+    wrapper.className = 'lv-toggle' + (hasMastered ? ' has-mastered' : '');
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = enabledTopics[topic];
+    input.addEventListener('change', () => { enabledTopics[topic] = input.checked; syncToggle(topic, input.checked); saveState(); nextQuestion(); });
+    const pill = document.createElement('div'); pill.className = 'pill'; pill.innerHTML = `<span class="lv-name">${topic}</span>`;
+    const badge = document.createElement('div'); badge.className = 'mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge); gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles() { renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncToggle(topic, checked) {
+  [levelGridDesktop, levelGridMobile].forEach(g => g.querySelectorAll('.lv-toggle').forEach(l => {
+    if (l.querySelector('.lv-name').textContent === topic) l.querySelector('input').checked = checked;
+  }));
+}
+
+// ============================================================
+// STREAK DOTS
+// ============================================================
+function renderStreakDots(count) {
+  streakDotsEl.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const d = document.createElement('div'); d.className = 'streak-dot' + (i < count ? ' filled' : ''); streakDotsEl.appendChild(d);
+  }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let currentQ = null, timerInterval = null, timerStart = null;
+const TIME_LIMIT = 6000;
+
+function startTimer() {
+  clearInterval(timerInterval); timerStart = Date.now();
+  timerBar.style.transition = 'none'; timerBar.style.width = '100%'; timerBar.className = 'timer-bar';
+  timerInterval = setInterval(() => {
+    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    timerBar.style.transition = 'width 0.1s linear'; timerBar.style.width = pct + '%';
+    if      (pct <= 16) timerBar.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBar.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBar.className = 'timer-bar warning';
+    else                timerBar.className = 'timer-bar';
+  }, 100);
+}
+function stopTimer() { clearInterval(timerInterval); }
+function getElapsed() { return Date.now() - (timerStart || Date.now()); }
+
+// ============================================================
+// NEXT QUESTION
+// ============================================================
+function nextQuestion() {
+  stopTimer();
+  feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
+  answerInput.value = ''; answerInput.className = 'answer-input'; answerInput.disabled = false;
+  diagramWrap.innerHTML = '';
+
+  if (!TOPICS.some(t => enabledTopics[t])) {
+    topicBadge.textContent = '—'; questionText.textContent = 'Enable a topic to begin.'; questionSub.textContent = '';
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0); return;
+  }
+  const q = buildQuestion(currentQ);
+  if (!q) {
+    topicBadge.textContent = '🎉 DONE'; questionText.textContent = 'All questions mastered!'; questionSub.textContent = 'Enable more topics or reset progress.';
+    currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0); return;
+  }
+  currentQ = q;
+  topicBadge.textContent = q.topic;
+  diagramWrap.innerHTML = DIAGRAMS[q.diagram]();
+  questionText.textContent = q.question;
+  unitLabel.textContent = q.unit || '';
+  const streak = streaks[q.id] || 0; renderStreakDots(streak);
+  questionSub.textContent = streak > 0 ? `${streak}/6 mastery streak` : '';
+  startTimer();
+  if (!('ontouchstart' in window)) answerInput.focus();
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitAnswer() {
+  if (!currentQ || answerInput.disabled) return;
+  const raw = answerInput.value.trim().toLowerCase();
+  if (!raw) { answerInput.focus(); return; }
+
+  const elapsed = getElapsed(); stopTimer(); stats.total++;
+
+  // Flexible matching: exact string, numeric tolerance, or accept list
+  const corrLower = currentQ.answer.toLowerCase();
+  const userNum = parseFloat(raw.replace(/[×x]/g,'e').replace(/\s/g,''));
+  const corrNum = parseFloat(currentQ.answer);
+  const numMatch = !isNaN(userNum) && !isNaN(corrNum) && (
+    Math.abs(userNum - corrNum) < 0.001 ||
+    Math.abs(userNum - corrNum) / Math.max(Math.abs(corrNum), 1) < 0.01   // 1% tolerance for large numbers
+  );
+  const strMatch = raw === corrLower;
+  const acceptMatch = currentQ.accept ? currentQ.accept.some(a => raw === a.toLowerCase() || parseFloat(raw) === parseFloat(a)) : false;
+  const isCorrect = strMatch || numMatch || acceptMatch;
+
+  if (isCorrect) {
+    stats.correct++; stats.sessionStreak = (stats.sessionStreak || 0) + 1;
+    answerInput.className = 'answer-input correct-flash';
+    streaks[currentQ.id] = elapsed <= TIME_LIMIT ? (streaks[currentQ.id] || 0) + 1 : 0;
+    const streak = streaks[currentQ.id]; renderStreakDots(streak);
+    if (streak >= 6) {
+      mastered.add(currentQ.id); streaks[currentQ.id] = 0;
+      feedbackMsg.textContent = '★ MASTERED!'; feedbackMsg.className = 'feedback-msg mastered';
+      showToast('Question mastered! 🔥', true); renderToggles(); renderMastered();
+    } else {
+      const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+      feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)]; feedbackMsg.className = 'feedback-msg correct';
+    }
+  } else {
+    stats.sessionStreak = 0; streaks[currentQ.id] = 0; renderStreakDots(0);
+    answerInput.className = 'answer-input wrong-flash';
+    feedbackMsg.textContent = `✗  Answer: ${currentQ.answer}${currentQ.unit ? ' ' + currentQ.unit : ''}`;
+    feedbackMsg.className = 'feedback-msg wrong';
+  }
+  updateStats(); saveState(); answerInput.disabled = true;
+  setTimeout(() => nextQuestion(), 1000);
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const c = stats.correct, t = stats.total, pct = t > 0 ? Math.round((c/t)*100) : null;
+  const pctStr = pct !== null ? pct + '%' : '—', pctW = pct !== null ? pct + '%' : '0%';
+  statCorrect.textContent = c; statTotal.textContent = t; statPct.textContent = pctStr; pctBar.style.width = pctW;
+  sbCorrect.textContent = c; sbTotal.textContent = t; sbPct.textContent = pctStr; sbPctBar.style.width = pctW; sbMastered.textContent = mastered.size;
+  const col = pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background = col; sbPctBar.style.background = col;
+  const ss = stats.sessionStreak || 0; statStreak.textContent = ss >= 5 ? '🔥'.repeat(Math.min(3,Math.floor(ss/5)))+' '+ss+' in a row' : '';
+}
+function renderMastered() {
+  masteredCount.textContent = mastered.size; sbMastered.textContent = mastered.size;
+  if (!mastered.size) { masteredList.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">None yet</div>'; return; }
+  masteredList.innerHTML = [...mastered].sort().map(id => {
+    const q = QUESTIONS.find(x => x.id === id);
+    return `<div class="mastered-item">★ ${q ? q.question.slice(0,30)+'…' : id}</div>`;
+  }).join('');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimeout;
+function showToast(msg, isMastered = false) {
+  toast.textContent = msg; toast.className = 'toast' + (isMastered ? ' mastered-toast' : '') + ' show';
+  clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { toast.className = 'toast' + (isMastered ? ' mastered-toast' : ''); }, 2500);
+}
+
+// ============================================================
+// TOGGLE ALL / RESET
+// ============================================================
+let allOn = true;
+function toggleAll() { allOn = !allOn; TOPICS.forEach(t => enabledTopics[t] = allOn); saveState(); renderToggles(); nextQuestion(); }
+function doReset() {
+  if (!confirm('Reset all mastery progress and stats? This cannot be undone.')) return;
+  mastered = new Set(); streaks = {}; stats = { correct: 0, total: 0, sessionStreak: 0 }; allOn = true; TOPICS.forEach(t => enabledTopics[t] = true);
+  saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion(); showToast('Progress reset.');
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click', toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click', doReset);
+document.getElementById('resetBtnMobile').addEventListener('click', doReset);
+drawerToggle.addEventListener('click', () => { const open = mobileDrawer.classList.toggle('open'); drawerToggle.classList.toggle('open', open); });
+submitBtn.addEventListener('click', submitAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+
+// ============================================================
+// INIT
+// ============================================================
+renderToggles(); renderMastered(); updateStats(); nextQuestion();
+</script>
+</body>
+</html>

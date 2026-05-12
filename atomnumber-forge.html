@@ -133,8 +133,9 @@
     margin-bottom: 2px;
   }
   .number-text {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: clamp(64px, 10vw, 96px);
+    font-weight: 700;
     letter-spacing: 2px;
     color: var(--accent);
     line-height: 1;
@@ -288,7 +289,6 @@
 
   <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Difficulty</div>
     <div class="level-grid" id="levelGridDesktop"></div>
     <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
     <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
@@ -353,7 +353,7 @@
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -596,8 +596,6 @@ function handleTimeout() {
   timedOut = true;
   streaks[currentQ.correct.symbol] = 0;
   renderStreakDots(0);
-  feedbackMsg.textContent = 'Too slow — still try!';
-  feedbackMsg.className = 'feedback-msg wrong';
   numberCard.classList.add('wrong-flash');
   setTimeout(() => {
     numberCard.className = 'number-card';
@@ -674,8 +672,7 @@ function submitAnswer(choiceIndex) {
     numberCard.classList.add('correct-flash');
 
     if (timedOut) {
-      feedbackMsg.textContent = 'Correct — but too slow!';
-      feedbackMsg.className = 'feedback-msg correct';
+      const _tmsgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_tmsgs[Math.floor(Math.random()*_tmsgs.length)];feedbackMsg.className='feedback-msg correct';
     } else {
       streaks[currentQ.correct.symbol] = (streaks[currentQ.correct.symbol] || 0) + 1;
       const streak = streaks[currentQ.correct.symbol];
@@ -705,7 +702,6 @@ function submitAnswer(choiceIndex) {
       if (el.symbol === currentQ.correct.symbol) choiceBtns[i].classList.add('correct-reveal');
     });
     feedbackMsg.textContent = `✗  ${currentQ.correct.name}`;
-    feedbackMsg.className = 'feedback-msg wrong';
   }
 
   updateStats();

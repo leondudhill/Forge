@@ -116,15 +116,9 @@
     <div class="level-grid" id="levelGridDesktop"></div>
     <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
     <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
-    <div class="formula-box">
-      <div class="formula-box-title">Formulae</div>
-      <div class="formula-line"><span class="f-label">% yield</span> = actual ÷ theoretical × 100</div>
-      <div class="formula-line" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span class="f-label">atom economy</span> = Mr useful ÷ Mr total × 100</div>
-    </div>
   </div>
   <div class="main">
     <div class="question-card" id="questionCard">
-      <div class="q-tag" id="qTag">—</div>
       <div class="q-text" id="qText">—</div>
       <div class="q-unit" id="qUnit"></div>
     </div>
@@ -164,7 +158,7 @@
     <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
   </div>
 </div>
-<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill</footer>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
 <div class="toast" id="toast"></div>
 <script>
 // Dynamically generated questions for % yield and atom economy
@@ -272,7 +266,7 @@ function buildQuestion(){
   return pick(gens)();
 }
 
-const qTag=document.getElementById('qTag');
+
 const qText=document.getElementById('qText');
 const qUnit=document.getElementById('qUnit');
 const questionCard=document.getElementById('questionCard');
@@ -335,9 +329,6 @@ function stopTimer(){clearInterval(timerInterval);}
 function handleTimeout(){
   if(!currentQ)return;
   timedOut=true;currentStreak=0;renderStreakDots(0);
-  feedbackMsg.textContent='Too slow — still try!';feedbackMsg.className='feedback-msg wrong';
-  questionCard.classList.add('wrong-flash');
-  setTimeout(()=>{questionCard.className='question-card';feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';},800);
 }
 function nextQuestion(){
   stopTimer();timedOut=false;
@@ -347,17 +338,17 @@ function nextQuestion(){
   answerInput.disabled=false;submitBtn.disabled=false;
   const anyEnabled=LEVELS.some(l=>enabledLevels[l.id]);
   if(!anyEnabled){
-    qTag.textContent='—';qText.textContent='Enable a level to begin.';qUnit.textContent='';
+    qText.textContent='Enable a level to begin.';qUnit.textContent='';
     questionSub.textContent='';answerInput.disabled=true;submitBtn.disabled=true;
     currentQ=null;timerBar.style.width='0%';renderStreakDots(currentStreak);return;
   }
   const q=buildQuestion();
   currentQ=q;
-  qTag.textContent=q.tag;
+  
   qText.innerHTML=q.text;
   qUnit.textContent=q.unit;
   renderStreakDots(currentStreak);
-  questionSub.textContent=currentStreak>0?`${currentStreak}/6 streak — keep going!`:'Calculate and type your answer';
+  questionSub.textContent=currentStreak>0?`${currentStreak}/6 streak — keep going!`:'';
   startTimer();
   if(!('ontouchstart' in window))answerInput.focus();
 }
@@ -372,7 +363,8 @@ function submitAnswer(){
     stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
     answerInput.className='answer-input correct-flash';questionCard.classList.add('correct-flash');
     if(timedOut){
-      feedbackMsg.textContent='Correct — but too slow!';feedbackMsg.className='feedback-msg correct';
+      const msgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];
+      feedbackMsg.textContent=msgs[Math.floor(Math.random()*msgs.length)];feedbackMsg.className='feedback-msg correct';
       currentStreak=0;
     } else {
       currentStreak++;renderStreakDots(currentStreak);

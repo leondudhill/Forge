@@ -170,7 +170,7 @@
     <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
   </div>
 </div>
-<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill</footer>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
 <div class="toast" id="toast"></div>
 <script>
 // group: GCSE group number (0 for noble gases)
@@ -326,7 +326,7 @@ function stopTimer(){clearInterval(timerInterval);}
 function handleTimeout(){
   if(!currentQ)return;
   timedOut=true;streaks[currentQ.correct.key]=0;renderStreakDots(0);
-  feedbackMsg.textContent='Too slow — still try!';feedbackMsg.className='feedback-msg wrong';
+  
   elementCard.classList.add('wrong-flash');
   setTimeout(()=>{elementCard.className='element-card';feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';},800);
 }
@@ -369,7 +369,7 @@ function submitAnswer(idx){
     stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
     choiceBtns[idx].classList.add('correct-reveal');elementCard.classList.add('correct-flash');
     if(timedOut){
-      feedbackMsg.textContent='Correct — but too slow!';feedbackMsg.className='feedback-msg correct';
+      const _msgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_msgs[Math.floor(Math.random()*_msgs.length)];feedbackMsg.className='feedback-msg correct';
     } else {
       streaks[currentQ.correct.key]=(streaks[currentQ.correct.key]||0)+1;
       const streak=streaks[currentQ.correct.key];renderStreakDots(streak);

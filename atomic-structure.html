@@ -150,8 +150,9 @@
   .symbol-card.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
 
   .symbol-text {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: clamp(64px, 10vw, 96px);
+    font-weight: 700;
     letter-spacing: 2px;
     color: var(--accent);
     line-height: 1;
@@ -319,7 +320,6 @@
 
   <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Difficulty</div>
     <div class="level-grid" id="levelGridDesktop"></div>
     <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
     <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
@@ -383,7 +383,7 @@
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -729,7 +729,7 @@ function submitAnswer(choiceIndex) {
 
     if (timedOut) {
       // Correct but after timeout — no mastery credit, streak already reset
-      feedbackMsg.textContent = 'Correct — but too slow!';
+      const _m=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_m[Math.floor(Math.random()*_m.length)];
       feedbackMsg.className = 'feedback-msg correct';
     } else {
       streaks[currentQ.correct.symbol] = (streaks[currentQ.correct.symbol] || 0) + 1;

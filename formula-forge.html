@@ -318,7 +318,7 @@
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -499,8 +499,6 @@ function handleTimeout() {
   timedOut = true;
   streaks[currentQ.correct.key] = 0;
   renderStreakDots(0);
-  feedbackMsg.textContent = 'Too slow — still try!';
-  feedbackMsg.className = 'feedback-msg wrong';
   nameCard.classList.add('wrong-flash');
   setTimeout(() => {
     nameCard.className = 'name-card';
@@ -563,8 +561,7 @@ function submitAnswer(idx) {
     nameCard.classList.add('correct-flash');
 
     if (timedOut) {
-      feedbackMsg.textContent = 'Correct — but too slow!';
-      feedbackMsg.className = 'feedback-msg correct';
+      const _tmsgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!'];feedbackMsg.textContent=_tmsgs[Math.floor(Math.random()*_tmsgs.length)];feedbackMsg.className='feedback-msg correct';
     } else {
       streaks[currentQ.correct.key] = (streaks[currentQ.correct.key] || 0) + 1;
       const streak = streaks[currentQ.correct.key];
@@ -592,7 +589,6 @@ function submitAnswer(idx) {
       if (c.key === currentQ.correct.key) choiceBtns[i].classList.add('correct-reveal');
     });
     feedbackMsg.textContent = `✗  ${currentQ.correct.formulaPlain}`;
-    feedbackMsg.className = 'feedback-msg wrong';
   }
 
   updateStats(); saveState();
