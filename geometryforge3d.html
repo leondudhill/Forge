@@ -24,8 +24,8 @@
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#fff;animation:splashLife 2s ease forwards;pointer-events:none}
-@keyframes splashLife{0%{opacity:0}20%{opacity:1}75%{opacity:1}100%{opacity:0;visibility:hidden}}
+#splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#fff;pointer-events:none}
+20%{opacity:1}75%{opacity:1}100%{visibility:hidden}}
 .splash-by{font-size:1.15rem;font-weight:400;color:#111;letter-spacing:0.01em}
 
 /* TOPBAR */
@@ -37,11 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .topbar-badge{font-size:10px;padding:2px 8px;background:var(--blue-light);color:var(--blue);border-radius:10px;font-weight:500;margin-left:4px}
 
 /* MAIN LAYOUT */
-#app{display:grid;grid-template-columns:1fr 300px;min-height:0;opacity:0;animation:fadeIn .4s 2.1s ease forwards}
-@keyframes fadeIn{to{opacity:1}}
-
-/* CANVAS AREA */
-#canvas-area{display:flex;flex-direction:column;padding:14px 14px 14px 16px;gap:10px;min-width:0;background:var(--bg)}
+#app{display:grid;grid-template-columns:1fr 300px;min-height:0;flex-direction:column;padding:14px 14px 14px 16px;gap:10px;min-width:0;background:var(--bg)}
 
 /* TOOLBAR */
 #toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow-sm)}

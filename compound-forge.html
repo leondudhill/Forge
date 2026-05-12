@@ -274,7 +274,7 @@
 <div class="layout">
 
   <div class="sidebar">
-    <div class="sidebar-title">Category</div>
+    <div class="sidebar-title"></div>
     <div class="level-grid" id="levelGridDesktop"></div>
     <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
     <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
@@ -284,7 +284,7 @@
     <div class="formula-card" id="formulaCard">
       <div class="formula-text" id="formulaText">—</div>
     </div>
-    <div class="question-sub" id="questionSub">Enable a category to begin</div>
+    <div class="question-sub" id="questionSub">Enable a  to begin</div>
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots"></div>
     <div class="choice-grid">
@@ -549,7 +549,7 @@ function nextQuestion() {
   const anyEnabled = LEVELS.some(l => enabledLevels[l.id]);
   if (!anyEnabled) {
     formulaText.textContent = '—';
-    questionSub.textContent = 'Enable a category to begin.';
+    questionSub.textContent = '';
     choiceBtns.forEach(btn => btn.disabled = true);
     currentQ = null; timerBar.style.width = '0%'; renderStreakDots(0);
     return;
