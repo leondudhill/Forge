@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroForge — Leon Dudhill</title>
+<title>NeuroForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f4fbf6;
-    --surface2: #d1fae5;
-    --border: #b6e4ca;
-    --text: #052e16;
-    --text-muted: #2d6a4a;
-    --accent: #16a34a;
-    --correct: #16a34a;
+    --surface: #f0fdf4;
+    --surface2: #86efac;
+    --border: #4ade80;
+    --text: #14532d;
+    --text-muted: #166534;
+    --accent: #15803d;
+    --correct: #15803d;
     --wrong: #e84c1e;
-    --warn-yellow: #f5c518;
-    --warn-orange: #f07d20;
+    --accent2: #f5a623;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
   header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
   .logo span { color: var(--accent); }
   .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
   .byline strong { font-weight: 700; color: var(--accent); }
@@ -40,89 +40,67 @@
 
   .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
 
-  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; }
-  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
   .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
 
-  .info-block { margin-bottom: 18px; }
-  .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .info-block p + p { margin-top: 5px; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
 
-  .arc-chain { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
-  .arc-step { display: flex; align-items: center; gap: 6px; }
-  .arc-node { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 4px 8px; color: var(--text); white-space: nowrap; }
-  .arc-arrow { color: var(--accent); font-size: 12px; }
-
-  .term-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-  .term-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
-  .term-list li strong { color: var(--text); display: block; font-family: 'DM Mono', monospace; font-size: 11px; }
-
-  .info-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); padding: 2px 9px; margin: 3px 2px 0; }
-  .divider { border: none; border-top: 1.5px solid var(--border); margin: 16px 0; }
-
-  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
-  .question-card { text-align: center; max-width: 480px; width: 100%; }
-  .q-type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
-  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 3.2vw, 30px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 28px; }
+  .question-card { text-align: center; max-width: 600px; width: 100%; }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 4vw, 52px); letter-spacing: 2px; line-height: 1.2; color: var(--text); }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
 
-  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-wrap { width: min(280px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
   .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
-  .timer-bar.warning        { background: var(--warn-yellow); }
-  .timer-bar.warning-orange { background: var(--warn-orange); }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
   .timer-bar.urgent         { background: var(--wrong); }
 
   .streak-dots { display: flex; gap: 6px; justify-content: center; }
   .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
   .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
 
-  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(420px, 100%); }
-  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.35; }
-  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(480px, 100%); }
+  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.4; }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--surface2); color: var(--accent); }
   .mc-btn:active:not(:disabled) { transform: scale(0.97); }
   .mc-btn.correct-flash { border-color: var(--correct); background: #dcfce7; color: var(--correct); }
   .mc-btn.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; color: var(--wrong); }
   .mc-btn:disabled { cursor: default; }
 
-  .input-row { display: flex; gap: 10px; align-items: center; }
-  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(15px, 3vw, 20px); font-weight: 500; width: 220px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
-  .answer-input:focus         { border-color: var(--accent); background: #fff; }
-  .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
-  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
-  .answer-input:disabled { opacity: 0.6; }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
 
-  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
-  .submit-btn:hover  { filter: brightness(1.1); }
-  .submit-btn:active { transform: scale(0.97); }
-
-  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
-  .feedback-msg.correct { color: var(--correct); }
-  .feedback-msg.wrong   { color: var(--wrong); }
-  .feedback-msg.timeout { color: var(--warn-orange); }
-
-  .stat-block { margin-bottom: 22px; }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
   .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
   .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
   .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
   .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
 
   .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
   .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
   .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
   .mobile-drawer.open { display: block; }
-  .mobile-drawer p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .mobile-drawer p + p { margin-top: 6px; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
 
-  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: var(--text-muted); background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
   @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
   @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
-  @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
-  .hidden { display: none !important; }
+  @media (max-width: 400px) { .mc-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -132,7 +110,7 @@
   <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
 </header>
 
-<div class="score-bar">
+<div class="score-bar" id="scoreBar">
   <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
   <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
   <div class="score-bar-pct-wrap">
@@ -146,209 +124,86 @@
 </div>
 
 <div class="layout">
-
-  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Reflex Arc</div>
-
-    <div class="info-block">
-      <div class="info-block-title">Sequence</div>
-      <div class="arc-chain">
-        <div class="arc-step"><div class="arc-node">Stimulus</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Receptor</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Sensory neurone</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Relay neurone</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Motor neurone</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Effector</div></div>
-        <div class="arc-step"><div class="arc-arrow">↓</div><div class="arc-node">Response</div></div>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Key terms</div>
-      <ul class="term-list">
-        <li><strong>Synapse</strong>Gap between neurones. Signals cross using chemical neurotransmitters.</li>
-        <li><strong>Neurotransmitter</strong>Chemical that carries signal across a synapse.</li>
-        <li><strong>CNS</strong>Central Nervous System — brain + spinal cord.</li>
-        <li><strong>Effector</strong>Muscle or gland that carries out a response.</li>
-        <li><strong>Receptor</strong>Detects a stimulus (e.g. light, pressure, temperature).</li>
-      </ul>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
-      <div class="question-sub" id="questionSub">6 seconds per question</div>
+      <div class="question-sub" id="questionSub"></div>
     </div>
-
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
       <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-      <div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
-
-    <div class="mc-grid hidden" id="mcGrid"></div>
-
-    <div class="input-row hidden" id="typedRow">
-      <input class="answer-input" id="answerInput" type="text" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="submit-btn" id="submitBtn">Go</button>
-    </div>
-
+    <div class="mc-grid" id="mcGrid"></div>
     <div class="feedback-msg" id="feedbackMsg"></div>
   </div>
 
-  <!-- RIGHT SIDEBAR -->
   <div class="sidebar sidebar-right">
     <div class="sidebar-title">Score</div>
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
-      <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
-      </div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Accuracy</div>
       <div class="stat-value"><span id="statPct">—</span></div>
       <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
-    </div>
-    <hr class="divider">
-    <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-sub" id="statStreak"></div>
     </div>
   </div>
-
 </div>
 
 <button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ Reflex arc sequence</span>
+  <span>⚙ Options</span>
   <span class="arrow">▼</span>
 </button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <p><strong>Reflex arc:</strong> Stimulus → Receptor → Sensory neurone → Relay neurone → Motor neurone → Effector → Response</p>
-  <p><strong>Synapse:</strong> gap between neurones — signals cross using neurotransmitters.</p>
-  <p><strong>CNS:</strong> brain + spinal cord. Relay neurones are found in the CNS.</p>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Shuffle</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset</button>
+  </div>
 </div>
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
 </footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const TIME_LIMIT = 6000;
 
 const bank = [
-  // ── REFLEX ARC SEQUENCE ──
-  { type: 'mc', q: 'What is the correct order of the reflex arc?',
-    correct: 'Receptor → Sensory → Relay → Motor → Effector',
-    options: ['Receptor → Sensory → Relay → Motor → Effector', 'Receptor → Motor → Relay → Sensory → Effector', 'Sensory → Receptor → Relay → Motor → Effector', 'Relay → Sensory → Motor → Receptor → Effector'] },
-  { type: 'mc', q: 'Which neurone carries signals FROM a receptor TO the CNS?',
-    correct: 'Sensory neurone',
-    options: ['Motor neurone', 'Relay neurone', 'Sensory neurone', 'Effector neurone'] },
-  { type: 'mc', q: 'Which neurone carries signals FROM the CNS TO an effector?',
-    correct: 'Motor neurone',
-    options: ['Sensory neurone', 'Relay neurone', 'Motor neurone', 'Receptor neurone'] },
-  { type: 'mc', q: 'Where are relay neurones found?',
-    correct: 'The CNS (brain and spinal cord)',
-    options: ['In muscles', 'In receptors', 'The CNS (brain and spinal cord)', 'In effectors'] },
-  { type: 'mc', q: 'What detects the stimulus at the start of a reflex arc?',
-    correct: 'Receptor',
-    options: ['Effector', 'Motor neurone', 'Receptor', 'Relay neurone'] },
-  { type: 'mc', q: 'What carries out the response at the end of a reflex arc?',
-    correct: 'Effector',
-    options: ['Receptor', 'Sensory neurone', 'Relay neurone', 'Effector'] },
-  { type: 'mc', q: 'Which comes immediately AFTER the sensory neurone in a reflex arc?',
-    correct: 'Relay neurone',
-    options: ['Motor neurone', 'Effector', 'Relay neurone', 'Receptor'] },
-  { type: 'mc', q: 'Which comes immediately BEFORE the effector in a reflex arc?',
-    correct: 'Motor neurone',
-    options: ['Sensory neurone', 'Relay neurone', 'Motor neurone', 'Receptor'] },
-
-  // ── SYNAPSES ──
-  { type: 'mc', q: 'What is a synapse?',
-    correct: 'A gap between two neurones',
-    options: ['A type of neurone', 'A gap between two neurones', 'A muscle fibre', 'A receptor cell'] },
-  { type: 'mc', q: 'How does a signal cross a synapse?',
-    correct: 'Chemical neurotransmitters diffuse across',
-    options: ['Electrical signals jump the gap', 'Chemical neurotransmitters diffuse across', 'The neurones touch directly', 'Active transport carries ions across'] },
-  { type: 'mc', q: 'What is the name of the chemical that crosses a synapse?',
-    correct: 'Neurotransmitter',
-    options: ['Hormone', 'Enzyme', 'Neurotransmitter', 'Ion channel'] },
-  { type: 'mc', q: 'In which direction can signals cross a synapse?',
-    correct: 'One direction only',
-    options: ['Both directions', 'One direction only', 'Only backwards', 'Randomly in any direction'] },
-
-  // ── CNS ──
-  { type: 'mc', q: 'What does CNS stand for?',
-    correct: 'Central Nervous System',
-    options: ['Central Neurone System', 'Central Nervous System', 'Cellular Nerve Signal', 'Cerebral Nerve Structure'] },
-  { type: 'mc', q: 'What two structures make up the CNS?',
-    correct: 'Brain and spinal cord',
-    options: ['Brain and nerves', 'Brain and spinal cord', 'Spinal cord and muscles', 'Nerves and receptors'] },
-  { type: 'mc', q: 'Why are reflex actions important?',
-    correct: 'They are fast and automatic — they protect the body',
-    options: ['They require conscious thought', 'They are fast and automatic — they protect the body', 'They involve the brain making decisions', 'They are slow but accurate'] },
-  { type: 'mc', q: 'Do reflex actions involve conscious thought?',
-    correct: 'No — they bypass the brain',
-    options: ['Yes — the brain decides', 'No — they bypass the brain', 'Only sometimes', 'Only in complex reflexes'] },
-
-  // ── NEURONES ──
-  { type: 'mc', q: 'What are the two types of effectors?',
-    correct: 'Muscles and glands',
-    options: ['Nerves and receptors', 'Muscles and glands', 'Neurones and synapses', 'Brain and spinal cord'] },
-  { type: 'mc', q: 'What is the function of a receptor?',
-    correct: 'To detect a stimulus',
-    options: ['To carry out a response', 'To detect a stimulus', 'To transmit signals to receptors', 'To release neurotransmitters'] },
-  { type: 'mc', q: 'A muscle responding to a motor neurone signal is an example of…',
-    correct: 'An effector producing a response',
-    options: ['A receptor detecting a stimulus', 'A synapse firing', 'An effector producing a response', 'A relay neurone processing information'] },
-  { type: 'mc', q: 'What is the gap at the end of a neurone called where signals are transmitted?',
-    correct: 'Synapse',
-    options: ['Axon', 'Dendrite', 'Synapse', 'Myelin sheath'] },
-
-  // ── TYPED ──
-  { type: 'typed', q: 'Name the neurone that carries signals from a receptor to the CNS.',
-    correct: ['sensory neurone', 'sensory neuron'], display: 'Sensory neurone' },
-  { type: 'typed', q: 'Name the neurone that carries signals from the CNS to an effector.',
-    correct: ['motor neurone', 'motor neuron'], display: 'Motor neurone' },
-  { type: 'typed', q: 'Name the neurone found in the CNS that connects sensory and motor neurones.',
-    correct: ['relay neurone', 'relay neuron', 'interneurone', 'interneuron'], display: 'Relay neurone' },
-  { type: 'typed', q: 'What is the gap between two neurones called?',
-    correct: ['synapse'], display: 'Synapse' },
-  { type: 'typed', q: 'What chemical carries signals across a synapse?',
-    correct: ['neurotransmitter', 'neurotransmitters'], display: 'Neurotransmitter' },
-  { type: 'typed', q: 'What two organs make up the CNS?',
-    correct: ['brain and spinal cord', 'spinal cord and brain'], display: 'Brain and spinal cord' },
-  { type: 'typed', q: 'Name the part of the reflex arc that detects the stimulus.',
-    correct: ['receptor'], display: 'Receptor' },
-  { type: 'typed', q: 'Name the part of the reflex arc that carries out the response.',
-    correct: ['effector'], display: 'Effector' },
-  { type: 'typed', q: 'Give one example of an effector.',
-    correct: ['muscle', 'gland', 'muscles', 'glands'], display: 'Muscle / Gland' },
-  { type: 'typed', q: 'What does CNS stand for?',
-    correct: ['central nervous system'], display: 'Central Nervous System' },
+  { q: 'What is a neuron?', correct: 'A nerve cell that carries electrical impulses', options: ['A muscle cell that contracts', 'A nerve cell that carries electrical impulses', 'A gland cell that releases hormones', 'A blood cell that carries oxygen'] },
+  { q: 'What are the three types of neuron?', correct: 'Sensory, relay and motor', options: ['Sensory, motor and gland', 'Sensory, relay and motor', 'Input, processing and output', 'Afferent, efferent and central'] },
+  { q: 'What does a sensory neuron do?', correct: 'Carries impulses from receptors to the CNS', options: ['Carries impulses from CNS to effectors', 'Carries impulses from receptors to the CNS', 'Connects sensory and motor neurons', 'Produces hormones in response to stimuli'] },
+  { q: 'What does a motor neuron do?', correct: 'Carries impulses from the CNS to effectors', options: ['Carries impulses from receptors to the CNS', 'Carries impulses from the CNS to effectors', 'Connects neurons in the brain', 'Detects changes in the environment'] },
+  { q: 'What does a relay neuron do?', correct: 'Connects sensory and motor neurons in the CNS', options: ['Carries impulses to muscles', 'Connects sensory and motor neurons in the CNS', 'Detects light and sound', 'Releases neurotransmitters into the blood'] },
+  { q: 'What is the CNS?', correct: 'The brain and spinal cord', options: ['The brain and peripheral nerves', 'The brain and spinal cord', 'All nerves in the body', 'The cerebellum and cerebrum only'] },
+  { q: 'What is a synapse?', correct: 'A gap between two neurons', options: ['The cell body of a neuron', 'A gap between two neurons', 'The fatty sheath around an axon', 'The receptor at the end of a neuron'] },
+  { q: 'How does an impulse cross a synapse?', correct: 'Neurotransmitters diffuse across the gap', options: ['Electrical signals jump across directly', 'Neurotransmitters diffuse across the gap', 'The axon physically connects to the next neuron', 'Hormones carry the signal across'] },
+  { q: 'What is a reflex arc?', correct: 'A rapid automatic response pathway bypassing the brain', options: ['A slow conscious response involving the brain', 'A rapid automatic response pathway bypassing the brain', 'A type of hormone pathway in the body', 'The route impulses take to the brain only'] },
+  { q: 'What is the correct order of a reflex arc?', correct: 'Receptor → sensory neuron → relay neuron → motor neuron → effector', options: ['Effector → motor → relay → sensory → receptor', 'Receptor → sensory neuron → relay neuron → motor neuron → effector', 'Receptor → motor neuron → brain → sensory → effector', 'Stimulus → brain → motor neuron → muscle'] },
+  { q: 'Why are reflex actions important?', correct: 'They protect the body from harm without slow conscious thought', options: ['They allow complex decision making', 'They protect the body from harm without slow conscious thought', 'They replace hormonal responses', 'They are more accurate than voluntary responses'] },
+  { q: 'What is the myelin sheath?', correct: 'A fatty layer that insulates the axon and speeds up impulses', options: ['The cell body of a neuron', 'A fatty layer that insulates the axon and speeds up impulses', 'A gap between two neurons', 'The receptor at the end of an axon'] },
+  { q: 'What is an effector?', correct: 'A muscle or gland that responds to a nerve impulse', options: ['A receptor that detects stimuli', 'A muscle or gland that responds to a nerve impulse', 'A neuron that connects to the brain', 'A type of neurotransmitter'] },
+  { q: 'What is a receptor?', correct: 'A cell that detects a stimulus', options: ['A cell that responds to a stimulus', 'A cell that detects a stimulus', 'A neurotransmitter molecule', 'The end of a motor neuron'] },
+  { q: 'Which part of the brain controls balance and coordination?', correct: 'Cerebellum', options: ['Cerebrum', 'Cerebellum', 'Medulla', 'Hypothalamus'] },
+  { q: 'Which part of the brain controls conscious thought?', correct: 'Cerebrum', options: ['Cerebellum', 'Medulla', 'Cerebrum', 'Pituitary gland'] },
+  { q: 'Which part of the brain controls heart rate and breathing?', correct: 'Medulla', options: ['Cerebrum', 'Cerebellum', 'Medulla', 'Hypothalamus'] },
+  { q: 'Is a nervous response fast or slow?', correct: 'Fast and short-lived', options: ['Slow and long-lasting', 'Fast and short-lived', 'Slow and short-lived', 'Fast and long-lasting'] },
+  { q: 'What carries the nerve impulse along an axon?', correct: 'An electrical signal', options: ['A chemical signal', 'An electrical signal', 'A hormone molecule', 'A neurotransmitter'] },
+  { q: 'What happens at a neuromuscular junction?', correct: 'A motor neuron releases neurotransmitters to stimulate a muscle', options: ['A sensory neuron connects to the spinal cord', 'A motor neuron releases neurotransmitters to stimulate a muscle', 'Two relay neurons connect in the brain', 'A hormone is released into the bloodstream'] },
 ];
 
-// ── STATE ──
 let stats = { correct: 0, total: 0, sessionStreak: 0 };
-let currentQ = null, answered = false, timerExpired = false;
+let currentQ = null, answered = false;
 let timerInterval = null, timerStart = null;
 let shuffled = [], shuffleIdx = 0, localStreak = 0;
 
@@ -366,13 +221,9 @@ function getNextQ() {
 }
 
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
-const typedRow     = document.getElementById('typedRow');
-const answerInput  = document.getElementById('answerInput');
-const submitBtn    = document.getElementById('submitBtn');
 const feedbackMsg  = document.getElementById('feedbackMsg');
 const streakDotsEl = document.getElementById('streakDots');
 const statCorrect  = document.getElementById('statCorrect');
@@ -380,12 +231,12 @@ const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
 const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
 const sbPctBar     = document.getElementById('sbPctBar');
 const sbStreak     = document.getElementById('sbStreak');
+const toast        = document.getElementById('toast');
 
 function renderStreakDots(n) {
   streakDotsEl.querySelectorAll('.streak-dot').forEach((d,i) => d.classList.toggle('filled', i < n));
@@ -393,22 +244,12 @@ function renderStreakDots(n) {
 
 function nextQuestion() {
   stopTimer();
-  answered = false; timerExpired = false;
+  answered = false;
   feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
-  if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
-    mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
-    renderMC(currentQ);
-  } else {
-    qTypeBadge.textContent = 'Typed Answer';
-    mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
-    answerInput.value = ''; answerInput.className = 'answer-input';
-    answerInput.disabled = false; submitBtn.disabled = false;
-    if (!('ontouchstart' in window)) answerInput.focus();
-  }
   questionText.textContent = currentQ.q;
-  questionSub.textContent  = '6 seconds per question';
+  questionSub.textContent = '';
+  renderMC(currentQ);
   startTimer();
 }
 
@@ -421,56 +262,27 @@ function renderMC(q) {
     mcGrid.appendChild(btn);
   });
 }
+
 function handleMC(chosen, btn) {
   if (answered) return;
   answered = true; stopTimer(); stats.total++;
   document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
   if (chosen === currentQ.correct) {
-    btn.classList.add('correct-flash'); recordCorrect();
+    btn.classList.add('correct-flash');
+    stats.correct++; stats.sessionStreak++;
+    localStreak = Math.min(localStreak+1, 5); renderStreakDots(localStreak);
+    const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+    feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    feedbackMsg.className = 'feedback-msg correct';
   } else {
     btn.classList.add('wrong-flash');
     document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
-    recordWrong('Answer: ' + currentQ.correct);
+    stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
+    feedbackMsg.textContent = '✗  Answer was ' + currentQ.correct;
+    feedbackMsg.className = 'feedback-msg wrong';
   }
-  setTimeout(nextQuestion, 1100);
-}
-
-function submitAnswer() {
-  if (answered || answerInput.disabled) return;
-  const val = answerInput.value.trim();
-  if (!val) { answerInput.focus(); return; }
-  answered = true; stopTimer(); stats.total++;
-  answerInput.disabled = true; submitBtn.disabled = true;
-  if (isCorrect(val, currentQ.correct)) {
-    answerInput.className = 'answer-input correct-flash'; recordCorrect();
-  } else {
-    answerInput.className = 'answer-input wrong-flash'; recordWrong('Answer: ' + currentQ.display);
-  }
-  setTimeout(nextQuestion, 1100);
-}
-function isCorrect(input, accepted) {
-  const norm = s => s.toLowerCase().trim().replace(/\s+/g,' ');
-  const inp = norm(input);
-  if (accepted.some(a => norm(a) === inp)) return true;
-  return accepted.some(a => { const na = norm(a); return na.length > 4 && levenshtein(inp,na) <= 2; });
-}
-function levenshtein(a,b) {
-  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
-  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function recordCorrect() {
-  stats.correct++; stats.sessionStreak++;
-  localStreak = Math.min(localStreak+1,5); renderStreakDots(localStreak);
-  const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!','Nailed it!'];
-  feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
-  feedbackMsg.className = 'feedback-msg correct'; updateStats();
-}
-function recordWrong(msg) {
-  stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = '✗  ' + msg;
-  feedbackMsg.className = 'feedback-msg wrong'; updateStats();
+  updateStats();
+  setTimeout(nextQuestion, 1200);
 }
 
 function startTimer() {
@@ -485,35 +297,41 @@ function startTimer() {
     else if (pct <= 33) timerBarEl.className = 'timer-bar warning-orange';
     else if (pct <= 55) timerBarEl.className = 'timer-bar warning';
     else                timerBarEl.className = 'timer-bar';
-    if (pct <= 0 && !timerExpired) {
-      timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
-      if (!answered) {
-        questionSub.textContent = '⏱  Time\'s up — still answer!';
-        feedbackMsg.textContent = 'Time up — what is it?';
-        feedbackMsg.className = 'feedback-msg timeout';
-        if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
-      }
-    }
   }, 100);
 }
 function stopTimer() { clearInterval(timerInterval); }
 
 function updateStats() {
-  const c=stats.correct,t=stats.total,ss=stats.sessionStreak;
+  const c=stats.correct, t=stats.total, ss=stats.sessionStreak;
   const pct=t>0?Math.round((c/t)*100):null;
   const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
+  statStreak.textContent=ss>=5?'🔥 '+ss+' in a row':'';
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
   const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
   pctBar.style.background=col; sbPctBar.style.background=col;
 }
 
-submitBtn.addEventListener('click', submitAnswer);
-answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
+let toastTimeout;
+function showToast(msg) {
+  toast.textContent = msg; toast.className = 'toast show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'; }, 2500);
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('toggleAllBtnMobile').addEventListener('click',  () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('resetBtnDesktop').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
+document.getElementById('resetBtnMobile').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
 document.getElementById('drawerToggle').addEventListener('click', () => {
-  const d=document.getElementById('mobileDrawer'),t=document.getElementById('drawerToggle');
+  const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
   const open=d.classList.toggle('open'); t.classList.toggle('open',open);
 });
 

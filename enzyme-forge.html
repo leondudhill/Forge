@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HormoneForge — Leon Dudhill</title>
+<title>EnzymeForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f0fdfa;
-    --surface2: #99f6e4;
-    --border: #5eead4;
-    --text: #042f2e;
-    --text-muted: #0f766e;
-    --accent: #0d9488;
-    --correct: #0d9488;
+    --surface: #ecfdf5;
+    --surface2: #a7f3d0;
+    --border: #6ee7b7;
+    --text: #064e3b;
+    --text-muted: #065f46;
+    --accent: #059669;
+    --correct: #059669;
     --wrong: #e84c1e;
-    --warn-yellow: #f5c518;
-    --warn-orange: #f07d20;
+    --accent2: #f5a623;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,98 +40,77 @@
 
   .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
 
-  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; }
-  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
   .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
 
-  .info-block { margin-bottom: 18px; }
-  .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .info-block p + p { margin-top: 5px; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
 
-  .hormone-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-  .hormone-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
-  .hormone-list li strong { color: var(--text); display: block; font-family: 'DM Mono', monospace; font-size: 11px; }
-
-  .cycle-steps { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
-  .cycle-step { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-  .cycle-step-num { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent); line-height: 1.2; flex-shrink: 0; width: 16px; }
-
-  .info-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); padding: 2px 9px; margin: 3px 2px 0; }
-  .divider { border: none; border-top: 1.5px solid var(--border); margin: 16px 0; }
-
-  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
-  .question-card { text-align: center; max-width: 480px; width: 100%; }
-  .q-type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
-  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 28px; }
+  .question-card { text-align: center; max-width: 600px; width: 100%; }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 4vw, 52px); letter-spacing: 2px; line-height: 1.2; color: var(--text); }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
 
-  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-wrap { width: min(280px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
   .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
-  .timer-bar.warning        { background: var(--warn-yellow); }
-  .timer-bar.warning-orange { background: var(--warn-orange); }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
   .timer-bar.urgent         { background: var(--wrong); }
 
   .streak-dots { display: flex; gap: 6px; justify-content: center; }
   .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
   .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
 
-  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(420px, 100%); }
-  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.35; }
-  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(480px, 100%); }
+  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.4; }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--surface2); color: var(--accent); }
   .mc-btn:active:not(:disabled) { transform: scale(0.97); }
   .mc-btn.correct-flash { border-color: var(--correct); background: #dcfce7; color: var(--correct); }
   .mc-btn.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; color: var(--wrong); }
   .mc-btn:disabled { cursor: default; }
 
-  .input-row { display: flex; gap: 10px; align-items: center; }
-  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(32px, 5vw, 52px); font-weight: 500; width: 220px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
-  .answer-input:focus         { border-color: var(--accent); background: #fff; }
-  .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
-  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
-  .answer-input:disabled { opacity: 0.6; }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
 
-  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
-  .submit-btn:hover  { filter: brightness(1.1); }
-  .submit-btn:active { transform: scale(0.97); }
-
-  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
-  .feedback-msg.correct { color: var(--correct); }
-  .feedback-msg.wrong   { color: var(--wrong); }
-  .feedback-msg.timeout { color: var(--warn-orange); }
-
-  .stat-block { margin-bottom: 22px; }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
   .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
   .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
   .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
   .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
 
   .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
   .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
   .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
   .mobile-drawer.open { display: block; }
-  .mobile-drawer p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .mobile-drawer p + p { margin-top: 6px; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
 
-  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: var(--text-muted); background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
   @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
   @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
-  @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
-  .hidden { display: none !important; }
+  @media (max-width: 400px) { .mc-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Hormone<span>Forge</span></div>
+  <div class="logo">Enzyme<span>Forge</span></div>
   <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
 </header>
 
-<div class="score-bar">
+<div class="score-bar" id="scoreBar">
   <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
   <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
   <div class="score-bar-pct-wrap">
@@ -145,220 +124,86 @@
 </div>
 
 <div class="layout">
-
-  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Hormones</div>
-
-    <div class="info-block">
-      <ul class="hormone-list">
-        <li><strong>FSH</strong>From pituitary. Stimulates egg maturation in ovaries. Stimulates oestrogen production.</li>
-        <li><strong>Oestrogen</strong>From ovaries. Repairs uterus lining. Inhibits FSH. Stimulates LH surge.</li>
-        <li><strong>LH</strong>From pituitary. Surge triggers ovulation (egg release) around day 14.</li>
-        <li><strong>Progesterone</strong>From corpus luteum. Maintains uterus lining after ovulation. Inhibits FSH and LH.</li>
-      </ul>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Cycle summary</div>
-      <div class="cycle-steps">
-        <div class="cycle-step"><div class="cycle-step-num">1</div><div>Days 1–5: Menstruation — lining breaks down</div></div>
-        <div class="cycle-step"><div class="cycle-step-num">2</div><div>Days 1–13: FSH → egg matures, oestrogen rises</div></div>
-        <div class="cycle-step"><div class="cycle-step-num">3</div><div>Days 5–13: Oestrogen repairs uterus lining</div></div>
-        <div class="cycle-step"><div class="cycle-step-num">4</div><div>Day ~14: LH surge → ovulation</div></div>
-        <div class="cycle-step"><div class="cycle-step-num">5</div><div>Days 14–28: Progesterone maintains lining</div></div>
-        <div class="cycle-step"><div class="cycle-step-num">6</div><div>Day 28: If no fertilisation → progesterone falls → menstruation</div></div>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
-      <div class="question-sub" id="questionSub">6 seconds per question</div>
+      <div class="question-sub" id="questionSub"></div>
     </div>
-
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
       <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-      <div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
-
-    <div class="mc-grid hidden" id="mcGrid"></div>
-
-    <div class="input-row hidden" id="typedRow">
-      <input class="answer-input" id="answerInput" type="text" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="submit-btn" id="submitBtn">Go</button>
-    </div>
-
+    <div class="mc-grid" id="mcGrid"></div>
     <div class="feedback-msg" id="feedbackMsg"></div>
   </div>
 
-  <!-- RIGHT SIDEBAR -->
   <div class="sidebar sidebar-right">
     <div class="sidebar-title">Score</div>
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
-      <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
-      </div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Accuracy</div>
       <div class="stat-value"><span id="statPct">—</span></div>
       <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
-    </div>
-    <hr class="divider">
-    <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-sub" id="statStreak"></div>
     </div>
   </div>
-
 </div>
 
 <button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ Hormone reference</span>
+  <span>⚙ Options</span>
   <span class="arrow">▼</span>
 </button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <p><strong>FSH</strong> (pituitary) → matures egg, stimulates oestrogen.</p>
-  <p><strong>Oestrogen</strong> (ovaries) → repairs lining, inhibits FSH, triggers LH surge.</p>
-  <p><strong>LH</strong> (pituitary) → surge causes ovulation ~day 14.</p>
-  <p><strong>Progesterone</strong> (corpus luteum) → maintains lining after ovulation, inhibits FSH &amp; LH.</p>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Shuffle</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset</button>
+  </div>
 </div>
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
 </footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const TIME_LIMIT = 6000;
 
 const bank = [
-  // ── FSH ──
-  { type: 'mc', q: 'Where is FSH produced?',
-    correct: 'Pituitary gland',
-    options: ['Ovaries', 'Pituitary gland', 'Uterus', 'Adrenal gland'] },
-  { type: 'mc', q: 'What does FSH stimulate?',
-    correct: 'Egg maturation and oestrogen production',
-    options: ['Ovulation directly', 'Egg maturation and oestrogen production', 'Uterus lining breakdown', 'Progesterone release'] },
-  { type: 'mc', q: 'Which hormone inhibits FSH production?',
-    correct: 'Oestrogen',
-    options: ['Progesterone', 'LH', 'Oestrogen', 'Testosterone'] },
-  { type: 'mc', q: 'FSH stands for…',
-    correct: 'Follicle Stimulating Hormone',
-    options: ['Follicle Stimulating Hormone', 'Female Sex Hormone', 'Fertilisation Support Hormone', 'Follicle Secreting Hormone'] },
-
-  // ── OESTROGEN ──
-  { type: 'mc', q: 'Where is oestrogen produced?',
-    correct: 'Ovaries',
-    options: ['Pituitary gland', 'Uterus', 'Ovaries', 'Pancreas'] },
-  { type: 'mc', q: 'What does oestrogen do to the uterus lining?',
-    correct: 'Causes it to thicken and repair',
-    options: ['Causes it to break down', 'Causes it to thicken and repair', 'Has no effect on it', 'Removes it completely'] },
-  { type: 'mc', q: 'What effect does high oestrogen have on FSH?',
-    correct: 'It inhibits FSH production',
-    options: ['It stimulates more FSH', 'It inhibits FSH production', 'It has no effect on FSH', 'It converts FSH to LH'] },
-  { type: 'mc', q: 'What does a surge in oestrogen trigger?',
-    correct: 'A surge in LH leading to ovulation',
-    options: ['Menstruation', 'A surge in LH leading to ovulation', 'Production of progesterone', 'Breakdown of the uterus lining'] },
-
-  // ── LH ──
-  { type: 'mc', q: 'Where is LH produced?',
-    correct: 'Pituitary gland',
-    options: ['Ovaries', 'Uterus', 'Pituitary gland', 'Corpus luteum'] },
-  { type: 'mc', q: 'What does the LH surge cause?',
-    correct: 'Ovulation — release of an egg',
-    options: ['Menstruation', 'Ovulation — release of an egg', 'Uterus lining repair', 'Progesterone inhibition'] },
-  { type: 'mc', q: 'On approximately which day does the LH surge and ovulation occur?',
-    correct: 'Day 14',
-    options: ['Day 1', 'Day 7', 'Day 14', 'Day 21'] },
-  { type: 'mc', q: 'LH stands for…',
-    correct: 'Luteinising Hormone',
-    options: ['Luteinising Hormone', 'Lining Hormone', 'Lateral Hormone', 'Luteal Hormone'] },
-
-  // ── PROGESTERONE ──
-  { type: 'mc', q: 'Where is progesterone produced after ovulation?',
-    correct: 'Corpus luteum',
-    options: ['Pituitary gland', 'Ovaries directly', 'Corpus luteum', 'Uterus lining'] },
-  { type: 'mc', q: 'What is the main role of progesterone?',
-    correct: 'Maintaining the uterus lining after ovulation',
-    options: ['Triggering ovulation', 'Stimulating egg maturation', 'Maintaining the uterus lining after ovulation', 'Repairing the uterus lining early in the cycle'] },
-  { type: 'mc', q: 'What happens when progesterone levels fall?',
-    correct: 'Menstruation begins',
-    options: ['Ovulation occurs', 'Menstruation begins', 'FSH is released', 'The egg is fertilised'] },
-  { type: 'mc', q: 'Which TWO hormones does progesterone inhibit?',
-    correct: 'FSH and LH',
-    options: ['FSH and oestrogen', 'LH and oestrogen', 'FSH and LH', 'Oestrogen and testosterone'] },
-  { type: 'mc', q: 'If fertilisation occurs, what happens to progesterone levels?',
-    correct: 'They remain high to maintain the lining',
-    options: ['They fall immediately', 'They remain high to maintain the lining', 'They cause menstruation', 'They trigger a second LH surge'] },
-
-  // ── MENSTRUAL CYCLE TIMING ──
-  { type: 'mc', q: 'How long is the average menstrual cycle?',
-    correct: '28 days',
-    options: ['14 days', '21 days', '28 days', '35 days'] },
-  { type: 'mc', q: 'What happens on day 1 of the menstrual cycle?',
-    correct: 'Menstruation — uterus lining breaks down',
-    options: ['Ovulation occurs', 'Menstruation — uterus lining breaks down', 'LH surges', 'Progesterone peaks'] },
-  { type: 'mc', q: 'What triggers the uterus lining to break down at the end of the cycle?',
-    correct: 'Falling progesterone levels',
-    options: ['Rising FSH levels', 'Falling progesterone levels', 'Rising oestrogen levels', 'Falling LH levels'] },
-  { type: 'mc', q: 'Which hormone is responsible for repairing the uterus lining after menstruation?',
-    correct: 'Oestrogen',
-    options: ['FSH', 'LH', 'Oestrogen', 'Progesterone'] },
-
-  // ── CONTRACEPTION / FERTILITY ──
-  { type: 'mc', q: 'The contraceptive pill works mainly by…',
-    correct: 'Containing oestrogen/progesterone to inhibit FSH and prevent egg maturation',
-    options: ['Blocking sperm physically', 'Containing oestrogen/progesterone to inhibit FSH and prevent egg maturation', 'Raising LH to prevent ovulation', 'Thickening the egg membrane'] },
-  { type: 'mc', q: 'FSH can be used as a fertility drug because it…',
-    correct: 'Stimulates egg maturation in women who produce too little FSH',
-    options: ['Triggers ovulation directly', 'Stimulates egg maturation in women who produce too little FSH', 'Replaces progesterone', 'Increases oestrogen permanently'] },
-
-  // ── TYPED ──
-  { type: 'typed', q: 'Name the hormone that triggers ovulation.',
-    correct: ['lh', 'luteinising hormone', 'lutenising hormone'], display: 'LH' },
-  { type: 'typed', q: 'Name the hormone that stimulates egg maturation.',
-    correct: ['fsh', 'follicle stimulating hormone'], display: 'FSH' },
-  { type: 'typed', q: 'Which hormone maintains the uterus lining after ovulation?',
-    correct: ['progesterone'], display: 'Progesterone' },
-  { type: 'typed', q: 'Which hormone causes the uterus lining to thicken and repair?',
-    correct: ['oestrogen', 'estrogen'], display: 'Oestrogen' },
-  { type: 'typed', q: 'Where are FSH and LH produced?',
-    correct: ['pituitary gland', 'pituitary'], display: 'Pituitary gland' },
-  { type: 'typed', q: 'Where is progesterone produced after ovulation?',
-    correct: ['corpus luteum'], display: 'Corpus luteum' },
-  { type: 'typed', q: 'On approximately what day does ovulation occur?',
-    correct: ['14', 'day 14'], display: 'Day 14' },
-  { type: 'typed', q: 'What causes menstruation at the end of the cycle?',
-    correct: ['falling progesterone', 'drop in progesterone', 'progesterone falls', 'low progesterone'], display: 'Falling progesterone' },
-  { type: 'typed', q: 'How long is the average menstrual cycle?',
-    correct: ['28 days', '28'], display: '28 days' },
-  { type: 'typed', q: 'Which hormone inhibits FSH to prevent further egg maturation mid-cycle?',
-    correct: ['oestrogen', 'estrogen'], display: 'Oestrogen' },
+  { q: 'What is an enzyme?', correct: 'A biological catalyst made of protein', options: ['A biological catalyst made of protein', 'A type of lipid that speeds up reactions', 'A carbohydrate that breaks down food', 'A hormone that controls digestion'] },
+  { q: 'What is the role of an enzyme?', correct: 'To speed up chemical reactions', options: ['To slow down chemical reactions', 'To speed up chemical reactions', 'To store energy in cells', 'To transport oxygen in the blood'] },
+  { q: 'What is the active site of an enzyme?', correct: 'The region where the substrate binds', options: ['The whole surface of the enzyme', 'The region where the substrate binds', 'The part that releases energy', 'The section that breaks down the enzyme'] },
+  { q: 'What model describes enzyme-substrate binding?', correct: 'Lock and key model', options: ['Induced fit model only', 'Lock and key model', 'Fluid mosaic model', 'Double helix model'] },
+  { q: 'What is a substrate?', correct: 'The molecule an enzyme acts on', options: ['The product of an enzyme reaction', 'The molecule an enzyme acts on', 'The active site of an enzyme', 'A type of enzyme inhibitor'] },
+  { q: 'What happens to the rate of enzyme activity as temperature increases up to the optimum?', correct: 'It increases', options: ['It decreases', 'It increases', 'It stays the same', 'It stops completely'] },
+  { q: 'What happens to an enzyme above its optimum temperature?', correct: 'It denatures — the active site changes shape', options: ['It works faster', 'It denatures — the active site changes shape', 'It becomes an inhibitor', 'It turns into a substrate'] },
+  { q: 'What does "denatured" mean for an enzyme?', correct: 'The active site has permanently changed shape', options: ['The enzyme has run out of substrate', 'The active site has permanently changed shape', 'The enzyme has been recycled', 'The enzyme has merged with another enzyme'] },
+  { q: 'What is the optimum pH for most enzymes in the human body?', correct: 'Around pH 7 (neutral)', options: ['Around pH 2 (acidic)', 'Around pH 7 (neutral)', 'Around pH 11 (alkaline)', 'Around pH 14'] },
+  { q: 'What is the optimum pH for pepsin (stomach enzyme)?', correct: 'Around pH 2 (acidic)', options: ['Around pH 7', 'Around pH 2 (acidic)', 'Around pH 9', 'Around pH 14'] },
+  { q: 'Are enzymes used up in a reaction?', correct: 'No — they are reused', options: ['Yes — they are destroyed', 'No — they are reused', 'Yes — but only once per day', 'No — but they change shape permanently'] },
+  { q: 'What is an enzyme inhibitor?', correct: 'A molecule that reduces enzyme activity', options: ['A molecule that speeds up enzyme activity', 'A molecule that reduces enzyme activity', 'A substrate that fits the active site', 'A product that leaves the active site'] },
+  { q: 'Where in the body is amylase produced?', correct: 'Salivary glands and pancreas', options: ['Stomach and liver', 'Salivary glands and pancreas', 'Small intestine only', 'Kidneys and lungs'] },
+  { q: 'What substrate does amylase break down?', correct: 'Starch', options: ['Protein', 'Lipids', 'Starch', 'Glucose'] },
+  { q: 'What substrate does protease break down?', correct: 'Proteins', options: ['Starch', 'Proteins', 'Lipids', 'Glucose'] },
+  { q: 'What substrate does lipase break down?', correct: 'Lipids (fats)', options: ['Proteins', 'Starch', 'Lipids (fats)', 'Amino acids'] },
+  { q: 'What is the product when amylase breaks down starch?', correct: 'Maltose / glucose', options: ['Amino acids', 'Fatty acids', 'Maltose / glucose', 'Glycerol'] },
+  { q: 'What are the products when protease breaks down protein?', correct: 'Amino acids', options: ['Glucose', 'Amino acids', 'Fatty acids and glycerol', 'Maltose'] },
+  { q: 'What are the products when lipase breaks down fats?', correct: 'Fatty acids and glycerol', options: ['Amino acids', 'Glucose and fructose', 'Fatty acids and glycerol', 'Starch and maltose'] },
+  { q: 'Why must the substrate fit the active site exactly?', correct: 'Because enzymes are specific — each has a unique active site shape', options: ['Because all enzymes have the same shape', 'Because enzymes are specific — each has a unique active site shape', 'Because substrates are always the same size', 'Because enzymes can stretch to fit any substrate'] },
 ];
 
-// ── STATE ──
 let stats = { correct: 0, total: 0, sessionStreak: 0 };
-let currentQ = null, answered = false, timerExpired = false;
+let currentQ = null, answered = false;
 let timerInterval = null, timerStart = null;
 let shuffled = [], shuffleIdx = 0, localStreak = 0;
 
@@ -376,13 +221,9 @@ function getNextQ() {
 }
 
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
-const typedRow     = document.getElementById('typedRow');
-const answerInput  = document.getElementById('answerInput');
-const submitBtn    = document.getElementById('submitBtn');
 const feedbackMsg  = document.getElementById('feedbackMsg');
 const streakDotsEl = document.getElementById('streakDots');
 const statCorrect  = document.getElementById('statCorrect');
@@ -390,12 +231,12 @@ const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
 const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
 const sbPctBar     = document.getElementById('sbPctBar');
 const sbStreak     = document.getElementById('sbStreak');
+const toast        = document.getElementById('toast');
 
 function renderStreakDots(n) {
   streakDotsEl.querySelectorAll('.streak-dot').forEach((d,i) => d.classList.toggle('filled', i < n));
@@ -403,22 +244,12 @@ function renderStreakDots(n) {
 
 function nextQuestion() {
   stopTimer();
-  answered = false; timerExpired = false;
+  answered = false;
   feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
-  if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
-    mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
-    renderMC(currentQ);
-  } else {
-    qTypeBadge.textContent = 'Typed Answer';
-    mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
-    answerInput.value = ''; answerInput.className = 'answer-input';
-    answerInput.disabled = false; submitBtn.disabled = false;
-    if (!('ontouchstart' in window)) answerInput.focus();
-  }
   questionText.textContent = currentQ.q;
-  questionSub.textContent  = '6 seconds per question';
+  questionSub.textContent = '';
+  renderMC(currentQ);
   startTimer();
 }
 
@@ -431,56 +262,27 @@ function renderMC(q) {
     mcGrid.appendChild(btn);
   });
 }
+
 function handleMC(chosen, btn) {
   if (answered) return;
   answered = true; stopTimer(); stats.total++;
   document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
   if (chosen === currentQ.correct) {
-    btn.classList.add('correct-flash'); recordCorrect();
+    btn.classList.add('correct-flash');
+    stats.correct++; stats.sessionStreak++;
+    localStreak = Math.min(localStreak+1, 5); renderStreakDots(localStreak);
+    const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+    feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    feedbackMsg.className = 'feedback-msg correct';
   } else {
     btn.classList.add('wrong-flash');
     document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
-    recordWrong(currentQ.correct);
+    stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
+    feedbackMsg.textContent = '✗  Answer was ' + currentQ.correct;
+    feedbackMsg.className = 'feedback-msg wrong';
   }
-  setTimeout(nextQuestion, 1100);
-}
-
-function submitAnswer() {
-  if (answered || answerInput.disabled) return;
-  const val = answerInput.value.trim();
-  if (!val) { answerInput.focus(); return; }
-  answered = true; stopTimer(); stats.total++;
-  answerInput.disabled = true; submitBtn.disabled = true;
-  if (isCorrect(val, currentQ.correct)) {
-    answerInput.className = 'answer-input correct-flash'; recordCorrect();
-  } else {
-    answerInput.className = 'answer-input wrong-flash'; recordWrong(currentQ.display);
-  }
-  setTimeout(nextQuestion, 1100);
-}
-function isCorrect(input, accepted) {
-  const norm = s => s.toLowerCase().trim().replace(/\s+/g,' ');
-  const inp = norm(input);
-  if (accepted.some(a => norm(a) === inp)) return true;
-  return accepted.some(a => { const na = norm(a); return na.length > 4 && levenshtein(inp,na) <= 2; });
-}
-function levenshtein(a,b) {
-  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
-  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function recordCorrect() {
-  stats.correct++; stats.sessionStreak++;
-  localStreak = Math.min(localStreak+1,5); renderStreakDots(localStreak);
-  const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!','Nailed it!'];
-  feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
-  feedbackMsg.className = 'feedback-msg correct'; updateStats();
-}
-function recordWrong(msg) {
-  stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = '✗  Answer was ' + msg;
-  feedbackMsg.className = 'feedback-msg wrong'; updateStats();
+  updateStats();
+  setTimeout(nextQuestion, 1200);
 }
 
 function startTimer() {
@@ -495,35 +297,41 @@ function startTimer() {
     else if (pct <= 33) timerBarEl.className = 'timer-bar warning-orange';
     else if (pct <= 55) timerBarEl.className = 'timer-bar warning';
     else                timerBarEl.className = 'timer-bar';
-    if (pct <= 0 && !timerExpired) {
-      timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
-      if (!answered) {
-        questionSub.textContent = '⏱  Time\'s up — still answer!';
-        feedbackMsg.textContent = 'Time up — what is it?';
-        feedbackMsg.className = 'feedback-msg timeout';
-        if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
-      }
-    }
   }, 100);
 }
 function stopTimer() { clearInterval(timerInterval); }
 
 function updateStats() {
-  const c=stats.correct,t=stats.total,ss=stats.sessionStreak;
+  const c=stats.correct, t=stats.total, ss=stats.sessionStreak;
   const pct=t>0?Math.round((c/t)*100):null;
   const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
+  statStreak.textContent=ss>=5?'🔥 '+ss+' in a row':'';
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
   const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
   pctBar.style.background=col; sbPctBar.style.background=col;
 }
 
-submitBtn.addEventListener('click', submitAnswer);
-answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
+let toastTimeout;
+function showToast(msg) {
+  toast.textContent = msg; toast.className = 'toast show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'; }, 2500);
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('toggleAllBtnMobile').addEventListener('click',  () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('resetBtnDesktop').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
+document.getElementById('resetBtnMobile').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
 document.getElementById('drawerToggle').addEventListener('click', () => {
-  const d=document.getElementById('mobileDrawer'),t=document.getElementById('drawerToggle');
+  const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
   const open=d.classList.toggle('open'); t.classList.toggle('open',open);
 });
 

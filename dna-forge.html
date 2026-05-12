@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DNAForge — Leon Dudhill</title>
+<title>DNAForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -14,10 +15,9 @@
     --text: #052e16;
     --text-muted: #2d6a4a;
     --accent: #16a34a;
-    --correct: #16a34a;
+    --correct: #2a9d5c;
     --wrong: #e84c1e;
-    --warn-yellow: #f5c518;
-    --warn-orange: #f07d20;
+    --accent2: #f5a623;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,93 +40,67 @@
 
   .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
 
-  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; }
-  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
   .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
 
-  .info-block { margin-bottom: 18px; }
-  .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .info-block p + p { margin-top: 5px; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
 
-  .base-pairs { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-  .base-pair { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 12px; }
-  .base { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--text); font-weight: 500; }
-  .pair-arrow { color: var(--accent); font-size: 14px; }
-
-  .steps-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-  .step { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-  .step-num { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent); line-height: 1.2; flex-shrink: 0; width: 16px; }
-
-  .term-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-  .term-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
-  .term-list li strong { color: var(--text); display: block; font-family: 'DM Mono', monospace; font-size: 11px; }
-
-  .info-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); padding: 2px 9px; margin: 3px 2px 0; }
-  .divider { border: none; border-top: 1.5px solid var(--border); margin: 16px 0; }
-
-  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
-  .question-card { text-align: center; max-width: 480px; width: 100%; }
-  .q-type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
-  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); letter-spacing: 2px; line-height: 1.25; color: var(--text); }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 28px; }
+  .question-card { text-align: center; max-width: 600px; width: 100%; }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 4vw, 52px); letter-spacing: 2px; line-height: 1.2; color: var(--text); }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
 
-  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-wrap { width: min(280px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
   .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
-  .timer-bar.warning        { background: var(--warn-yellow); }
-  .timer-bar.warning-orange { background: var(--warn-orange); }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
   .timer-bar.urgent         { background: var(--wrong); }
 
   .streak-dots { display: flex; gap: 6px; justify-content: center; }
   .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
   .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
 
-  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(420px, 100%); }
-  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.35; }
-  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(480px, 100%); }
+  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.4; }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--surface2); color: var(--accent); }
   .mc-btn:active:not(:disabled) { transform: scale(0.97); }
   .mc-btn.correct-flash { border-color: var(--correct); background: #dcfce7; color: var(--correct); }
   .mc-btn.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; color: var(--wrong); }
   .mc-btn:disabled { cursor: default; }
 
-  .input-row { display: flex; gap: 10px; align-items: center; }
-  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(15px, 3vw, 20px); font-weight: 500; width: 220px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
-  .answer-input:focus         { border-color: var(--accent); background: #fff; }
-  .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
-  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
-  .answer-input:disabled { opacity: 0.6; }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
 
-  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
-  .submit-btn:hover  { filter: brightness(1.1); }
-  .submit-btn:active { transform: scale(0.97); }
-
-  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; text-align: center; }
-  .feedback-msg.correct { color: var(--correct); }
-  .feedback-msg.wrong   { color: var(--wrong); }
-  .feedback-msg.timeout { color: var(--warn-orange); }
-
-  .stat-block { margin-bottom: 22px; }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
   .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
   .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
   .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
   .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
 
   .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
   .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
   .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
   .mobile-drawer.open { display: block; }
-  .mobile-drawer p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .mobile-drawer p + p { margin-top: 6px; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
 
-  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: var(--text-muted); background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
   @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
   @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
-  @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
-  .hidden { display: none !important; }
+  @media (max-width: 400px) { .mc-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -136,7 +110,7 @@
   <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
 </header>
 
-<div class="score-bar">
+<div class="score-bar" id="scoreBar">
   <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
   <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
   <div class="score-bar-pct-wrap">
@@ -150,233 +124,88 @@
 </div>
 
 <div class="layout">
-
-  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Key Facts</div>
-
-    <div class="info-block">
-      <div class="info-block-title">Base Pairing</div>
-      <div class="base-pairs">
-        <div class="base-pair"><div class="base">A</div><div class="pair-arrow">↔</div><div class="base">T</div></div>
-        <div class="base-pair"><div class="base">C</div><div class="pair-arrow">↔</div><div class="base">G</div></div>
-      </div>
-      <p style="margin-top:8px">Adenine — Thymine<br>Cytosine — Guanine</p>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Protein Synthesis</div>
-      <div class="steps-list">
-        <div class="step"><div class="step-num">1</div><div><strong>Transcription</strong> — DNA → mRNA in the nucleus</div></div>
-        <div class="step"><div class="step-num">2</div><div>mRNA leaves nucleus</div></div>
-        <div class="step"><div class="step-num">3</div><div><strong>Translation</strong> — mRNA → protein at ribosome</div></div>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Key terms</div>
-      <ul class="term-list">
-        <li><strong>Gene</strong>A section of DNA that codes for a specific protein.</li>
-        <li><strong>Codon</strong>Three bases on mRNA that code for one amino acid.</li>
-        <li><strong>mRNA</strong>Messenger RNA — carries the code from nucleus to ribosome.</li>
-        <li><strong>Double helix</strong>The twisted-ladder shape of DNA.</li>
-        <li><strong>Nucleotide</strong>Monomer of DNA — base + sugar + phosphate.</li>
-      </ul>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
-      <div class="question-sub" id="questionSub">6 seconds per question</div>
+      <div class="question-sub" id="questionSub"></div>
     </div>
-
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
       <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-      <div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
-
-    <div class="mc-grid hidden" id="mcGrid"></div>
-
-    <div class="input-row hidden" id="typedRow">
-      <input class="answer-input" id="answerInput" type="text" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="submit-btn" id="submitBtn">Go</button>
-    </div>
-
+    <div class="mc-grid" id="mcGrid"></div>
     <div class="feedback-msg" id="feedbackMsg"></div>
   </div>
 
-  <!-- RIGHT SIDEBAR -->
   <div class="sidebar sidebar-right">
     <div class="sidebar-title">Score</div>
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
-      <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
-      </div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Accuracy</div>
       <div class="stat-value"><span id="statPct">—</span></div>
       <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
-    </div>
-    <hr class="divider">
-    <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-sub" id="statStreak"></div>
     </div>
   </div>
-
 </div>
 
 <button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ Key facts</span>
+  <span>⚙ Options</span>
   <span class="arrow">▼</span>
 </button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <p><strong>Base pairs:</strong> A–T and C–G</p>
-  <p><strong>Transcription:</strong> DNA → mRNA in the nucleus.</p>
-  <p><strong>Translation:</strong> mRNA → protein at the ribosome.</p>
-  <p><strong>Gene:</strong> section of DNA coding for a specific protein.</p>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Shuffle</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset</button>
+  </div>
 </div>
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
 </footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const TIME_LIMIT = 6000;
 
 const bank = [
-  // ── DNA STRUCTURE ──
-  { type: 'mc', q: 'What shape is a DNA molecule?',
-    correct: 'Double helix',
-    options: ['Single strand', 'Double helix', 'Triple helix', 'Circular loop'] },
-  { type: 'mc', q: 'What are the monomers of DNA called?',
-    correct: 'Nucleotides',
-    options: ['Amino acids', 'Nucleotides', 'Base pairs', 'Codons'] },
-  { type: 'mc', q: 'What three components make up a nucleotide?',
-    correct: 'Base, sugar, phosphate',
-    options: ['Base, protein, phosphate', 'Base, sugar, phosphate', 'Amino acid, sugar, base', 'Codon, sugar, phosphate'] },
-  { type: 'mc', q: 'Where is DNA found in a eukaryotic cell?',
-    correct: 'Nucleus',
-    options: ['Ribosome', 'Cytoplasm', 'Nucleus', 'Mitochondria only'] },
-  { type: 'mc', q: 'What is a gene?',
-    correct: 'A section of DNA that codes for a specific protein',
-    options: ['A single base pair', 'The entire DNA molecule', 'A section of DNA that codes for a specific protein', 'A strand of mRNA'] },
-  { type: 'mc', q: 'What is the full name of DNA?',
-    correct: 'Deoxyribonucleic acid',
-    options: ['Deoxyribonucleic acid', 'Diribonucleic acid', 'Deoxyribose nucleic acid', 'Double helix nucleic acid'] },
-
-  // ── BASE PAIRING ──
-  { type: 'mc', q: 'Which base pairs with Adenine (A) in DNA?',
-    correct: 'Thymine (T)',
-    options: ['Cytosine (C)', 'Guanine (G)', 'Thymine (T)', 'Uracil (U)'] },
-  { type: 'mc', q: 'Which base pairs with Cytosine (C) in DNA?',
-    correct: 'Guanine (G)',
-    options: ['Adenine (A)', 'Thymine (T)', 'Guanine (G)', 'Uracil (U)'] },
-  { type: 'mc', q: 'Which base pairs with Guanine (G) in DNA?',
-    correct: 'Cytosine (C)',
-    options: ['Adenine (A)', 'Cytosine (C)', 'Thymine (T)', 'Uracil (U)'] },
-  { type: 'mc', q: 'Which base pairs with Thymine (T) in DNA?',
-    correct: 'Adenine (A)',
-    options: ['Adenine (A)', 'Cytosine (C)', 'Guanine (G)', 'Uracil (U)'] },
-  { type: 'mc', q: 'If one DNA strand reads A-T-C-G, what does the complementary strand read?',
-    correct: 'T-A-G-C',
-    options: ['A-T-C-G', 'T-A-G-C', 'C-G-A-T', 'G-C-T-A'] },
-
-  // ── TRANSCRIPTION ──
-  { type: 'mc', q: 'What is transcription?',
-    correct: 'Making mRNA from a DNA template',
-    options: ['Making a protein from mRNA', 'Making mRNA from a DNA template', 'Copying DNA before cell division', 'Making DNA from RNA'] },
-  { type: 'mc', q: 'Where does transcription take place?',
-    correct: 'Nucleus',
-    options: ['Ribosome', 'Cytoplasm', 'Nucleus', 'Mitochondria'] },
-  { type: 'mc', q: 'What molecule is produced during transcription?',
-    correct: 'mRNA',
-    options: ['Protein', 'tRNA', 'mRNA', 'ATP'] },
-  { type: 'mc', q: 'What does mRNA stand for?',
-    correct: 'Messenger RNA',
-    options: ['Mitochondrial RNA', 'Messenger RNA', 'Multiplied RNA', 'Matrix RNA'] },
-  { type: 'mc', q: 'Which base replaces Thymine in mRNA?',
-    correct: 'Uracil (U)',
-    options: ['Adenine (A)', 'Cytosine (C)', 'Guanine (G)', 'Uracil (U)'] },
-
-  // ── TRANSLATION ──
-  { type: 'mc', q: 'What is translation?',
-    correct: 'Making a protein from an mRNA sequence at a ribosome',
-    options: ['Making mRNA from DNA', 'Making a protein from an mRNA sequence at a ribosome', 'Copying DNA in the nucleus', 'Moving mRNA to the nucleus'] },
-  { type: 'mc', q: 'Where does translation take place?',
-    correct: 'Ribosome',
-    options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'] },
-  { type: 'mc', q: 'What is a codon?',
-    correct: 'Three bases on mRNA that code for one amino acid',
-    options: ['A single base on DNA', 'A gene on a chromosome', 'Three bases on mRNA that code for one amino acid', 'A sequence of amino acids'] },
-  { type: 'mc', q: 'What is the final product of translation?',
-    correct: 'A protein (chain of amino acids)',
-    options: ['mRNA', 'DNA', 'A protein (chain of amino acids)', 'A nucleotide'] },
-  { type: 'mc', q: 'What is the correct order of protein synthesis?',
-    correct: 'Transcription (nucleus) → mRNA travels → Translation (ribosome)',
-    options: ['Translation → Transcription → mRNA', 'Transcription (nucleus) → mRNA travels → Translation (ribosome)', 'mRNA made at ribosome → travels to nucleus', 'DNA copied → protein made in nucleus'] },
-
-  // ── MUTATIONS ──
-  { type: 'mc', q: 'What is a mutation?',
-    correct: 'A random change in the DNA base sequence',
-    options: ['A deliberate change to DNA', 'A random change in the DNA base sequence', 'The copying of DNA before division', 'A type of transcription error that is always corrected'] },
-  { type: 'mc', q: 'What can cause a mutation?',
-    correct: 'Radiation, chemicals, or random errors in DNA copying',
-    options: ['Only UV radiation', 'Radiation, chemicals, or random errors in DNA copying', 'Only during transcription', 'Only in gametes'] },
-  { type: 'mc', q: 'Most mutations have what effect on the organism?',
-    correct: 'No effect',
-    options: ['Always harmful', 'Always beneficial', 'No effect', 'Always cause cancer'] },
-
-  // ── TYPED ──
-  { type: 'typed', q: 'Which base pairs with Adenine in DNA?',
-    correct: ['thymine', 't'], display: 'Thymine' },
-  { type: 'typed', q: 'Which base pairs with Cytosine in DNA?',
-    correct: ['guanine', 'g'], display: 'Guanine' },
-  { type: 'typed', q: 'What is the name for the process of making mRNA from DNA?',
-    correct: ['transcription'], display: 'Transcription' },
-  { type: 'typed', q: 'What is the name for the process of making a protein from mRNA?',
-    correct: ['translation'], display: 'Translation' },
-  { type: 'typed', q: 'Where does transcription take place?',
-    correct: ['nucleus'], display: 'Nucleus' },
-  { type: 'typed', q: 'Where does translation take place?',
-    correct: ['ribosome', 'ribosomes'], display: 'Ribosome' },
-  { type: 'typed', q: 'What molecule carries the genetic code from the nucleus to the ribosome?',
-    correct: ['mrna', 'messenger rna', 'm rna'], display: 'mRNA' },
-  { type: 'typed', q: 'What is the shape of a DNA molecule?',
-    correct: ['double helix'], display: 'Double helix' },
-  { type: 'typed', q: 'What is a section of DNA that codes for a specific protein called?',
-    correct: ['gene'], display: 'Gene' },
-  { type: 'typed', q: 'What base in mRNA replaces Thymine from DNA?',
-    correct: ['uracil', 'u'], display: 'Uracil' },
-  { type: 'typed', q: 'What is a random change in the DNA base sequence called?',
-    correct: ['mutation'], display: 'Mutation' },
+  { q: 'What shape is a DNA molecule?', correct: 'Double helix', options: ['Single strand', 'Double helix', 'Triple helix', 'Circular loop'] },
+  { q: 'What are the monomers of DNA called?', correct: 'Nucleotides', options: ['Amino acids', 'Nucleotides', 'Base pairs', 'Codons'] },
+  { q: 'What three components make up a nucleotide?', correct: 'Base, sugar, phosphate', options: ['Base, protein, phosphate', 'Base, sugar, phosphate', 'Amino acid, sugar, base', 'Codon, sugar, phosphate'] },
+  { q: 'Where is DNA found in a eukaryotic cell?', correct: 'Nucleus', options: ['Ribosome', 'Cytoplasm', 'Nucleus', 'Mitochondria only'] },
+  { q: 'What is a gene?', correct: 'A section of DNA that codes for a specific protein', options: ['A single base pair', 'The entire DNA molecule', 'A section of DNA that codes for a specific protein', 'A strand of mRNA'] },
+  { q: 'What does DNA stand for?', correct: 'Deoxyribonucleic acid', options: ['Deoxyribonucleic acid', 'Diribonucleic acid', 'Deoxyribose nucleic acid', 'Double helix nucleic acid'] },
+  { q: 'Which base pairs with Adenine (A) in DNA?', correct: 'Thymine (T)', options: ['Cytosine (C)', 'Guanine (G)', 'Thymine (T)', 'Uracil (U)'] },
+  { q: 'Which base pairs with Cytosine (C) in DNA?', correct: 'Guanine (G)', options: ['Adenine (A)', 'Thymine (T)', 'Guanine (G)', 'Uracil (U)'] },
+  { q: 'Which base pairs with Guanine (G) in DNA?', correct: 'Cytosine (C)', options: ['Adenine (A)', 'Cytosine (C)', 'Thymine (T)', 'Uracil (U)'] },
+  { q: 'Which base pairs with Thymine (T) in DNA?', correct: 'Adenine (A)', options: ['Adenine (A)', 'Cytosine (C)', 'Guanine (G)', 'Uracil (U)'] },
+  { q: 'If one DNA strand reads A-T-C-G, what does the complementary strand read?', correct: 'T-A-G-C', options: ['A-T-C-G', 'T-A-G-C', 'C-G-A-T', 'G-C-T-A'] },
+  { q: 'What is transcription?', correct: 'Making mRNA from a DNA template', options: ['Making a protein from mRNA', 'Making mRNA from a DNA template', 'Copying DNA before cell division', 'Making DNA from RNA'] },
+  { q: 'Where does transcription take place?', correct: 'Nucleus', options: ['Ribosome', 'Cytoplasm', 'Nucleus', 'Mitochondria'] },
+  { q: 'What molecule is produced during transcription?', correct: 'mRNA', options: ['Protein', 'tRNA', 'mRNA', 'ATP'] },
+  { q: 'Which base replaces Thymine in mRNA?', correct: 'Uracil (U)', options: ['Adenine (A)', 'Cytosine (C)', 'Guanine (G)', 'Uracil (U)'] },
+  { q: 'What is translation?', correct: 'Making a protein from mRNA at a ribosome', options: ['Making mRNA from DNA', 'Making a protein from mRNA at a ribosome', 'Copying DNA in the nucleus', 'Moving mRNA to the nucleus'] },
+  { q: 'Where does translation take place?', correct: 'Ribosome', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'] },
+  { q: 'What is a codon?', correct: 'Three bases on mRNA coding for one amino acid', options: ['A single base on DNA', 'A gene on a chromosome', 'Three bases on mRNA coding for one amino acid', 'A sequence of amino acids'] },
+  { q: 'What is the final product of translation?', correct: 'A protein (chain of amino acids)', options: ['mRNA', 'DNA', 'A protein (chain of amino acids)', 'A nucleotide'] },
+  { q: 'What is a mutation?', correct: 'A random change in the DNA base sequence', options: ['A deliberate change to DNA', 'A random change in the DNA base sequence', 'The copying of DNA before division', 'A type of transcription error always corrected'] },
+  { q: 'Most mutations have what effect on the organism?', correct: 'No effect', options: ['Always harmful', 'Always beneficial', 'No effect', 'Always cause cancer'] },
+  { q: 'What can cause a mutation?', correct: 'Radiation, chemicals or random copying errors', options: ['Only UV radiation', 'Radiation, chemicals or random copying errors', 'Only during transcription', 'Only in gametes'] },
 ];
 
-// ── STATE ──
 let stats = { correct: 0, total: 0, sessionStreak: 0 };
-let currentQ = null, answered = false, timerExpired = false;
+let currentQ = null, answered = false;
 let timerInterval = null, timerStart = null;
 let shuffled = [], shuffleIdx = 0, localStreak = 0;
 
@@ -394,13 +223,9 @@ function getNextQ() {
 }
 
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
-const typedRow     = document.getElementById('typedRow');
-const answerInput  = document.getElementById('answerInput');
-const submitBtn    = document.getElementById('submitBtn');
 const feedbackMsg  = document.getElementById('feedbackMsg');
 const streakDotsEl = document.getElementById('streakDots');
 const statCorrect  = document.getElementById('statCorrect');
@@ -408,12 +233,12 @@ const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
 const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
 const sbPctBar     = document.getElementById('sbPctBar');
 const sbStreak     = document.getElementById('sbStreak');
+const toast        = document.getElementById('toast');
 
 function renderStreakDots(n) {
   streakDotsEl.querySelectorAll('.streak-dot').forEach((d,i) => d.classList.toggle('filled', i < n));
@@ -421,22 +246,12 @@ function renderStreakDots(n) {
 
 function nextQuestion() {
   stopTimer();
-  answered = false; timerExpired = false;
+  answered = false;
   feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
-  if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
-    mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
-    renderMC(currentQ);
-  } else {
-    qTypeBadge.textContent = 'Typed Answer';
-    mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
-    answerInput.value = ''; answerInput.className = 'answer-input';
-    answerInput.disabled = false; submitBtn.disabled = false;
-    if (!('ontouchstart' in window)) answerInput.focus();
-  }
   questionText.textContent = currentQ.q;
-  questionSub.textContent  = '6 seconds per question';
+  questionSub.textContent = '';
+  renderMC(currentQ);
   startTimer();
 }
 
@@ -449,56 +264,27 @@ function renderMC(q) {
     mcGrid.appendChild(btn);
   });
 }
+
 function handleMC(chosen, btn) {
   if (answered) return;
   answered = true; stopTimer(); stats.total++;
   document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
   if (chosen === currentQ.correct) {
-    btn.classList.add('correct-flash'); recordCorrect();
+    btn.classList.add('correct-flash');
+    stats.correct++; stats.sessionStreak++;
+    localStreak = Math.min(localStreak+1, 5); renderStreakDots(localStreak);
+    const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+    feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    feedbackMsg.className = 'feedback-msg correct';
   } else {
     btn.classList.add('wrong-flash');
     document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
-    recordWrong(currentQ.correct);
+    stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
+    feedbackMsg.textContent = '✗  Answer was ' + currentQ.correct;
+    feedbackMsg.className = 'feedback-msg wrong';
   }
-  setTimeout(nextQuestion, 1100);
-}
-
-function submitAnswer() {
-  if (answered || answerInput.disabled) return;
-  const val = answerInput.value.trim();
-  if (!val) { answerInput.focus(); return; }
-  answered = true; stopTimer(); stats.total++;
-  answerInput.disabled = true; submitBtn.disabled = true;
-  if (isCorrect(val, currentQ.correct)) {
-    answerInput.className = 'answer-input correct-flash'; recordCorrect();
-  } else {
-    answerInput.className = 'answer-input wrong-flash'; recordWrong(currentQ.display);
-  }
-  setTimeout(nextQuestion, 1100);
-}
-function isCorrect(input, accepted) {
-  const norm = s => s.toLowerCase().trim().replace(/\s+/g,' ');
-  const inp = norm(input);
-  if (accepted.some(a => norm(a) === inp)) return true;
-  return accepted.some(a => { const na = norm(a); return na.length > 4 && levenshtein(inp,na) <= 2; });
-}
-function levenshtein(a,b) {
-  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
-  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function recordCorrect() {
-  stats.correct++; stats.sessionStreak++;
-  localStreak = Math.min(localStreak+1,5); renderStreakDots(localStreak);
-  const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!','Nailed it!'];
-  feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
-  feedbackMsg.className = 'feedback-msg correct'; updateStats();
-}
-function recordWrong(msg) {
-  stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
-  feedbackMsg.textContent = '✗  Answer was ' + msg;
-  feedbackMsg.className = 'feedback-msg wrong'; updateStats();
+  updateStats();
+  setTimeout(nextQuestion, 1200);
 }
 
 function startTimer() {
@@ -513,35 +299,41 @@ function startTimer() {
     else if (pct <= 33) timerBarEl.className = 'timer-bar warning-orange';
     else if (pct <= 55) timerBarEl.className = 'timer-bar warning';
     else                timerBarEl.className = 'timer-bar';
-    if (pct <= 0 && !timerExpired) {
-      timerExpired = true; clearInterval(timerInterval); timerBarEl.style.width = '0%';
-      if (!answered) {
-        questionSub.textContent = '⏱  Time\'s up — still answer!';
-        feedbackMsg.textContent = 'Time up — what is it?';
-        feedbackMsg.className = 'feedback-msg timeout';
-        if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
-      }
-    }
   }, 100);
 }
 function stopTimer() { clearInterval(timerInterval); }
 
 function updateStats() {
-  const c=stats.correct,t=stats.total,ss=stats.sessionStreak;
+  const c=stats.correct, t=stats.total, ss=stats.sessionStreak;
   const pct=t>0?Math.round((c/t)*100):null;
   const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
+  statStreak.textContent=ss>=5?'🔥 '+ss+' in a row':'';
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
   const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
   pctBar.style.background=col; sbPctBar.style.background=col;
 }
 
-submitBtn.addEventListener('click', submitAnswer);
-answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
+let toastTimeout;
+function showToast(msg) {
+  toast.textContent = msg; toast.className = 'toast show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'; }, 2500);
+}
+
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('toggleAllBtnMobile').addEventListener('click',  () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('resetBtnDesktop').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
+document.getElementById('resetBtnMobile').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
 document.getElementById('drawerToggle').addEventListener('click', () => {
-  const d=document.getElementById('mobileDrawer'),t=document.getElementById('drawerToggle');
+  const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
   const open=d.classList.toggle('open'); t.classList.toggle('open',open);
 });
 

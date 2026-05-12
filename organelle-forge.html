@@ -3,64 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OrganelleForge — Leon Dudhill</title>
+<title>OrganelleForge — ReviseForge</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f4fbf6;
-    --surface2: #d1fae5;
-    --border: #b6e4ca;
-    --text: #052e16;
-    --text-muted: #2d6a4a;
-    --accent: #16a34a;
-    --correct: #16a34a;
+    --surface: #f7fee7;
+    --surface2: #d9f99d;
+    --border: #bef264;
+    --text: #1a2e05;
+    --text-muted: #3f6212;
+    --accent: #65a30d;
+    --correct: #65a30d;
     --wrong: #e84c1e;
-    --warn-yellow: #f5c518;
-    --warn-orange: #f07d20;
+    --accent2: #f5a623;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ===================== HEADER ===================== */
-  header {
-    padding: 14px 24px;
-    border-bottom: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
-    letter-spacing: 2px;
-    color: var(--text);
-    line-height: 1;
-  }
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
   .logo span { color: var(--accent); }
   .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
   .byline strong { font-weight: 700; color: var(--accent); }
 
-  /* ===================== SCORE BAR (tablet + mobile) ===================== */
-  .score-bar {
-    display: none;
-    background: var(--surface);
-    border-bottom: 1.5px solid var(--border);
-    padding: 10px 20px;
-    gap: 16px;
-    align-items: center;
-    flex-shrink: 0;
-  }
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
   .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
   .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
@@ -69,189 +38,69 @@
   .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
   .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
 
-  /* ===================== DESKTOP LAYOUT ===================== */
-  .layout {
-    display: grid;
-    grid-template-columns: 210px 1fr 210px;
-    flex: 1;
-    min-height: 0;
-  }
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
 
-  /* ===================== SIDEBARS ===================== */
-  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; }
-  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
   .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
 
-  /* Left sidebar info */
-  .info-block { margin-bottom: 18px; }
-  .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .info-block p + p { margin-top: 6px; }
-  .info-pill {
-    display: inline-block;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--accent);
-    padding: 2px 9px;
-    margin: 3px 2px 0;
-  }
-  .organelle-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
-  .organelle-list li {
-    font-size: 11px; font-family: 'DM Mono', monospace;
-    color: var(--text-muted); padding: 4px 8px;
-    background: var(--surface); border-radius: 5px;
-    border: 1px solid var(--border);
-  }
-  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
 
-  /* ===================== MAIN ===================== */
-  .main {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 40px 20px; gap: 24px;
-  }
-  .question-card { text-align: center; max-width: 460px; width: 100%; }
-  .q-type-badge {
-    display: inline-flex; align-items: center;
-    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; color: var(--text-muted);
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 20px; padding: 3px 10px; margin-bottom: 10px;
-  }
-  .question-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(22px, 3.5vw, 32px);
-    letter-spacing: 2px; line-height: 1.25; color: var(--text);
-  }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 28px; }
+  .question-card { text-align: center; max-width: 600px; width: 100%; }
+  .question-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 4vw, 52px); letter-spacing: 2px; line-height: 1.2; color: var(--text); }
   .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
 
-  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-wrap { width: min(280px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
   .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
-  .timer-bar.warning        { background: var(--warn-yellow); }
-  .timer-bar.warning-orange { background: var(--warn-orange); }
+  .timer-bar.warning        { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
   .timer-bar.urgent         { background: var(--wrong); }
-  .timer-bar.expired        { background: var(--wrong); width: 0% !important; }
 
   .streak-dots { display: flex; gap: 6px; justify-content: center; }
   .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
   .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
 
-  /* Multiple choice */
-  .mc-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-    width: min(380px, 100%);
-  }
-  .mc-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); cursor: pointer;
-    transition: all 0.15s; text-align: center; line-height: 1.35;
-  }
-  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(480px, 100%); }
+  .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.4; }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--surface2); color: var(--accent); }
   .mc-btn:active:not(:disabled) { transform: scale(0.97); }
   .mc-btn.correct-flash { border-color: var(--correct); background: #dcfce7; color: var(--correct); }
   .mc-btn.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; color: var(--wrong); }
   .mc-btn:disabled { cursor: default; }
 
-  /* Typed input */
-  .input-row { display: flex; gap: 10px; align-items: center; }
-  .answer-input {
-    font-family: 'DM Mono', monospace;
-    font-size: clamp(15px, 3vw, 20px);
-    font-weight: 500; width: 200px; text-align: center;
-    border: 2px solid var(--border); border-radius: 10px;
-    padding: 10px 12px; outline: none;
-    background: var(--surface); color: var(--text);
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .answer-input:focus         { border-color: var(--accent); background: #fff; }
-  .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
-  .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
-  .answer-input:disabled { opacity: 0.6; }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct  { color: var(--correct); }
+  .feedback-msg.wrong    { color: var(--wrong); }
 
-  .submit-btn {
-    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
-    padding: 12px 22px; border: none; border-radius: 10px;
-    background: var(--accent); color: #fff; cursor: pointer;
-    transition: all 0.15s; letter-spacing: 0.3px;
-    min-height: 48px; min-width: 64px;
-  }
-  .submit-btn:hover  { filter: brightness(1.1); }
-  .submit-btn:active { transform: scale(0.97); }
-
-  .feedback-msg {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 2px; min-height: 26px;
-    text-align: center;
-  }
-  .feedback-msg.correct { color: var(--correct); }
-  .feedback-msg.wrong   { color: var(--wrong); }
-  .feedback-msg.timeout { color: var(--warn-orange); }
-
-  /* ===================== RIGHT SIDEBAR STATS ===================== */
-  .stat-block { margin-bottom: 22px; }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
   .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
   .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
   .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
   .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
 
-  /* ===================== MOBILE DRAWER ===================== */
-  .mobile-drawer-toggle {
-    display: none;
-    width: 100%; padding: 12px 20px;
-    background: var(--surface); border: none;
-    border-top: 1.5px solid var(--border);
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px;
-    align-items: center; justify-content: space-between; flex-shrink: 0;
-  }
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
   .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
   .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
   .mobile-drawer.open { display: block; }
-  .mobile-drawer p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
 
-  /* ===================== FOOTER ===================== */
-  footer {
-    border-top: 1.5px solid var(--border); padding: 11px 24px;
-    font-size: 11.5px; color: var(--text-muted);
-    background: var(--surface); line-height: 1.5; flex-shrink: 0;
-  }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
-  /* ===================== BREAKPOINTS ===================== */
-  @media (max-width: 860px) {
-    .layout { grid-template-columns: 200px 1fr; }
-    .sidebar-right { display: none; }
-    .score-bar { display: flex; }
-  }
-  @media (max-width: 580px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .sidebar-right { display: none; }
-    .score-bar { display: flex; }
-    .mobile-drawer-toggle { display: flex; }
-    .main { padding: 28px 16px; gap: 20px; }
-    header { padding: 12px 16px; }
-    .byline { display: none; }
-    footer { padding: 10px 16px; font-size: 10.5px; }
-    .mc-grid { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 360px) {
-    .mc-grid { grid-template-columns: 1fr; }
-  }
-
-  .hidden { display: none !important; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+  @media (max-width: 400px) { .mc-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -261,16 +110,9 @@
   <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
 </header>
 
-<!-- Score bar: tablet + mobile -->
 <div class="score-bar" id="scoreBar">
-  <div class="score-bar-item">
-    <span class="score-bar-label">Correct</span>
-    <span class="score-bar-value" id="sbCorrect">0</span>
-  </div>
-  <div class="score-bar-item">
-    <span class="score-bar-label">Total</span>
-    <span class="score-bar-value" id="sbTotal">0</span>
-  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
   <div class="score-bar-pct-wrap">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <span class="score-bar-label">Accuracy</span>
@@ -278,260 +120,144 @@
     </div>
     <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
   </div>
-  <div class="score-bar-item">
-    <span class="score-bar-label">Streak</span>
-    <span class="score-bar-value" id="sbStreak">0</span>
-  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Streak</span><span class="score-bar-value" id="sbStreak">0</span></div>
 </div>
 
 <div class="layout">
-
-  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">About</div>
-
-    <div class="info-block">
-      <div class="info-block-title">How to drill</div>
-      <p>A question appears with a <strong>6-second</strong> timer. Answer as fast as you can — but if the timer runs out you can still answer!</p>
-      <p>Typed answers don't need perfect spelling. Close counts.</p>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Question types</div>
-      <span class="info-pill">Multiple Choice</span>
-      <span class="info-pill">Typed Answer</span>
-    </div>
-
-    <hr class="divider">
-
-    <div class="info-block">
-      <div class="info-block-title">Organelles covered</div>
-      <ul class="organelle-list">
-        <li>🔵 Nucleus</li>
-        <li>⚡ Mitochondria</li>
-        <li>🟢 Chloroplast</li>
-        <li>🔴 Ribosome</li>
-        <li>🟡 Cell membrane</li>
-        <li>🟤 Cell wall</li>
-        <li>💧 Vacuole</li>
-        <li>🌊 Cytoplasm</li>
-      </ul>
-    </div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Shuffle Questions</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="question-card">
-      <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
       <div class="question-text" id="questionText">—</div>
-      <div class="question-sub" id="questionSub">6 seconds per question</div>
+      <div class="question-sub" id="questionSub"></div>
     </div>
-
     <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
     <div class="streak-dots" id="streakDots">
-      <div class="streak-dot"></div>
-      <div class="streak-dot"></div>
-      <div class="streak-dot"></div>
-      <div class="streak-dot"></div>
-      <div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
+      <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
     </div>
-
-    <!-- Multiple choice -->
-    <div class="mc-grid hidden" id="mcGrid"></div>
-
-    <!-- Typed -->
-    <div class="input-row hidden" id="typedRow">
-      <input class="answer-input" id="answerInput" type="text" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="submit-btn" id="submitBtn">Go</button>
-    </div>
-
+    <div class="mc-grid" id="mcGrid"></div>
     <div class="feedback-msg" id="feedbackMsg"></div>
   </div>
 
-  <!-- RIGHT SIDEBAR -->
   <div class="sidebar sidebar-right">
     <div class="sidebar-title">Score</div>
     <div class="stat-block">
       <div class="stat-label">Correct / Total</div>
-      <div class="stat-value">
-        <span id="statCorrect">0</span>
-        <span style="font-size:20px;color:var(--border)">/</span>
-        <span id="statTotal">0</span>
-      </div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Accuracy</div>
       <div class="stat-value"><span id="statPct">—</span></div>
       <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
-    </div>
-    <hr class="divider">
-    <div class="stat-block">
-      <div class="stat-label">Session Streak</div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-sub" id="streakMsg"></div>
+      <div class="stat-sub" id="statStreak"></div>
     </div>
   </div>
-
 </div>
 
-<!-- MOBILE DRAWER -->
 <button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ About this drill</span>
+  <span>⚙ Options</span>
   <span class="arrow">▼</span>
 </button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <p>A question appears with a <strong>6-second</strong> timer. The timer runs out but you can still answer! Typed answers don't need perfect spelling.</p>
-  <p style="margin-top:8px"><strong>Organelles:</strong> Nucleus, Mitochondria, Chloroplast, Ribosome, Cell membrane, Cell wall, Vacuole, Cytoplasm.</p>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Shuffle</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset</button>
+  </div>
 </div>
 
 <footer>
   <span class="footer-label">DISCLAIMER</span>
-  This tool was built for personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta. — Leon Dudhill
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — Leon Dudhill
 </footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const TIME_LIMIT = 6000;
 
-// ============================================================
-// QUESTION BANK
-// ============================================================
 const bank = [
-  { type: 'mc',    q: 'Where does aerobic respiration take place?',               correct: 'Mitochondria',                    options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Vacuole'] },
-  { type: 'mc',    q: 'Which organelle contains the cell\'s DNA?',                correct: 'Nucleus',                         options: ['Ribosome', 'Mitochondria', 'Nucleus', 'Cell membrane'] },
-  { type: 'mc',    q: 'Where is protein synthesised in a cell?',                  correct: 'Ribosome',                        options: ['Nucleus', 'Vacuole', 'Mitochondria', 'Ribosome'] },
-  { type: 'mc',    q: 'Which structure controls what enters and leaves the cell?',correct: 'Cell membrane',                   options: ['Cell wall', 'Nucleus', 'Cell membrane', 'Vacuole'] },
-  { type: 'mc',    q: 'Which organelle is found in plant cells but NOT animal?',  correct: 'Chloroplast',                     options: ['Ribosome', 'Mitochondria', 'Chloroplast', 'Cell membrane'] },
-  { type: 'mc',    q: 'What does the cell wall do?',                              correct: 'Provides structural support',      options: ['Controls cell division', 'Provides structural support', 'Makes proteins', 'Stores DNA'] },
-  { type: 'mc',    q: 'Which organelle absorbs light for photosynthesis?',        correct: 'Chloroplast',                     options: ['Mitochondria', 'Nucleus', 'Chloroplast', 'Vacuole'] },
-  { type: 'mc',    q: 'What does the vacuole do in a plant cell?',                correct: 'Stores cell sap & maintains turgor', options: ['Produces energy', 'Makes proteins', 'Stores cell sap & maintains turgor', 'Controls the cell'] },
-  { type: 'mc',    q: 'What green pigment is found in chloroplasts?',             correct: 'Chlorophyll',                     options: ['Haemoglobin', 'Melanin', 'Chlorophyll', 'Carotene'] },
-  { type: 'mc',    q: 'Which is found in BOTH plant and animal cells?',           correct: 'Mitochondria',                    options: ['Cell wall', 'Chloroplast', 'Mitochondria', 'Large vacuole'] },
-  { type: 'mc',    q: 'The nucleus controls the cell by containing…',             correct: 'DNA',                             options: ['Chlorophyll', 'Glucose', 'DNA', 'ATP'] },
-  { type: 'mc',    q: 'Which organelle produces most of the cell\'s ATP?',        correct: 'Mitochondria',                    options: ['Ribosome', 'Nucleus', 'Mitochondria', 'Vacuole'] },
-  { type: 'mc',    q: 'What is the plant cell wall made from?',                   correct: 'Cellulose',                       options: ['Chitin', 'Keratin', 'Cellulose', 'Lignin'] },
-  { type: 'mc',    q: 'Where does anaerobic respiration occur?',                  correct: 'Cytoplasm',                       options: ['Mitochondria', 'Nucleus', 'Ribosome', 'Cytoplasm'] },
-  { type: 'mc',    q: 'Where does transcription (making mRNA) take place?',       correct: 'Nucleus',                         options: ['Ribosome', 'Nucleus', 'Mitochondria', 'Cytoplasm'] },
-  { type: 'mc',    q: 'Where does translation (making proteins) take place?',     correct: 'Ribosome',                        options: ['Nucleus', 'Vacuole', 'Ribosome', 'Mitochondria'] },
-  { type: 'mc',    q: 'Which structure is NOT in a prokaryotic cell?',            correct: 'Nucleus',                         options: ['Cell membrane', 'Ribosome', 'Nucleus', 'Cytoplasm'] },
-  { type: 'typed', q: 'Name the organelle that carries out aerobic respiration.',         correct: ['mitochondria','mitochondrion'],        display: 'Mitochondria' },
-  { type: 'typed', q: 'Name the organelle responsible for protein synthesis.',            correct: ['ribosome','ribosomes'],               display: 'Ribosome' },
-  { type: 'typed', q: 'What pigment inside chloroplasts absorbs light?',                  correct: ['chlorophyll'],                        display: 'Chlorophyll' },
-  { type: 'typed', q: 'Name the organelle that controls the activities of the cell.',     correct: ['nucleus'],                            display: 'Nucleus' },
-  { type: 'typed', q: 'What structure surrounds plant cells but not animal cells?',       correct: ['cell wall'],                          display: 'Cell wall' },
-  { type: 'typed', q: 'Name the organelle controlling what moves in and out of the cell.',correct: ['cell membrane','plasma membrane'],    display: 'Cell membrane' },
-  { type: 'typed', q: 'What is the large fluid-filled sac in plant cells called?',        correct: ['vacuole','permanent vacuole'],         display: 'Vacuole' },
-  { type: 'typed', q: 'Where does anaerobic respiration take place in the cell?',         correct: ['cytoplasm'],                          display: 'Cytoplasm' },
-  { type: 'typed', q: 'What material makes up the plant cell wall?',                      correct: ['cellulose'],                          display: 'Cellulose' },
+  { q: 'What is the function of the nucleus?', correct: 'Controls cell activities and contains DNA', options: ['Produces energy for the cell', 'Controls cell activities and contains DNA', 'Makes proteins for the cell', 'Controls what enters and leaves the cell'] },
+  { q: 'What is the function of the mitochondria?', correct: 'Site of aerobic respiration — produces ATP energy', options: ['Site of protein synthesis', 'Site of aerobic respiration — produces ATP energy', 'Controls cell division', 'Stores water and minerals'] },
+  { q: 'What is the function of the ribosome?', correct: 'Site of protein synthesis', options: ['Site of aerobic respiration', 'Stores genetic information', 'Site of protein synthesis', 'Controls what enters the cell'] },
+  { q: 'What is the function of the cell membrane?', correct: 'Controls what enters and leaves the cell', options: ['Provides rigid support to the cell', 'Controls what enters and leaves the cell', 'Carries out photosynthesis', 'Produces energy for the cell'] },
+  { q: 'What is the function of the cell wall (in plant cells)?', correct: 'Provides rigid support and structure', options: ['Controls what enters and leaves the cell', 'Provides rigid support and structure', 'Carries out respiration', 'Contains the DNA'] },
+  { q: 'What is the function of the chloroplast?', correct: 'Site of photosynthesis — absorbs light energy', options: ['Site of respiration', 'Site of photosynthesis — absorbs light energy', 'Stores starch in plant cells', 'Controls cell division'] },
+  { q: 'What is the function of the vacuole in a plant cell?', correct: 'Stores cell sap and maintains turgor pressure', options: ['Produces energy', 'Stores cell sap and maintains turgor pressure', 'Carries out photosynthesis', 'Controls protein production'] },
+  { q: 'Which organelle is found in plant cells but NOT animal cells?', correct: 'Chloroplast', options: ['Mitochondria', 'Ribosome', 'Chloroplast', 'Cell membrane'] },
+  { q: 'Which organelle is the site of aerobic respiration?', correct: 'Mitochondria', options: ['Ribosome', 'Nucleus', 'Mitochondria', 'Chloroplast'] },
+  { q: 'Which organelle contains the genetic material (DNA)?', correct: 'Nucleus', options: ['Mitochondria', 'Ribosome', 'Nucleus', 'Vacuole'] },
+  { q: 'What does the cell membrane consist of?', correct: 'A phospholipid bilayer with proteins', options: ['A single layer of cellulose', 'A phospholipid bilayer with proteins', 'A double layer of protein only', 'A rigid layer of glycogen'] },
+  { q: 'What is the function of the endoplasmic reticulum?', correct: 'Transport system within the cell', options: ['Produces energy via respiration', 'Transport system within the cell', 'Controls cell division', 'Stores water in the cell'] },
+  { q: 'What is the function of the Golgi apparatus?', correct: 'Processes and packages proteins for secretion', options: ['Produces proteins directly', 'Processes and packages proteins for secretion', 'Controls what enters the cell', 'Carries out photosynthesis'] },
+  { q: 'Which cells have the most mitochondria and why?', correct: 'Muscle cells — they need lots of energy', options: ['Skin cells — they need to reproduce quickly', 'Muscle cells — they need lots of energy', 'Red blood cells — they carry oxygen', 'Nerve cells — they send signals quickly'] },
+  { q: 'What is a prokaryotic cell?', correct: 'A cell with no membrane-bound nucleus', options: ['A cell with a nucleus and organelles', 'A cell with no membrane-bound nucleus', 'A plant cell with a cell wall', 'A cell that reproduces by mitosis'] },
+  { q: 'What is a eukaryotic cell?', correct: 'A cell with a membrane-bound nucleus', options: ['A cell with no nucleus', 'A cell with a membrane-bound nucleus', 'A bacterial cell', 'A cell that only exists in animals'] },
+  { q: 'Which organelle makes ATP?', correct: 'Mitochondria', options: ['Ribosome', 'Nucleus', 'Mitochondria', 'Chloroplast'] },
+  { q: 'What pigment is found in chloroplasts?', correct: 'Chlorophyll', options: ['Haemoglobin', 'Melanin', 'Chlorophyll', 'Carotene'] },
+  { q: 'Which organelle would be most numerous in a cell that secretes lots of proteins?', correct: 'Ribosomes', options: ['Mitochondria', 'Chloroplasts', 'Ribosomes', 'Vacuoles'] },
+  { q: 'What is the main component of the plant cell wall?', correct: 'Cellulose', options: ['Starch', 'Glycogen', 'Cellulose', 'Chitin'] },
 ];
 
-// ============================================================
-// STATE
-// ============================================================
 let stats = { correct: 0, total: 0, sessionStreak: 0 };
-let currentQ   = null;
-let answered   = false;
-let timerExpired = false;
-let timerInterval = null;
-let timerStart    = null;
-let shuffled = [];
-let shuffleIdx = 0;
-let localStreak = 0;
+let currentQ = null, answered = false;
+let timerInterval = null, timerStart = null;
+let shuffled = [], shuffleIdx = 0, localStreak = 0;
 
 function shuffle(arr) {
   const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
 }
 function getNextQ() {
   if (shuffleIdx >= shuffled.length) {
-    shuffled = shuffle(bank);
-    shuffleIdx = 0;
-    if (shuffled.length > 1 && currentQ && shuffled[0].q === currentQ.q)
-      [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+    shuffled = shuffle(bank); shuffleIdx = 0;
+    if (shuffled.length > 1 && currentQ && shuffled[0].q === currentQ.q) [shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];
   }
   return shuffled[shuffleIdx++];
 }
 
-// ============================================================
-// DOM REFS
-// ============================================================
 const timerBarEl   = document.getElementById('timerBar');
-const qTypeBadge   = document.getElementById('qTypeBadge');
 const questionText = document.getElementById('questionText');
 const questionSub  = document.getElementById('questionSub');
 const mcGrid       = document.getElementById('mcGrid');
-const typedRow     = document.getElementById('typedRow');
-const answerInput  = document.getElementById('answerInput');
-const submitBtn    = document.getElementById('submitBtn');
 const feedbackMsg  = document.getElementById('feedbackMsg');
 const streakDotsEl = document.getElementById('streakDots');
-// Stats
 const statCorrect  = document.getElementById('statCorrect');
 const statTotal    = document.getElementById('statTotal');
 const statPct      = document.getElementById('statPct');
 const pctBar       = document.getElementById('pctBar');
 const statStreak   = document.getElementById('statStreak');
-const streakMsg    = document.getElementById('streakMsg');
 const sbCorrect    = document.getElementById('sbCorrect');
 const sbTotal      = document.getElementById('sbTotal');
 const sbPct        = document.getElementById('sbPct');
 const sbPctBar     = document.getElementById('sbPctBar');
 const sbStreak     = document.getElementById('sbStreak');
+const toast        = document.getElementById('toast');
 
-// ============================================================
-// STREAK DOTS
-// ============================================================
 function renderStreakDots(n) {
-  streakDotsEl.querySelectorAll('.streak-dot').forEach((d, i) => d.classList.toggle('filled', i < n));
+  streakDotsEl.querySelectorAll('.streak-dot').forEach((d,i) => d.classList.toggle('filled', i < n));
 }
 
-// ============================================================
-// NEXT QUESTION
-// ============================================================
 function nextQuestion() {
   stopTimer();
-  answered     = false;
-  timerExpired = false;
-  feedbackMsg.textContent = '';
-  feedbackMsg.className   = 'feedback-msg';
-
+  answered = false;
+  feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
-
-  if (currentQ.type === 'mc') {
-    qTypeBadge.textContent = 'Multiple Choice';
-    mcGrid.classList.remove('hidden');
-    typedRow.classList.add('hidden');
-    renderMC(currentQ);
-  } else {
-    qTypeBadge.textContent = 'Typed Answer';
-    mcGrid.classList.add('hidden');
-    typedRow.classList.remove('hidden');
-    answerInput.value     = '';
-    answerInput.className = 'answer-input';
-    answerInput.disabled  = false;
-    submitBtn.disabled    = false;
-    if (!('ontouchstart' in window)) answerInput.focus();
-  }
-
   questionText.textContent = currentQ.q;
-  questionSub.textContent  = '6 seconds per question';
+  questionSub.textContent = '';
+  renderMC(currentQ);
   startTimer();
 }
 
-// ============================================================
-// MULTIPLE CHOICE
-// ============================================================
 function renderMC(q) {
   mcGrid.innerHTML = '';
   shuffle(q.options).forEach(opt => {
     const btn = document.createElement('button');
-    btn.className   = 'mc-btn';
-    btn.textContent = opt;
+    btn.className = 'mc-btn'; btn.textContent = opt;
     btn.onclick = () => handleMC(opt, btn);
     mcGrid.appendChild(btn);
   });
@@ -539,181 +265,76 @@ function renderMC(q) {
 
 function handleMC(chosen, btn) {
   if (answered) return;
-  answered = true;
-  stopTimer();
-  stats.total++;
-
+  answered = true; stopTimer(); stats.total++;
   document.querySelectorAll('.mc-btn').forEach(b => b.disabled = true);
-
   if (chosen === currentQ.correct) {
     btn.classList.add('correct-flash');
-    recordCorrect();
+    stats.correct++; stats.sessionStreak++;
+    localStreak = Math.min(localStreak+1, 5); renderStreakDots(localStreak);
+    const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!'];
+    feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    feedbackMsg.className = 'feedback-msg correct';
   } else {
     btn.classList.add('wrong-flash');
-    document.querySelectorAll('.mc-btn').forEach(b => {
-      if (b.textContent === currentQ.correct) b.classList.add('correct-flash');
-    });
-    recordWrong('Answer: ' + currentQ.correct);
+    document.querySelectorAll('.mc-btn').forEach(b => { if (b.textContent === currentQ.correct) b.classList.add('correct-flash'); });
+    stats.sessionStreak = 0; localStreak = 0; renderStreakDots(0);
+    feedbackMsg.textContent = '✗  Answer was ' + currentQ.correct;
+    feedbackMsg.className = 'feedback-msg wrong';
   }
-  setTimeout(nextQuestion, 1000);
-}
-
-// ============================================================
-// TYPED
-// ============================================================
-function submitAnswer() {
-  if (answered || answerInput.disabled) return;
-  const val = answerInput.value.trim();
-  if (!val) { answerInput.focus(); return; }
-  answered = true;
-  stopTimer();
-  stats.total++;
-  answerInput.disabled = true;
-  submitBtn.disabled   = true;
-
-  if (isCorrect(val, currentQ.correct)) {
-    answerInput.className = 'answer-input correct-flash';
-    recordCorrect();
-  } else {
-    answerInput.className = 'answer-input wrong-flash';
-    recordWrong('Answer: ' + currentQ.display);
-  }
-  setTimeout(nextQuestion, 1000);
-}
-
-function isCorrect(input, accepted) {
-  const norm = s => s.toLowerCase().trim().replace(/\s+/g, ' ');
-  const inp  = norm(input);
-  if (accepted.some(a => norm(a) === inp)) return true;
-  return accepted.some(a => {
-    const na = norm(a);
-    return na.length > 4 && levenshtein(inp, na) <= 2;
-  });
-}
-
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({length: m+1}, (_, i) =>
-    Array.from({length: n+1}, (_, j) => i===0 ? j : j===0 ? i : 0));
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-// ============================================================
-// CORRECT / WRONG
-// ============================================================
-function recordCorrect() {
-  stats.correct++;
-  stats.sessionStreak++;
-  localStreak = Math.min(localStreak + 1, 5);
-  renderStreakDots(localStreak);
-  const msgs = ['Correct!', 'Nice!', 'Spot on!', 'Yes!', '✓ Right!', 'Nailed it!'];
-  feedbackMsg.textContent = msgs[Math.floor(Math.random() * msgs.length)];
-  feedbackMsg.className   = 'feedback-msg correct';
   updateStats();
+  setTimeout(nextQuestion, 1200);
 }
 
-function recordWrong(msg) {
-  stats.sessionStreak = 0;
-  localStreak = 0;
-  renderStreakDots(0);
-  feedbackMsg.textContent = '✗  ' + msg;
-  feedbackMsg.className   = 'feedback-msg wrong';
-  updateStats();
-}
-
-// ============================================================
-// TIMER — expires visually but does NOT auto-advance
-// ============================================================
 function startTimer() {
   timerStart = Date.now();
-  timerBarEl.style.transition = 'none';
-  timerBarEl.style.width = '100%';
-  timerBarEl.className = 'timer-bar';
+  timerBarEl.style.transition = 'none'; timerBarEl.style.width = '100%'; timerBarEl.className = 'timer-bar';
   clearInterval(timerInterval);
-
   timerInterval = setInterval(() => {
-    const pct = Math.max(0, 100 - ((Date.now() - timerStart) / TIME_LIMIT) * 100);
+    const pct = Math.max(0, 100 - ((Date.now()-timerStart)/TIME_LIMIT)*100);
     timerBarEl.style.transition = 'width 0.1s linear, background 0.3s';
     timerBarEl.style.width = pct + '%';
-
-    if      (pct <= 0)  { timerBarEl.className = 'timer-bar urgent'; }
-    else if (pct <= 16) { timerBarEl.className = 'timer-bar urgent'; }
-    else if (pct <= 33) { timerBarEl.className = 'timer-bar warning-orange'; }
-    else if (pct <= 55) { timerBarEl.className = 'timer-bar warning'; }
-    else                { timerBarEl.className = 'timer-bar'; }
-
-    if (pct <= 0 && !timerExpired) {
-      timerExpired = true;
-      clearInterval(timerInterval);
-      timerBarEl.style.width = '0%';
-      onTimerExpired();
-    }
+    if      (pct <= 16) timerBarEl.className = 'timer-bar urgent';
+    else if (pct <= 33) timerBarEl.className = 'timer-bar warning-orange';
+    else if (pct <= 55) timerBarEl.className = 'timer-bar warning';
+    else                timerBarEl.className = 'timer-bar';
   }, 100);
 }
-
 function stopTimer() { clearInterval(timerInterval); }
 
-function onTimerExpired() {
-  // Show a nudge but keep the question live — user can still answer
-  if (!answered) {
-    questionSub.textContent = '⏱  Time\'s up — still answer!';
-    feedbackMsg.textContent = 'Time up — what is it?';
-    feedbackMsg.className   = 'feedback-msg timeout';
-    // Re-focus typed input so they can still type
-    if (currentQ.type === 'typed' && !('ontouchstart' in window)) answerInput.focus();
-  }
-}
-
-// ============================================================
-// STATS
-// ============================================================
 function updateStats() {
-  const c = stats.correct, t = stats.total, ss = stats.sessionStreak;
-  const pct    = t > 0 ? Math.round((c / t) * 100) : null;
-  const pctStr = pct !== null ? pct + '%' : '—';
-  const pctW   = pct !== null ? pct + '%' : '0%';
-
-  statCorrect.textContent = c;
-  statTotal.textContent   = t;
-  statPct.textContent     = pctStr;
-  statStreak.textContent  = ss;
-  streakMsg.textContent   = ss >= 3 ? `🔥 ${ss} in a row` : '';
-  pctBar.style.width      = pctW;
-
-  sbCorrect.textContent   = c;
-  sbTotal.textContent     = t;
-  sbPct.textContent       = pctStr;
-  sbPctBar.style.width    = pctW;
-  sbStreak.textContent    = ss;
-
-  const col = pct === null ? 'var(--correct)'
-    : pct <= 25 ? '#e84c1e'
-    : pct <= 50 ? '#f07d20'
-    : pct <= 70 ? '#f5c518'
-    : 'var(--correct)';
-  pctBar.style.background   = col;
-  sbPctBar.style.background = col;
+  const c=stats.correct, t=stats.total, ss=stats.sessionStreak;
+  const pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
+  statStreak.textContent=ss>=5?'🔥 '+ss+' in a row':'';
+  pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
+  sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col; sbPctBar.style.background=col;
 }
 
-// ============================================================
-// EVENTS
-// ============================================================
-submitBtn.addEventListener('click', submitAnswer);
-answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+let toastTimeout;
+function showToast(msg) {
+  toast.textContent = msg; toast.className = 'toast show';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'; }, 2500);
+}
 
+document.getElementById('toggleAllBtnDesktop').addEventListener('click', () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('toggleAllBtnMobile').addEventListener('click',  () => { shuffled=[]; shuffleIdx=0; nextQuestion(); showToast('Questions reshuffled!'); });
+document.getElementById('resetBtnDesktop').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
+document.getElementById('resetBtnMobile').addEventListener('click', () => {
+  if (!confirm('Reset all stats? This cannot be undone.')) return;
+  stats={correct:0,total:0,sessionStreak:0}; localStreak=0; updateStats(); nextQuestion(); showToast('Progress reset.');
+});
 document.getElementById('drawerToggle').addEventListener('click', () => {
-  const drawer = document.getElementById('mobileDrawer');
-  const toggle = document.getElementById('drawerToggle');
-  const open   = drawer.classList.toggle('open');
-  toggle.classList.toggle('open', open);
+  const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
+  const open=d.classList.toggle('open'); t.classList.toggle('open',open);
 });
 
-// ============================================================
-// INIT
-// ============================================================
 updateStats();
 nextQuestion();
 </script>
