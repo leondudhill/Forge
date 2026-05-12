@@ -3,44 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EnzymeForge — Leon Dudhill</title>
+<title>HormoneForge — Leon Dudhill</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #ecfdf5;
-    --surface2: #a7f3d0;
-    --border: #6ee7b7;
-    --text: #064e3b;
-    --text-muted: #065f46;
-    --accent: #059669;
-    --correct: #059669;
+    --surface: #f0fdfa;
+    --surface2: #99f6e4;
+    --border: #5eead4;
+    --text: #042f2e;
+    --text-muted: #0f766e;
+    --accent: #0d9488;
+    --correct: #0d9488;
     --wrong: #e84c1e;
     --warn-yellow: #f5c518;
     --warn-orange: #f07d20;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; display: flex; flex-direction: column;
-  }
-
-  header {
-    padding: 14px 24px; border-bottom: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-  }
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
   .logo span { color: var(--accent); }
   .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
   .byline strong { font-weight: 700; color: var(--accent); }
 
-  .score-bar {
-    display: none; background: var(--surface); border-bottom: 1.5px solid var(--border);
-    padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0;
-  }
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
   .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
   .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
@@ -58,11 +47,15 @@
   .info-block { margin-bottom: 18px; }
   .info-block-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
   .info-block p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-  .info-block p + p { margin-top: 6px; }
+  .info-block p + p { margin-top: 5px; }
 
-  .term-list { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-  .term-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
-  .term-list li strong { color: var(--text); display: block; font-size: 11px; font-family: 'DM Mono', monospace; }
+  .hormone-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+  .hormone-list li { font-size: 11px; color: var(--text-muted); padding: 5px 8px; background: var(--surface); border-radius: 5px; border: 1px solid var(--border); line-height: 1.5; }
+  .hormone-list li strong { color: var(--text); display: block; font-family: 'DM Mono', monospace; font-size: 11px; }
+
+  .cycle-steps { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .cycle-step { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .cycle-step-num { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent); line-height: 1.2; flex-shrink: 0; width: 16px; }
 
   .info-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); padding: 2px 9px; margin: 3px 2px 0; }
   .divider { border: none; border-top: 1.5px solid var(--border); margin: 16px 0; }
@@ -83,7 +76,7 @@
   .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
   .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
 
-  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(400px, 100%); }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; width: min(420px, 100%); }
   .mc-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.35; }
   .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #ecfdf5; color: var(--accent); }
   .mc-btn:active:not(:disabled) { transform: scale(0.97); }
@@ -92,7 +85,7 @@
   .mc-btn:disabled { cursor: default; }
 
   .input-row { display: flex; gap: 10px; align-items: center; }
-  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(15px, 3vw, 20px); font-weight: 500; width: 200px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(32px, 5vw, 52px); font-weight: 500; width: 220px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
   .answer-input:focus         { border-color: var(--accent); background: #fff; }
   .answer-input.correct-flash { border-color: var(--correct); background: #dcfce7; }
   .answer-input.wrong-flash   { border-color: var(--wrong);   background: #fff0ed; }
@@ -128,14 +121,13 @@
   @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
   @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 20px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
   @media (max-width: 360px) { .mc-grid { grid-template-columns: 1fr; } }
-
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Enzyme<span>Forge</span></div>
+  <div class="logo">Hormone<span>Forge</span></div>
   <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
 </header>
 
@@ -156,29 +148,29 @@
 
   <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-title">Key Terms</div>
+    <div class="sidebar-title">Hormones</div>
 
     <div class="info-block">
-      <ul class="term-list">
-        <li><strong>Enzyme</strong>Biological catalyst — speeds up reactions without being used up.</li>
-        <li><strong>Active site</strong>The specific region where the substrate binds.</li>
-        <li><strong>Substrate</strong>The molecule the enzyme acts on.</li>
-        <li><strong>Lock and key</strong>The substrate fits the active site like a key in a lock.</li>
-        <li><strong>Denatured</strong>Active site shape permanently changed — enzyme no longer works.</li>
-        <li><strong>Optimum</strong>The temperature or pH at which an enzyme works best.</li>
-        <li><strong>Complementary</strong>The substrate shape matches the active site shape exactly.</li>
+      <ul class="hormone-list">
+        <li><strong>FSH</strong>From pituitary. Stimulates egg maturation in ovaries. Stimulates oestrogen production.</li>
+        <li><strong>Oestrogen</strong>From ovaries. Repairs uterus lining. Inhibits FSH. Stimulates LH surge.</li>
+        <li><strong>LH</strong>From pituitary. Surge triggers ovulation (egg release) around day 14.</li>
+        <li><strong>Progesterone</strong>From corpus luteum. Maintains uterus lining after ovulation. Inhibits FSH and LH.</li>
       </ul>
     </div>
 
     <hr class="divider">
 
     <div class="info-block">
-      <div class="info-block-title">Key enzymes</div>
-      <ul class="term-list">
-        <li><strong>Amylase</strong>Breaks down starch → sugars. Works in mouth &amp; small intestine.</li>
-        <li><strong>Protease</strong>Breaks down proteins → amino acids.</li>
-        <li><strong>Lipase</strong>Breaks down lipids → fatty acids + glycerol.</li>
-      </ul>
+      <div class="info-block-title">Cycle summary</div>
+      <div class="cycle-steps">
+        <div class="cycle-step"><div class="cycle-step-num">1</div><div>Days 1–5: Menstruation — lining breaks down</div></div>
+        <div class="cycle-step"><div class="cycle-step-num">2</div><div>Days 1–13: FSH → egg matures, oestrogen rises</div></div>
+        <div class="cycle-step"><div class="cycle-step-num">3</div><div>Days 5–13: Oestrogen repairs uterus lining</div></div>
+        <div class="cycle-step"><div class="cycle-step-num">4</div><div>Day ~14: LH surge → ovulation</div></div>
+        <div class="cycle-step"><div class="cycle-step-num">5</div><div>Days 14–28: Progesterone maintains lining</div></div>
+        <div class="cycle-step"><div class="cycle-step-num">6</div><div>Day 28: If no fertilisation → progesterone falls → menstruation</div></div>
+      </div>
     </div>
 
     <hr class="divider">
@@ -241,13 +233,14 @@
 </div>
 
 <button class="mobile-drawer-toggle" id="drawerToggle">
-  <span>ℹ Key terms</span>
+  <span>ℹ Hormone reference</span>
   <span class="arrow">▼</span>
 </button>
 <div class="mobile-drawer" id="mobileDrawer">
-  <p><strong>Active site:</strong> specific region where substrate binds. Shape is complementary to the substrate.</p>
-  <p><strong>Denatured:</strong> active site shape permanently changed by high temperature or extreme pH.</p>
-  <p><strong>Amylase</strong> → starch. <strong>Protease</strong> → proteins. <strong>Lipase</strong> → lipids.</p>
+  <p><strong>FSH</strong> (pituitary) → matures egg, stimulates oestrogen.</p>
+  <p><strong>Oestrogen</strong> (ovaries) → repairs lining, inhibits FSH, triggers LH surge.</p>
+  <p><strong>LH</strong> (pituitary) → surge causes ovulation ~day 14.</p>
+  <p><strong>Progesterone</strong> (corpus luteum) → maintains lining after ovulation, inhibits FSH &amp; LH.</p>
 </div>
 
 <footer>
@@ -259,106 +252,108 @@
 const TIME_LIMIT = 6000;
 
 const bank = [
-  // ── WHAT IS AN ENZYME ──
-  { type: 'mc', q: 'What is an enzyme?',
-    correct: 'A biological catalyst',
-    options: ['A biological catalyst', 'A type of hormone', 'A structural protein', 'A carbohydrate'] },
-  { type: 'mc', q: 'What does an enzyme do to the rate of a reaction?',
-    correct: 'Speeds it up',
-    options: ['Slows it down', 'Speeds it up', 'Has no effect', 'Stops it completely'] },
-  { type: 'mc', q: 'Are enzymes used up during a reaction?',
-    correct: 'No — they are reusable',
-    options: ['Yes — they are destroyed', 'No — they are reusable', 'Sometimes', 'Only at high temperatures'] },
+  // ── FSH ──
+  { type: 'mc', q: 'Where is FSH produced?',
+    correct: 'Pituitary gland',
+    options: ['Ovaries', 'Pituitary gland', 'Uterus', 'Adrenal gland'] },
+  { type: 'mc', q: 'What does FSH stimulate?',
+    correct: 'Egg maturation and oestrogen production',
+    options: ['Ovulation directly', 'Egg maturation and oestrogen production', 'Uterus lining breakdown', 'Progesterone release'] },
+  { type: 'mc', q: 'Which hormone inhibits FSH production?',
+    correct: 'Oestrogen',
+    options: ['Progesterone', 'LH', 'Oestrogen', 'Testosterone'] },
+  { type: 'mc', q: 'FSH stands for…',
+    correct: 'Follicle Stimulating Hormone',
+    options: ['Follicle Stimulating Hormone', 'Female Sex Hormone', 'Fertilisation Support Hormone', 'Follicle Secreting Hormone'] },
 
-  // ── ACTIVE SITE / LOCK AND KEY ──
-  { type: 'mc', q: 'What is the name of the region on an enzyme where the substrate binds?',
-    correct: 'Active site',
-    options: ['Binding groove', 'Active site', 'Receptor site', 'Reaction zone'] },
-  { type: 'mc', q: 'What model describes how a substrate fits into an enzyme?',
-    correct: 'Lock and key model',
-    options: ['Induced fit model', 'Lock and key model', 'Complementary binding model', 'Jigsaw model'] },
-  { type: 'mc', q: 'What word describes the relationship between a substrate shape and an active site?',
-    correct: 'Complementary',
-    options: ['Identical', 'Complementary', 'Symmetrical', 'Reactive'] },
-  { type: 'mc', q: 'In the lock and key model, what does the "key" represent?',
-    correct: 'The substrate',
-    options: ['The enzyme', 'The substrate', 'The product', 'The active site'] },
-  { type: 'mc', q: 'In the lock and key model, what does the "lock" represent?',
-    correct: 'The enzyme',
-    options: ['The enzyme', 'The substrate', 'The product', 'The catalyst'] },
+  // ── OESTROGEN ──
+  { type: 'mc', q: 'Where is oestrogen produced?',
+    correct: 'Ovaries',
+    options: ['Pituitary gland', 'Uterus', 'Ovaries', 'Pancreas'] },
+  { type: 'mc', q: 'What does oestrogen do to the uterus lining?',
+    correct: 'Causes it to thicken and repair',
+    options: ['Causes it to break down', 'Causes it to thicken and repair', 'Has no effect on it', 'Removes it completely'] },
+  { type: 'mc', q: 'What effect does high oestrogen have on FSH?',
+    correct: 'It inhibits FSH production',
+    options: ['It stimulates more FSH', 'It inhibits FSH production', 'It has no effect on FSH', 'It converts FSH to LH'] },
+  { type: 'mc', q: 'What does a surge in oestrogen trigger?',
+    correct: 'A surge in LH leading to ovulation',
+    options: ['Menstruation', 'A surge in LH leading to ovulation', 'Production of progesterone', 'Breakdown of the uterus lining'] },
 
-  // ── TEMPERATURE ──
-  { type: 'mc', q: 'What happens to enzyme activity as temperature increases towards the optimum?',
-    correct: 'It increases',
-    options: ['It decreases', 'It increases', 'It stays the same', 'It stops'] },
-  { type: 'mc', q: 'What happens to an enzyme when the temperature is too high?',
-    correct: 'It denatures',
-    options: ['It freezes', 'It denatures', 'It speeds up', 'It replicates'] },
-  { type: 'mc', q: 'What does it mean when an enzyme is denatured?',
-    correct: 'The active site shape permanently changes',
-    options: ['The enzyme slows down temporarily', 'The active site shape permanently changes', 'The enzyme becomes a different protein', 'The substrate is destroyed'] },
-  { type: 'mc', q: 'What is the approximate optimum temperature for most human enzymes?',
-    correct: '37°C',
-    options: ['20°C', '37°C', '45°C', '100°C'] },
+  // ── LH ──
+  { type: 'mc', q: 'Where is LH produced?',
+    correct: 'Pituitary gland',
+    options: ['Ovaries', 'Uterus', 'Pituitary gland', 'Corpus luteum'] },
+  { type: 'mc', q: 'What does the LH surge cause?',
+    correct: 'Ovulation — release of an egg',
+    options: ['Menstruation', 'Ovulation — release of an egg', 'Uterus lining repair', 'Progesterone inhibition'] },
+  { type: 'mc', q: 'On approximately which day does the LH surge and ovulation occur?',
+    correct: 'Day 14',
+    options: ['Day 1', 'Day 7', 'Day 14', 'Day 21'] },
+  { type: 'mc', q: 'LH stands for…',
+    correct: 'Luteinising Hormone',
+    options: ['Luteinising Hormone', 'Lining Hormone', 'Lateral Hormone', 'Luteal Hormone'] },
 
-  // ── pH ──
-  { type: 'mc', q: 'What happens to an enzyme at an extreme pH?',
-    correct: 'It denatures',
-    options: ['It speeds up', 'It denatures', 'It divides', 'It replicates'] },
-  { type: 'mc', q: 'What is the optimum pH of pepsin (a stomach protease)?',
-    correct: 'About pH 2 (acidic)',
-    options: ['About pH 2 (acidic)', 'About pH 7 (neutral)', 'About pH 10 (alkaline)', 'About pH 14'] },
-  { type: 'mc', q: 'What is the optimum pH of amylase in the mouth?',
-    correct: 'About pH 7 (neutral)',
-    options: ['About pH 2', 'About pH 7 (neutral)', 'About pH 9', 'About pH 14'] },
+  // ── PROGESTERONE ──
+  { type: 'mc', q: 'Where is progesterone produced after ovulation?',
+    correct: 'Corpus luteum',
+    options: ['Pituitary gland', 'Ovaries directly', 'Corpus luteum', 'Uterus lining'] },
+  { type: 'mc', q: 'What is the main role of progesterone?',
+    correct: 'Maintaining the uterus lining after ovulation',
+    options: ['Triggering ovulation', 'Stimulating egg maturation', 'Maintaining the uterus lining after ovulation', 'Repairing the uterus lining early in the cycle'] },
+  { type: 'mc', q: 'What happens when progesterone levels fall?',
+    correct: 'Menstruation begins',
+    options: ['Ovulation occurs', 'Menstruation begins', 'FSH is released', 'The egg is fertilised'] },
+  { type: 'mc', q: 'Which TWO hormones does progesterone inhibit?',
+    correct: 'FSH and LH',
+    options: ['FSH and oestrogen', 'LH and oestrogen', 'FSH and LH', 'Oestrogen and testosterone'] },
+  { type: 'mc', q: 'If fertilisation occurs, what happens to progesterone levels?',
+    correct: 'They remain high to maintain the lining',
+    options: ['They fall immediately', 'They remain high to maintain the lining', 'They cause menstruation', 'They trigger a second LH surge'] },
 
-  // ── DIGESTIVE ENZYMES ──
-  { type: 'mc', q: 'What does amylase break down?',
-    correct: 'Starch',
-    options: ['Protein', 'Starch', 'Lipids', 'DNA'] },
-  { type: 'mc', q: 'What are the products of amylase digestion?',
-    correct: 'Sugars (maltose)',
-    options: ['Amino acids', 'Fatty acids', 'Sugars (maltose)', 'Glycerol'] },
-  { type: 'mc', q: 'What does protease break down?',
-    correct: 'Proteins',
-    options: ['Starch', 'Lipids', 'Proteins', 'Sugars'] },
-  { type: 'mc', q: 'What are the products of protease digestion?',
-    correct: 'Amino acids',
-    options: ['Sugars', 'Fatty acids + glycerol', 'Amino acids', 'Nucleotides'] },
-  { type: 'mc', q: 'What does lipase break down?',
-    correct: 'Lipids (fats)',
-    options: ['Proteins', 'Starch', 'DNA', 'Lipids (fats)'] },
-  { type: 'mc', q: 'What are the products of lipase digestion?',
-    correct: 'Fatty acids and glycerol',
-    options: ['Amino acids', 'Fatty acids and glycerol', 'Glucose', 'Sugars'] },
-  { type: 'mc', q: 'Where is amylase produced?',
-    correct: 'Salivary glands and pancreas',
-    options: ['Stomach only', 'Liver', 'Salivary glands and pancreas', 'Small intestine only'] },
-  { type: 'mc', q: 'Where does lipase act?',
-    correct: 'Small intestine',
-    options: ['Stomach', 'Mouth', 'Small intestine', 'Large intestine'] },
+  // ── MENSTRUAL CYCLE TIMING ──
+  { type: 'mc', q: 'How long is the average menstrual cycle?',
+    correct: '28 days',
+    options: ['14 days', '21 days', '28 days', '35 days'] },
+  { type: 'mc', q: 'What happens on day 1 of the menstrual cycle?',
+    correct: 'Menstruation — uterus lining breaks down',
+    options: ['Ovulation occurs', 'Menstruation — uterus lining breaks down', 'LH surges', 'Progesterone peaks'] },
+  { type: 'mc', q: 'What triggers the uterus lining to break down at the end of the cycle?',
+    correct: 'Falling progesterone levels',
+    options: ['Rising FSH levels', 'Falling progesterone levels', 'Rising oestrogen levels', 'Falling LH levels'] },
+  { type: 'mc', q: 'Which hormone is responsible for repairing the uterus lining after menstruation?',
+    correct: 'Oestrogen',
+    options: ['FSH', 'LH', 'Oestrogen', 'Progesterone'] },
+
+  // ── CONTRACEPTION / FERTILITY ──
+  { type: 'mc', q: 'The contraceptive pill works mainly by…',
+    correct: 'Containing oestrogen/progesterone to inhibit FSH and prevent egg maturation',
+    options: ['Blocking sperm physically', 'Containing oestrogen/progesterone to inhibit FSH and prevent egg maturation', 'Raising LH to prevent ovulation', 'Thickening the egg membrane'] },
+  { type: 'mc', q: 'FSH can be used as a fertility drug because it…',
+    correct: 'Stimulates egg maturation in women who produce too little FSH',
+    options: ['Triggers ovulation directly', 'Stimulates egg maturation in women who produce too little FSH', 'Replaces progesterone', 'Increases oestrogen permanently'] },
 
   // ── TYPED ──
-  { type: 'typed', q: 'What word describes the active site and substrate having matching shapes?',
-    correct: ['complementary'], display: 'Complementary' },
-  { type: 'typed', q: 'What is the name of the model that describes substrate fitting into an enzyme?',
-    correct: ['lock and key', 'lock and key model'], display: 'Lock and key' },
-  { type: 'typed', q: 'What term means the enzyme\'s active site has permanently changed shape?',
-    correct: ['denatured', 'denaturation'], display: 'Denatured' },
-  { type: 'typed', q: 'What is the optimum temperature for most human enzymes?',
-    correct: ['37', '37°c', '37 degrees', '37c'], display: '37°C' },
-  { type: 'typed', q: 'Name the enzyme that breaks down starch.',
-    correct: ['amylase'], display: 'Amylase' },
-  { type: 'typed', q: 'Name the enzyme that breaks down proteins.',
-    correct: ['protease'], display: 'Protease' },
-  { type: 'typed', q: 'Name the enzyme that breaks down lipids.',
-    correct: ['lipase'], display: 'Lipase' },
-  { type: 'typed', q: 'What are the products when protease acts on protein?',
-    correct: ['amino acids', 'amino acid'], display: 'Amino acids' },
-  { type: 'typed', q: 'What are the two products of lipase breaking down a lipid?',
-    correct: ['fatty acids and glycerol', 'glycerol and fatty acids', 'fatty acids + glycerol'], display: 'Fatty acids and glycerol' },
-  { type: 'typed', q: 'What is the region on an enzyme where the substrate binds?',
-    correct: ['active site'], display: 'Active site' },
+  { type: 'typed', q: 'Name the hormone that triggers ovulation.',
+    correct: ['lh', 'luteinising hormone', 'lutenising hormone'], display: 'LH' },
+  { type: 'typed', q: 'Name the hormone that stimulates egg maturation.',
+    correct: ['fsh', 'follicle stimulating hormone'], display: 'FSH' },
+  { type: 'typed', q: 'Which hormone maintains the uterus lining after ovulation?',
+    correct: ['progesterone'], display: 'Progesterone' },
+  { type: 'typed', q: 'Which hormone causes the uterus lining to thicken and repair?',
+    correct: ['oestrogen', 'estrogen'], display: 'Oestrogen' },
+  { type: 'typed', q: 'Where are FSH and LH produced?',
+    correct: ['pituitary gland', 'pituitary'], display: 'Pituitary gland' },
+  { type: 'typed', q: 'Where is progesterone produced after ovulation?',
+    correct: ['corpus luteum'], display: 'Corpus luteum' },
+  { type: 'typed', q: 'On approximately what day does ovulation occur?',
+    correct: ['14', 'day 14'], display: 'Day 14' },
+  { type: 'typed', q: 'What causes menstruation at the end of the cycle?',
+    correct: ['falling progesterone', 'drop in progesterone', 'progesterone falls', 'low progesterone'], display: 'Falling progesterone' },
+  { type: 'typed', q: 'How long is the average menstrual cycle?',
+    correct: ['28 days', '28'], display: '28 days' },
+  { type: 'typed', q: 'Which hormone inhibits FSH to prevent further egg maturation mid-cycle?',
+    correct: ['oestrogen', 'estrogen'], display: 'Oestrogen' },
 ];
 
 // ── STATE ──
@@ -411,16 +406,13 @@ function nextQuestion() {
   answered = false; timerExpired = false;
   feedbackMsg.textContent = ''; feedbackMsg.className = 'feedback-msg';
   currentQ = getNextQ();
-
   if (currentQ.type === 'mc') {
     qTypeBadge.textContent = 'Multiple Choice';
-    mcGrid.classList.remove('hidden');
-    typedRow.classList.add('hidden');
+    mcGrid.classList.remove('hidden'); typedRow.classList.add('hidden');
     renderMC(currentQ);
   } else {
     qTypeBadge.textContent = 'Typed Answer';
-    mcGrid.classList.add('hidden');
-    typedRow.classList.remove('hidden');
+    mcGrid.classList.add('hidden'); typedRow.classList.remove('hidden');
     answerInput.value = ''; answerInput.className = 'answer-input';
     answerInput.disabled = false; submitBtn.disabled = false;
     if (!('ontouchstart' in window)) answerInput.focus();
@@ -480,7 +472,7 @@ function levenshtein(a,b) {
 
 function recordCorrect() {
   stats.correct++; stats.sessionStreak++;
-  localStreak = Math.min(localStreak+1, 5); renderStreakDots(localStreak);
+  localStreak = Math.min(localStreak+1,5); renderStreakDots(localStreak);
   const msgs = ['Correct!','Nice!','Spot on!','Yes!','✓ Right!','Nailed it!'];
   feedbackMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
   feedbackMsg.className = 'feedback-msg correct'; updateStats();
@@ -517,22 +509,21 @@ function startTimer() {
 function stopTimer() { clearInterval(timerInterval); }
 
 function updateStats() {
-  const c=stats.correct, t=stats.total, ss=stats.sessionStreak;
-  const pct = t>0 ? Math.round((c/t)*100) : null;
-  const pctStr = pct!==null ? pct+'%' : '—';
-  const pctW   = pct!==null ? pct+'%' : '0%';
+  const c=stats.correct,t=stats.total,ss=stats.sessionStreak;
+  const pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
   statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr;
-  statStreak.textContent=ss; streakMsg.textContent = ss>=3 ? `🔥 ${ss} in a row` : '';
+  statStreak.textContent=ss; streakMsg.textContent=ss>=3?`🔥 ${ss} in a row`:'';
   pctBar.style.width=pctW; sbCorrect.textContent=c; sbTotal.textContent=t;
   sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbStreak.textContent=ss;
-  const col = pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
   pctBar.style.background=col; sbPctBar.style.background=col;
 }
 
 submitBtn.addEventListener('click', submitAnswer);
 answerInput.addEventListener('keydown', e => { if (e.key==='Enter') submitAnswer(); });
 document.getElementById('drawerToggle').addEventListener('click', () => {
-  const d=document.getElementById('mobileDrawer'), t=document.getElementById('drawerToggle');
+  const d=document.getElementById('mobileDrawer'),t=document.getElementById('drawerToggle');
   const open=d.classList.toggle('open'); t.classList.toggle('open',open);
 });
 
