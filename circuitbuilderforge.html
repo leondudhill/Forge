@@ -23,18 +23,70 @@
     --wire-idle: #3b0a0a;
     --wire-live: #dc2626;
     --terminal: #2563eb;
+    --footer-h: 44px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
+  /* ── Mobile: allow full-page scroll. Desktop: lock to viewport. ── */
+  html, body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  }
+
+  /* Desktop layout — locked to viewport */
+  @media (min-width: 861px) {
+    html, body { height: 100%; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+    #app {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      flex: 1;
+      min-height: 0;
+      /* subtract header (~64px) and footer (~44px) */
+      height: calc(100vh - 64px - var(--footer-h));
+    }
+    #canvas-area { overflow: hidden; }
+  }
+
+  /* Mobile layout — scrollable */
+  @media (max-width: 860px) {
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    #app {
+      display: flex;
+      flex-direction: column;
+      /* enough room for canvas + panel + some breathing room */
+      flex: 1;
+    }
+    /* Add bottom padding so footer doesn't cover last content */
+    #app { padding-bottom: calc(var(--footer-h) + 8px); }
+    #canvas-area { display: flex; flex-direction: column; }
+    #canvas-wrap {
+      height: 56vw;      /* proportional canvas on mobile */
+      min-height: 220px;
+      max-height: 420px;
+    }
+    #comp-panel {
+      border-left: none !important;
+      border-top: 1.5px solid var(--border);
+      height: 210px;
+    }
+    .panel-scroll {
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      padding: 8px !important;
+    }
+    .cat-label { display: none !important; }
+    .comp-card { flex-shrink: 0; }
+    .mode-pill { display: none; }
+  }
+
+  @media (max-width: 560px) {
+    header { padding: 8px 14px; }
+    .logo { font-size: 30px !important; }
   }
 
   /* ── HEADER ── */
@@ -53,15 +105,6 @@
   .header-right { display: flex; align-items: center; gap: 12px; }
   .byline { font-size: 11px; color: var(--text-muted); font-weight: 500; }
   .byline strong { color: var(--accent); font-weight: 700; }
-
-  /* ── MAIN LAYOUT ── */
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 240px;
-    flex: 1;
-    min-height: 0;
-    height: calc(100vh - 64px - 40px);
-  }
 
   /* ── CANVAS SIDE ── */
   #canvas-area {
@@ -172,17 +215,16 @@
     font-weight: 500;
   }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 860px) {
-    #app { grid-template-columns: 1fr; grid-template-rows: 1fr 200px; height: auto; }
-    #comp-panel { border-left: none; border-top: 1.5px solid var(--border); height: 200px; }
-    .panel-scroll { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding: 8px; }
-    .cat-label { display: none; }
-  }
-  @media (max-width: 560px) {
-    .mode-pill { display: none; }
-    header { padding: 8px 14px; }
-    .logo { font-size: 32px; }
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1.5px solid var(--border);
+    padding: 11px 24px;
+    font-size: 11.5px; color: #111111;
+    background: var(--surface); line-height: 1.5;
+    flex-shrink: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    height: var(--footer-h);
   }
 </style>
 </head>
@@ -230,12 +272,12 @@
       <div class="panel-sub">Drag onto the canvas to place</div>
     </div>
     <div class="panel-scroll" id="panel-scroll"></div>
-    <div class="panel-footer">GCSE Physics · All UK exam boards</div>
+    <div class="panel-footer">GCSE Physics · AQA · Edexcel · OCR</div>
   </div>
 
 </div>
 
-<footer style="border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111111;background:var(--surface);line-height:1.5;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:50;">
+<footer>
   <span style="font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;">DISCLAIMER</span>
   This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
 </footer>
@@ -250,7 +292,7 @@ const COMPONENTS = [
   {cat:'Power Sources', type:'dc_supply',  name:'DC Supply',       desc:'Direct current source',       w:60,  h:60},
   // SWITCHES
   {cat:'Switches',      type:'switch',     name:'Switch (SPST)',   desc:'Single pole open/close',      w:80,  h:40},
-  {cat:'Switches',      type:'push',       name:'Push Switch',     desc:'Normally open push button',   w:60,  h:40},
+  {cat:'Switches',      type:'push',       name:'Push Switch',     desc:'Normally open — tap to hold', w:60,  h:40},
   // OUTPUT DEVICES
   {cat:'Output',        type:'bulb',       name:'Lamp / Bulb',     desc:'Light output device',         w:60,  h:60},
   {cat:'Output',        type:'led',        name:'LED',             desc:'Light-emitting diode',        w:60,  h:40},
@@ -272,6 +314,8 @@ const COMPONENTS = [
   {cat:'Measuring',     type:'ohmmeter',   name:'Ohmmeter',        desc:'Measures resistance — (Ω)',   w:60,  h:60},
   // PROTECTION
   {cat:'Protection',    type:'fuse',       name:'Fuse',            desc:'Overcurrent protection',      w:80,  h:40},
+  // EARTH
+  {cat:'Protection',    type:'earth',      name:'Earth',           desc:'Earth / ground connection',   w:40,  h:40},
   // WIRES & JUNCTIONS
   {cat:'Wires',         type:'wire_h',     name:'Wire (Horiz.)',   desc:'Horizontal wire segment',     w:80,  h:20},
   {cat:'Wires',         type:'wire_v',     name:'Wire (Vert.)',    desc:'Vertical wire segment',       w:20,  h:80},
@@ -279,79 +323,144 @@ const COMPONENTS = [
 ];
 
 // ─── SYMBOL DRAWING ──────────────────────────────────────────────────────────
+// All symbols draw purely from x,y,w,h — no rotation transforms needed.
+// The "rotation" mechanic works by the caller swapping w↔h before calling.
+// Symmetric symbols (resistor, ammeter, etc.) naturally look the same rotated.
+// Asymmetric symbols (cell, diode, LED) have explicit vertical variants below.
 function getSymbol(type, x, y, w, h, lit, closed, fg) {
   const cx = x+w/2, cy = y+h/2;
+  const isVert = h > w; // true when the component has been rotated 90°
   const ops = [];
 
   switch(type) {
+    // ── CELL ──────────────────────────────────────────────────────────────
     case 'cell': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+18,cy); c.stroke();
-        c.lineWidth=3;   c.beginPath(); c.moveTo(x+18,cy-12); c.lineTo(x+18,cy+12); c.stroke();
-        c.lineWidth=1.5; c.beginPath(); c.moveTo(x+24,cy-7);  c.lineTo(x+24,cy+7);  c.stroke();
-        c.lineWidth=3;   c.beginPath(); c.moveTo(x+30,cy-12); c.lineTo(x+30,cy+12); c.stroke();
-        c.lineWidth=1.8; c.beginPath(); c.moveTo(x+30,cy); c.lineTo(x+w,cy); c.stroke();
-        c.font='9px DM Sans,sans-serif'; c.textAlign='center';
-        c.fillStyle=fg; c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
+        if (!isVert) {
+          // Horizontal (default)
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+18,cy); c.stroke();
+          c.lineWidth=3;   c.beginPath(); c.moveTo(x+18,cy-12); c.lineTo(x+18,cy+12); c.stroke();
+          c.lineWidth=1.5; c.beginPath(); c.moveTo(x+24,cy-7);  c.lineTo(x+24,cy+7);  c.stroke();
+          c.lineWidth=3;   c.beginPath(); c.moveTo(x+30,cy-12); c.lineTo(x+30,cy+12); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(x+30,cy); c.lineTo(x+w,cy); c.stroke();
+          c.font='9px DM Sans,sans-serif'; c.textAlign='center';
+          c.fillStyle=fg; c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
+        } else {
+          // Vertical
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+18); c.stroke();
+          c.lineWidth=3;   c.beginPath(); c.moveTo(cx-12,y+18); c.lineTo(cx+12,y+18); c.stroke();
+          c.lineWidth=1.5; c.beginPath(); c.moveTo(cx-7, y+24); c.lineTo(cx+7, y+24); c.stroke();
+          c.lineWidth=3;   c.beginPath(); c.moveTo(cx-12,y+30); c.lineTo(cx+12,y+30); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx,y+30); c.lineTo(cx,y+h); c.stroke();
+          c.font='9px DM Sans,sans-serif'; c.textAlign='left';
+          c.fillStyle=fg; c.fillText('+',cx+4,y+h-2); c.fillText('−',cx+4,y+6);
+        }
       }); break;
     }
+    // ── BATTERY ───────────────────────────────────────────────────────────
     case 'battery': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+8,cy); c.stroke();
-        let xp=x+8;
-        const pairs=[[0,3],[5,1.5],[10,3],[15,1.5],[20,3],[25,1.5],[30,3]];
-        for(let [off,lw] of pairs){
-          c.lineWidth=lw*1.8; const ht=lw===3?14:9;
-          c.beginPath(); c.moveTo(xp+off,cy-ht); c.lineTo(xp+off,cy+ht); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+8,cy); c.stroke();
+          let xp=x+8;
+          const pairs=[[0,3],[5,1.5],[10,3],[15,1.5],[20,3],[25,1.5],[30,3]];
+          for(let [off,lw] of pairs){
+            c.lineWidth=lw*1.8; const ht=lw===3?14:9;
+            c.beginPath(); c.moveTo(xp+off,cy-ht); c.lineTo(xp+off,cy+ht); c.stroke();
+          }
+          xp+=35;
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(xp,cy); c.lineTo(x+w,cy); c.stroke();
+          c.font='9px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg;
+          c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+8); c.stroke();
+          let yp=y+8;
+          const pairs=[[0,3],[5,1.5],[10,3],[15,1.5],[20,3],[25,1.5],[30,3]];
+          for(let [off,lw] of pairs){
+            c.lineWidth=lw*1.8; const wd=lw===3?14:9;
+            c.beginPath(); c.moveTo(cx-wd,yp+off); c.lineTo(cx+wd,yp+off); c.stroke();
+          }
+          yp+=35;
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx,yp); c.lineTo(cx,y+h); c.stroke();
+          c.font='9px DM Sans,sans-serif'; c.textAlign='left'; c.fillStyle=fg;
+          c.fillText('+',cx+4,y+h-2); c.fillText('−',cx+4,y+6);
         }
-        xp+=35;
-        c.lineWidth=1.8; c.beginPath(); c.moveTo(xp,cy); c.lineTo(x+w,cy); c.stroke();
-        c.font='9px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg;
-        c.fillText('+',x+w-3,cy-5); c.fillText('−',x+4,cy-5);
       }); break;
     }
+    // ── AC SUPPLY ─────────────────────────────────────────────────────────
     case 'ac_supply': {
       ops.push(c=>{
         c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
         c.beginPath(); c.moveTo(cx-10,cy);
         for(let i=0;i<=40;i++) c.lineTo(cx-10+i*0.5, cy-7*Math.sin(i*Math.PI/10));
         c.stroke();
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
-        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-18); c.stroke();
+          c.beginPath(); c.moveTo(cx,cy+18); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── DC SUPPLY ─────────────────────────────────────────────────────────
     case 'dc_supply': {
       ops.push(c=>{
         c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
         c.font='bold 10px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
         c.fillText('DC',cx,cy); c.textBaseline='alphabetic';
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
-        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-18); c.stroke();
+          c.beginPath(); c.moveTo(cx,cy+18); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── SWITCH ────────────────────────────────────────────────────────────
     case 'switch': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
-        c.beginPath(); c.arc(x+14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
-        if(closed){ c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-14,cy); c.stroke(); }
-        else       { c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-16,cy-14); c.stroke(); }
-        c.beginPath(); c.arc(x+w-14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
-        c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
-        c.font='8px DM Sans,sans-serif'; c.textAlign='center';
-        c.fillStyle=closed?'#15803d':'#dc2626';
-        c.fillText(closed?'CLOSED':'OPEN',cx,y+h-1);
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
+          c.beginPath(); c.arc(x+14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+          if(closed){ c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-14,cy); c.stroke(); }
+          else       { c.beginPath(); c.moveTo(x+14,cy); c.lineTo(x+w-16,cy-14); c.stroke(); }
+          c.beginPath(); c.arc(x+w-14,cy,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+          c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
+          c.font='8px DM Sans,sans-serif'; c.textAlign='center';
+          c.fillStyle=closed?'#15803d':'#dc2626';
+          c.fillText(closed?'CLOSED':'OPEN',cx,y+h-1);
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+14); c.stroke();
+          c.beginPath(); c.arc(cx,y+14,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+          if(closed){ c.beginPath(); c.moveTo(cx,y+14); c.lineTo(cx,y+h-14); c.stroke(); }
+          else       { c.beginPath(); c.moveTo(cx,y+14); c.lineTo(cx+14,y+h-16); c.stroke(); }
+          c.beginPath(); c.arc(cx,y+h-14,4,0,Math.PI*2); c.fillStyle=fg; c.fill();
+          c.beginPath(); c.moveTo(cx,y+h-14); c.lineTo(cx,y+h); c.stroke();
+          c.font='8px DM Sans,sans-serif'; c.textAlign='left';
+          c.fillStyle=closed?'#15803d':'#dc2626';
+          c.fillText(closed?'CL':'OP',cx+6,cy);
+        }
       }); break;
     }
+    // ── PUSH SWITCH ───────────────────────────────────────────────────────
     case 'push': {
       ops.push(c=>{
         c.beginPath(); c.moveTo(x,cy+4); c.lineTo(x+14,cy+4); c.stroke();
         c.beginPath(); c.moveTo(x+w-14,cy+4); c.lineTo(x+w,cy+4); c.stroke();
+        // contacts
         c.beginPath(); c.moveTo(cx-10,cy+4); c.lineTo(cx+10,cy+4); c.stroke();
+        // bar above (closes when pushed)
         c.beginPath(); c.moveTo(cx-10,cy-6); c.lineTo(cx+10,cy-6); c.stroke();
+        // push actuator
         c.beginPath(); c.moveTo(cx,cy-6); c.lineTo(cx,cy-14); c.stroke();
-        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('push',cx,y+h);
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center';
+        c.fillStyle=closed?'#15803d':'#dc2626';
+        c.fillText(closed?'HELD':'push',cx,y+h);
       }); break;
     }
+    // ── BULB ──────────────────────────────────────────────────────────────
     case 'bulb': {
       const r=16;
       ops.push(c=>{
@@ -373,29 +482,48 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
         c.beginPath(); c.moveTo(cx+r,cy-2); c.lineTo(x+w,cy); c.stroke();
       }); break;
     }
+    // ── LED ───────────────────────────────────────────────────────────────
     case 'led': {
       ops.push(c=>{
         if(lit){ c.save(); c.fillStyle='rgba(220,38,38,0.18)'; c.beginPath(); c.arc(cx-2,cy,14,0,Math.PI*2); c.fill(); c.restore(); }
         c.strokeStyle=lit?'#dc2626':fg; c.lineWidth=lit?2.2:1.8;
-        const t1=x+14, t2=x+w-14;
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(t1,cy); c.stroke();
-        c.beginPath(); c.moveTo(t2,cy); c.lineTo(x+w,cy); c.stroke();
-        c.beginPath(); c.moveTo(t1,cy-11); c.lineTo(t1,cy+11); c.lineTo(t2,cy); c.closePath(); c.stroke();
-        c.lineWidth=1.8; c.beginPath(); c.moveTo(t2,cy-11); c.lineTo(t2,cy+11); c.stroke();
-        c.lineWidth=1.3;
-        c.beginPath(); c.moveTo(t2,cy-12); c.lineTo(t2+6,cy-18); c.stroke();
-        c.beginPath(); c.moveTo(t2+3,cy-9); c.lineTo(t2+9,cy-15); c.stroke();
+        if (!isVert) {
+          const t1=x+14, t2=x+w-14;
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(t1,cy); c.stroke();
+          c.beginPath(); c.moveTo(t2,cy); c.lineTo(x+w,cy); c.stroke();
+          c.beginPath(); c.moveTo(t1,cy-11); c.lineTo(t1,cy+11); c.lineTo(t2,cy); c.closePath(); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(t2,cy-11); c.lineTo(t2,cy+11); c.stroke();
+          c.lineWidth=1.3;
+          c.beginPath(); c.moveTo(t2,cy-12); c.lineTo(t2+6,cy-18); c.stroke();
+          c.beginPath(); c.moveTo(t2+3,cy-9); c.lineTo(t2+9,cy-15); c.stroke();
+        } else {
+          const t1=y+14, t2=y+h-14;
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,t1); c.stroke();
+          c.beginPath(); c.moveTo(cx,t2); c.lineTo(cx,y+h); c.stroke();
+          c.beginPath(); c.moveTo(cx-11,t1); c.lineTo(cx+11,t1); c.lineTo(cx,t2); c.closePath(); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx-11,t2); c.lineTo(cx+11,t2); c.stroke();
+          c.lineWidth=1.3;
+          c.beginPath(); c.moveTo(cx+12,t2); c.lineTo(cx+18,t2-6); c.stroke();
+          c.beginPath(); c.moveTo(cx+9,t2-3); c.lineTo(cx+15,t2-9); c.stroke();
+        }
       }); break;
     }
+    // ── MOTOR ─────────────────────────────────────────────────────────────
     case 'motor': {
       ops.push(c=>{
         c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
         c.font='bold 13px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
         c.fillText('M',cx,cy+1); c.textBaseline='alphabetic';
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
-        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-18); c.stroke();
+          c.beginPath(); c.moveTo(cx,cy+18); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── BUZZER ────────────────────────────────────────────────────────────
     case 'buzzer': {
       ops.push(c=>{
         c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
@@ -406,6 +534,7 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
         c.font='8px DM Mono,monospace'; c.textAlign='center'; c.fillStyle=fg; c.fillText('bz',cx+4,y+3);
       }); break;
     }
+    // ── HEATER ────────────────────────────────────────────────────────────
     case 'heater': {
       ops.push(c=>{
         c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
@@ -417,23 +546,40 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
         c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
       }); break;
     }
+    // ── RESISTOR ──────────────────────────────────────────────────────────
     case 'resistor': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
-        c.strokeRect(x+10,cy-9,w-20,18);
-        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+          c.strokeRect(x+10,cy-9,w-20,18);
+          c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+10); c.stroke();
+          c.strokeRect(cx-9,y+10,18,h-20);
+          c.beginPath(); c.moveTo(cx,y+h-10); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── RHEOSTAT ──────────────────────────────────────────────────────────
     case 'rheostat': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
-        c.strokeRect(x+10,cy-9,w-20,18);
-        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
-        c.beginPath(); c.moveTo(cx,cy-20); c.lineTo(cx,cy-9); c.stroke();
-        c.beginPath(); c.moveTo(cx-5,cy-15); c.lineTo(cx,cy-9); c.lineTo(cx+5,cy-15); c.stroke();
-        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('var',cx,y+h);
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+          c.strokeRect(x+10,cy-9,w-20,18);
+          c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx,cy-20); c.lineTo(cx,cy-9); c.stroke();
+          c.beginPath(); c.moveTo(cx-5,cy-15); c.lineTo(cx,cy-9); c.lineTo(cx+5,cy-15); c.stroke();
+          c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('var',cx,y+h);
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+10); c.stroke();
+          c.strokeRect(cx-9,y+10,18,h-20);
+          c.beginPath(); c.moveTo(cx,y+h-10); c.lineTo(cx,y+h); c.stroke();
+          c.beginPath(); c.moveTo(cx+20,cy); c.lineTo(cx+9,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx+15,cy-5); c.lineTo(cx+9,cy); c.lineTo(cx+15,cy+5); c.stroke();
+        }
       }); break;
     }
+    // ── POTENTIOMETER ─────────────────────────────────────────────────────
     case 'pot': {
       ops.push(c=>{
         c.beginPath(); c.moveTo(x,cy+6); c.lineTo(x+10,cy+6); c.stroke();
@@ -444,48 +590,82 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
         c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('pot',cx,y+h);
       }); break;
     }
+    // ── LDR ───────────────────────────────────────────────────────────────
     case 'ldr': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
-        c.strokeRect(x+10,cy-9,w-20,18);
-        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+          c.strokeRect(x+10,cy-9,w-20,18);
+          c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+10); c.stroke();
+          c.strokeRect(cx-9,y+10,18,h-20);
+          c.beginPath(); c.moveTo(cx,y+h-10); c.lineTo(cx,y+h); c.stroke();
+        }
         c.lineWidth=1.2;
         for(let i=0;i<2;i++){
-          const ax=cx-5+i*9, ay=cy-18;
+          const ax=cx-5+i*9, ay=cy-18-(isVert?4:0);
           c.beginPath(); c.moveTo(ax-4,ay-6); c.lineTo(ax,ay); c.stroke();
           c.beginPath(); c.moveTo(ax-2,ay-2); c.lineTo(ax,ay); c.lineTo(ax-4,ay+1); c.stroke();
         }
         c.lineWidth=1.8;
-        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('LDR',cx,y+h);
+        c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg;
+        c.fillText('LDR',cx,y+h);
       }); break;
     }
+    // ── THERMISTOR ────────────────────────────────────────────────────────
     case 'thermistor': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
-        c.strokeRect(x+10,cy-9,w-20,18);
-        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
-        c.lineWidth=1.2;
-        c.beginPath(); c.moveTo(x+14,cy+7); c.lineTo(x+w-14,cy-7); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+          c.strokeRect(x+10,cy-9,w-20,18);
+          c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+          c.lineWidth=1.2;
+          c.beginPath(); c.moveTo(x+14,cy+7); c.lineTo(x+w-14,cy-7); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+10); c.stroke();
+          c.strokeRect(cx-9,y+10,18,h-20);
+          c.beginPath(); c.moveTo(cx,y+h-10); c.lineTo(cx,y+h); c.stroke();
+          c.lineWidth=1.2;
+          c.beginPath(); c.moveTo(cx-7,y+14); c.lineTo(cx+7,y+h-14); c.stroke();
+        }
         c.lineWidth=1.8;
         c.font='8px DM Sans,sans-serif'; c.textAlign='center'; c.fillStyle=fg; c.fillText('NTC',cx,y+h);
       }); break;
     }
+    // ── CAPACITOR ─────────────────────────────────────────────────────────
     case 'capacitor': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-8,cy); c.stroke();
-        c.lineWidth=1.8; c.beginPath(); c.moveTo(cx-8,cy-14); c.lineTo(cx-8,cy+14); c.stroke();
-        c.lineWidth=2.5; c.beginPath(); c.moveTo(cx+8,cy-14); c.lineTo(cx+8,cy+14); c.stroke();
-        c.lineWidth=1.8; c.beginPath(); c.moveTo(cx+8,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-8,cy); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx-8,cy-14); c.lineTo(cx-8,cy+14); c.stroke();
+          c.lineWidth=2.5; c.beginPath(); c.moveTo(cx+8,cy-14); c.lineTo(cx+8,cy+14); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx+8,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-8); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx-14,cy-8); c.lineTo(cx+14,cy-8); c.stroke();
+          c.lineWidth=2.5; c.beginPath(); c.moveTo(cx-14,cy+8); c.lineTo(cx+14,cy+8); c.stroke();
+          c.lineWidth=1.8; c.beginPath(); c.moveTo(cx,cy+8); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── DIODE ─────────────────────────────────────────────────────────────
     case 'diode': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
-        c.beginPath(); c.moveTo(x+14,cy-11); c.lineTo(x+14,cy+11); c.lineTo(x+w-14,cy); c.closePath(); c.stroke();
-        c.beginPath(); c.moveTo(x+w-14,cy-11); c.lineTo(x+w-14,cy+11); c.stroke();
-        c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+14,cy); c.stroke();
+          c.beginPath(); c.moveTo(x+14,cy-11); c.lineTo(x+14,cy+11); c.lineTo(x+w-14,cy); c.closePath(); c.stroke();
+          c.beginPath(); c.moveTo(x+w-14,cy-11); c.lineTo(x+w-14,cy+11); c.stroke();
+          c.beginPath(); c.moveTo(x+w-14,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+14); c.stroke();
+          c.beginPath(); c.moveTo(cx-11,y+14); c.lineTo(cx+11,y+14); c.lineTo(cx,y+h-14); c.closePath(); c.stroke();
+          c.beginPath(); c.moveTo(cx-11,y+h-14); c.lineTo(cx+11,y+h-14); c.stroke();
+          c.beginPath(); c.moveTo(cx,y+h-14); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── METERS ────────────────────────────────────────────────────────────
     case 'ammeter':
     case 'voltmeter':
     case 'ohmmeter': {
@@ -494,20 +674,55 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
         c.beginPath(); c.arc(cx,cy,18,0,Math.PI*2); c.stroke();
         c.font='bold 13px DM Sans,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=fg;
         c.fillText(label,cx,cy+1); c.textBaseline='alphabetic';
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
-        c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(cx-18,cy); c.stroke();
+          c.beginPath(); c.moveTo(cx+18,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-18); c.stroke();
+          c.beginPath(); c.moveTo(cx,cy+18); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── FUSE ──────────────────────────────────────────────────────────────
     case 'fuse': {
       ops.push(c=>{
-        c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
-        c.beginPath(); c.ellipse(cx,cy,w/2-10,9,0,0,Math.PI*2); c.stroke();
-        c.lineWidth=1; c.setLineDash([3,3]);
-        c.beginPath(); c.moveTo(cx,cy-8); c.lineTo(cx,cy+8); c.stroke();
-        c.setLineDash([]); c.lineWidth=1.8;
-        c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        if (!isVert) {
+          c.beginPath(); c.moveTo(x,cy); c.lineTo(x+10,cy); c.stroke();
+          c.beginPath(); c.ellipse(cx,cy,w/2-10,9,0,0,Math.PI*2); c.stroke();
+          c.lineWidth=1; c.setLineDash([3,3]);
+          c.beginPath(); c.moveTo(cx,cy-8); c.lineTo(cx,cy+8); c.stroke();
+          c.setLineDash([]); c.lineWidth=1.8;
+          c.beginPath(); c.moveTo(x+w-10,cy); c.lineTo(x+w,cy); c.stroke();
+        } else {
+          c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,y+10); c.stroke();
+          c.beginPath(); c.ellipse(cx,cy,9,h/2-10,0,0,Math.PI*2); c.stroke();
+          c.lineWidth=1; c.setLineDash([3,3]);
+          c.beginPath(); c.moveTo(cx-8,cy); c.lineTo(cx+8,cy); c.stroke();
+          c.setLineDash([]); c.lineWidth=1.8;
+          c.beginPath(); c.moveTo(cx,y+h-10); c.lineTo(cx,y+h); c.stroke();
+        }
       }); break;
     }
+    // ── EARTH ─────────────────────────────────────────────────────────────
+    case 'earth': {
+      ops.push(c=>{
+        // Lead in from top terminal
+        c.beginPath(); c.moveTo(cx,y); c.lineTo(cx,cy-6); c.stroke();
+        // Three horizontal bars (standard earth symbol)
+        const bars = [
+          {y:0,  hw:14},
+          {y:7,  hw:9},
+          {y:14, hw:4},
+        ];
+        for (const b of bars) {
+          c.beginPath();
+          c.moveTo(cx-b.hw, cy-6+b.y);
+          c.lineTo(cx+b.hw, cy-6+b.y);
+          c.stroke();
+        }
+      }); break;
+    }
+    // ── WIRE SEGMENTS ─────────────────────────────────────────────────────
     case 'wire_h': {
       ops.push(c=>{ c.beginPath(); c.moveTo(x,cy); c.lineTo(x+w,cy); c.stroke(); }); break;
     }
@@ -523,17 +738,23 @@ function getSymbol(type, x, y, w, h, lit, closed, fg) {
 
 function getTerminals(comp) {
   const {x,y,w,h,type} = comp;
-  // ALL terminal coords snapped to grid — guarantees wire endpoints match
   const S = v => Math.round(v/GRID)*GRID;
-  const lx=S(x),     rx=S(x+w);   // left and right x edges
-  const tx=S(x+w/2), cy=S(y+h/2); // centre x and centre y
-  const ty=S(y);                    // top y
+  const lx=S(x),     rx=S(x+w);
+  const tx=S(x+w/2), cy=S(y+h/2);
+  const ty=S(y),     by=S(y+h);
+  const isVert = h > w;
   switch(type){
     case 'wire_h':  return [{x:lx, y:cy},  {x:rx,  y:cy}];
-    case 'wire_v':  return [{x:tx, y:ty},  {x:tx,  y:S(y+h)}];
+    case 'wire_v':  return [{x:tx, y:ty},  {x:tx,  y:by}];
     case 'junction':return [{x:tx, y:cy}];
-    case 'pot':     return [{x:lx, y:cy},  {x:rx,  y:cy}, {x:tx, y:ty}];
-    default:        return [{x:lx, y:cy},  {x:rx,  y:cy}];
+    // Earth has only one terminal (top)
+    case 'earth':   return [{x:tx, y:ty}];
+    case 'pot':
+      if (!isVert) return [{x:lx, y:cy},{x:rx, y:cy},{x:tx, y:ty}];
+      else         return [{x:tx, y:ty},{x:tx, y:by},{x:rx, y:cy}];
+    default:
+      if (!isVert) return [{x:lx, y:cy},  {x:rx,  y:cy}];
+      else         return [{x:tx, y:ty},  {x:tx,  y:by}];
   }
 }
 
@@ -550,7 +771,6 @@ function buildPanel() {
       const card = document.createElement('div');
       card.className='comp-card'; card.draggable=true; card.dataset.type=comp.type;
 
-      // Mini canvas preview
       const mc = document.createElement('canvas');
       mc.style.cssText='width:50px;height:30px;flex-shrink:0;';
       card.appendChild(mc);
@@ -620,7 +840,6 @@ function drawComp(c, lit){
   const fg='#3b0a0a';
   ctx.save();
   ctx.strokeStyle=fg; ctx.fillStyle=fg; ctx.lineWidth=1.8; ctx.lineCap='round'; ctx.lineJoin='round';
-  // Selection highlight
   if(c===selected){
     ctx.save(); ctx.strokeStyle='#dc2626'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
     ctx.strokeRect(c.x-5,c.y-5,c.w+10,c.h+10); ctx.restore();
@@ -628,7 +847,7 @@ function drawComp(c, lit){
   const ops=getSymbol(c.type,c.x,c.y,c.w,c.h,lit,c.closed,fg);
   ops.forEach(fn=>{ ctx.strokeStyle=fg; ctx.fillStyle=fg; ctx.lineWidth=1.8; fn(ctx); });
   ctx.restore();
-  // Draw terminals (skip wire/junction)
+  // Terminals
   if(c.type!=='wire_h'&&c.type!=='wire_v'&&c.type!=='junction'){
     for(let t of getTerminals(c)){
       ctx.beginPath(); ctx.arc(t.x,t.y,4,0,Math.PI*2);
@@ -647,69 +866,41 @@ function drawWire(w, lit){
 }
 
 // ─── CIRCUIT ANALYSIS ────────────────────────────────────────────────────────
-function buildGraph(){
-  const eps=12, nodes=[], adj=[];
-  function gn(px,py){
-    for(let i=0;i<nodes.length;i++) if(Math.hypot(nodes[i].x-px,nodes[i].y-py)<eps) return i;
-    nodes.push({x:px,y:py}); adj.push([]); return nodes.length-1;
-  }
-  for(let c of components){
-    const terms=getTerminals(c);
-    if(terms.length>=2){ const a=gn(terms[0].x,terms[0].y),b=gn(terms[1].x,terms[1].y); adj[a].push(b); adj[b].push(a); }
-    if(terms.length===3){ const a=gn(terms[0].x,terms[0].y),c2=gn(terms[2].x,terms[2].y); adj[a].push(c2); adj[c2].push(a); }
-  }
-  for(let w of wires){ const a=gn(w.x1,w.y1),b=gn(w.x2,w.y2); adj[a].push(b); adj[b].push(a); }
-  return {nodes,adj,gn};
-}
-function findN(nodes,px,py){ let best=null,bd=14; for(let i=0;i<nodes.length;i++){const d=Math.hypot(nodes[i].x-px,nodes[i].y-py);if(d<bd){bd=d;best=i;}} return best; }
-function bfs(adj,start){ const vis=new Set([start]),q=[start]; while(q.length){const u=q.shift();for(let v of adj[u])if(!vis.has(v)){vis.add(v);q.push(v);}} return vis; }
-
 function checkCircuit(){
   const bat=components.find(c=>['cell','battery','ac_supply','dc_supply'].includes(c.type));
   const output=components.find(c=>['bulb','led','motor','buzzer','heater'].includes(c.type));
-  const openSw=components.find(c=>c.type==='switch'&&!c.closed);
+  // Open switches block current — push switch requires 'closed' flag too
+  const openSw=components.find(c=>(c.type==='switch'||c.type==='push')&&!c.closed);
 
   if(!bat)    return {ok:false,lit:false,msg:'No power source',detail:'Add a cell, battery or power supply'};
   if(!output) return {ok:false,lit:false,msg:'No output device',detail:'Add a bulb, LED, motor or buzzer'};
   if(wires.length===0) return {ok:false,lit:false,msg:'No wires drawn',detail:'Switch to Wire mode and connect the components'};
-  if(openSw)  return {ok:false,lit:false,msg:'Switch is open',detail:'Click "Toggle Switch" to close it'};
+  if(openSw)  return {ok:false,lit:false,msg:'Switch is open',detail:'Click the switch button in the toolbar to close it'};
 
-  // ── Step 1: collect all terminal points as named nodes ───────────────────
-  // Every terminal of every component gets a node ID.
-  // Two points within eps of each other share the same node (merge by proximity).
-  const EPS = GRID + 4;  // slightly over one grid cell — robust to any rounding
-  const pts  = [];   // {x, y}
-  const nodeOf = []; // parallel to components[i].terminals — maps terminal → node id
-
+  const EPS = GRID + 4;
+  const pts  = [];
   function getOrCreate(px, py){
     for(let i=0;i<pts.length;i++) if(Math.hypot(pts[i].x-px, pts[i].y-py)<EPS) return i;
     pts.push({x:px,y:py}); return pts.length-1;
   }
 
-  // Assign node IDs to every component terminal
   const compNodes = components.map(c => getTerminals(c).map(t => getOrCreate(t.x,t.y)));
-
-  // Also snap wire endpoints to nearest terminal node (or create new node)
   const wireNodes = wires.map(w => [getOrCreate(w.x1,w.y1), getOrCreate(w.x2,w.y2)]);
 
   const N = pts.length;
   const adj = Array.from({length:N}, ()=>[]);
   function edge(a,b){ if(a!==b){ adj[a].push(b); adj[b].push(a); } }
 
-  // ── Step 2: add edges ─────────────────────────────────────────────────────
-  // Each component internally connects its own terminals — EXCEPT the battery.
-  // (Battery's internal edge is omitted so the only path from bt0→bt1 must
-  //  go through external wiring, proving a real closed loop exists.)
   for(let i=0;i<components.length;i++){
     if(components[i]===bat) continue;
+    // Earth has only one terminal — no internal edge
+    if(components[i].type==='earth') continue;
     const ids=compNodes[i];
     if(ids.length>=2) edge(ids[0],ids[1]);
     if(ids.length>=3) edge(ids[0],ids[2]);
   }
-  // Wires form edges between their (snapped) endpoint nodes
   for(let [a,b] of wireNodes) edge(a,b);
 
-  // ── Step 3: BFS from bat terminal 0, check bat terminal 1 reachable ──────
   const batIds = compNodes[components.indexOf(bat)];
   const [bn0, bn1] = [batIds[0], batIds[1]];
 
@@ -724,12 +915,6 @@ function checkCircuit(){
   if(!reached.has(bn1))
     return {ok:false,lit:false,msg:'Circuit incomplete',detail:'There is a gap — wire both battery terminals into the loop'};
 
-  // ── Step 4: both battery terminals must have ≥1 wire each ────────────────
-  // This prevents a single wire directly between the two battery terminals
-  // (short circuit without going through any components) from lighting the bulb.
-  // Actually for GCSE we just need the output to be in the loop — see step 5.
-
-  // ── Step 5: output must have BOTH terminals in the reached set ────────────
   const outIdx = components.indexOf(output);
   const outIds  = compNodes[outIdx];
   const [on0, on1] = [outIds[0], outIds[1]];
@@ -737,8 +922,6 @@ function checkCircuit(){
   if(!reached.has(on0)||!reached.has(on1))
     return {ok:false,lit:false,msg:'Output not in the loop',detail:'Wire both terminals of the output device into the circuit'};
 
-  // ── Step 6: the two output terminals must be DIFFERENT nodes ─────────────
-  // (Same node = both wires go to the same terminal = not properly wired)
   if(on0===on1)
     return {ok:false,lit:false,msg:'Output not in the loop',detail:'Wire both terminals of the output device into the circuit'};
 
@@ -760,7 +943,6 @@ function render(){
   drawGrid();
   const res=components.length ? checkCircuit() : {ok:false,lit:false,msg:'Build your circuit',detail:'Drag components from the panel on the right'};
   for(let w of wires) drawWire(w,res.lit);
-  // Wire preview
   if(preview){
     ctx.save(); ctx.strokeStyle='#dc2626'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(preview.x1,preview.y1); ctx.lineTo(preview.x2,preview.y2); ctx.stroke();
@@ -790,14 +972,12 @@ canvasEl.addEventListener('drop',e=>{
   const def=COMPONENTS.find(c=>c.type===type);
   if(!def) return;
   const {x,y}=canvasXY(e);
-  // Snap position to grid
   const px=Math.max(0,Math.min(W-def.w, snap(x-def.w/2)));
   const py=Math.max(0,Math.min(H-def.h, snap(y-def.h/2)));
-  // Round width and height up to nearest grid multiple so terminals land on grid
   const sw=Math.ceil(def.w/GRID)*GRID;
   const sh=Math.ceil(def.h/GRID)*GRID;
   saveHistory();
-  components.push({id:nextId++, type, x:px, y:py, w:sw, h:sh, closed:type==='switch'?false:undefined, rotation:0});
+  components.push({id:nextId++, type, x:px, y:py, w:sw, h:sh, closed:false, rotation:0});
   render();
 });
 
@@ -899,7 +1079,7 @@ canvasEl.addEventListener('touchend',e=>{
   }
 },{passive:false});
 
-// ── Double click to delete ──
+// ── Double-click/tap to delete ──
 canvasEl.addEventListener('dblclick',e=>{
   const {x,y}=canvasXY(e);
   for(let i=components.length-1;i>=0;i--){
@@ -907,20 +1087,22 @@ canvasEl.addEventListener('dblclick',e=>{
     if(x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h){
       saveHistory();
       const terms=getTerminals(c);
+      // Wider hit zone for wire deletion near terminals (especially touch)
       wires=wires.filter(w=>{
         for(let t of terms)
-          if(Math.hypot(w.x1-t.x,w.y1-t.y)<8||Math.hypot(w.x2-t.x,w.y2-t.y)<8) return false;
+          if(Math.hypot(w.x1-t.x,w.y1-t.y)<16||Math.hypot(w.x2-t.x,w.y2-t.y)<16) return false;
         return true;
       });
       components.splice(i,1); selected=null; render(); return;
     }
   }
+  // Wire deletion — generous 14px hit radius
   const wi=wires.findIndex(w=>{
     const dx=w.x2-w.x1, dy=w.y2-w.y1, len=Math.hypot(dx,dy);
     if(len<5) return false;
     const t=((x-w.x1)*dx+(y-w.y1)*dy)/(len*len);
     if(t<0||t>1) return false;
-    return Math.hypot(x-(w.x1+t*dx),y-(w.y1+t*dy))<10;
+    return Math.hypot(x-(w.x1+t*dx),y-(w.y1+t*dy))<14;
   });
   if(wi>=0){ saveHistory(); wires.splice(wi,1); render(); }
 });
@@ -939,54 +1121,31 @@ function setMode(m){
 document.getElementById('wire-btn').addEventListener('click',()=>setMode('wire'));
 document.getElementById('select-btn').addEventListener('click',()=>setMode('select'));
 
-// ─── DYNAMIC SWITCH BUTTONS ───────────────────────────────────────────────────
+// ─── SWITCH BUTTONS ───────────────────────────────────────────────────────────
 function renderSwitchButtons(){
   const sws=components.filter(c=>c.type==='switch'||c.type==='push');
   const container=document.getElementById('switch-btns');
   const sep=document.getElementById('sw-sep');
-
-  // Only rebuild if count changed (avoids flicker)
-  const currentCount=container.querySelectorAll('button').length;
-  // Count = individual buttons + 1 "toggle all" if >1 switch
-  const expectedCount=sws.length===0 ? 0 : sws.length>1 ? sws.length+1 : 1;
-  if(currentCount===expectedCount){
-    // Just update labels/states without rebuilding
-    const btns=container.querySelectorAll('button');
-    if(sws.length===1){
-      btns[0].textContent=`⚡ Switch 1 — ${sws[0].closed?'CLOSED':'OPEN'}`;
-      btns[0].className='ctrl-btn '+(sws[0].closed?'success':'');
-    } else if(sws.length>1){
-      sws.forEach((sw,i)=>{
-        btns[i].textContent=`S${i+1} — ${sw.closed?'CLOSED':'OPEN'}`;
-        btns[i].className='ctrl-btn '+(sw.closed?'success':'');
-      });
-      const allClosed=sws.every(s=>s.closed);
-      btns[sws.length].textContent=`⚡ Toggle All`;
-      btns[sws.length].className='ctrl-btn '+(allClosed?'success':'');
-    }
-    sep.style.display=sws.length>0?'':'none';
-    return;
-  }
-
-  // Rebuild buttons
-  container.innerHTML='';
   sep.style.display=sws.length>0?'':'none';
+
+  // Full rebuild each time (simple, avoids stale state on component delete/add)
+  container.innerHTML='';
   if(sws.length===0) return;
 
-  // Individual button per switch
   sws.forEach((sw,i)=>{
+    const isPush = sw.type==='push';
     const btn=document.createElement('button');
+    const label = sws.length===1
+      ? (isPush ? `⚡ Push — ${sw.closed?'HELD':'open'}` : `⚡ Switch 1 — ${sw.closed?'CLOSED':'OPEN'}`)
+      : (isPush ? `P${i+1} — ${sw.closed?'HELD':'open'}` : `S${i+1} — ${sw.closed?'CLOSED':'OPEN'}`);
     btn.className='ctrl-btn '+(sw.closed?'success':'');
-    btn.textContent=sws.length===1
-      ? `⚡ Switch 1 — ${sw.closed?'CLOSED':'OPEN'}`
-      : `S${i+1} — ${sw.closed?'CLOSED':'OPEN'}`;
+    btn.textContent=label;
     btn.addEventListener('click',()=>{
       saveHistory(); sw.closed=!sw.closed; render();
     });
     container.appendChild(btn);
   });
 
-  // "Toggle All" button only when more than one switch
   if(sws.length>1){
     const allBtn=document.createElement('button');
     const allClosed=sws.every(s=>s.closed);
@@ -994,7 +1153,7 @@ function renderSwitchButtons(){
     allBtn.textContent='⚡ Toggle All';
     allBtn.addEventListener('click',()=>{
       saveHistory();
-      const target=!sws.every(s=>s.closed); // if all closed → open all; else close all
+      const target=!sws.every(s=>s.closed);
       sws.forEach(sw=>sw.closed=target);
       render();
     });
@@ -1002,11 +1161,21 @@ function renderSwitchButtons(){
   }
 }
 
+// ─── ROTATE (properly handles asymmetric symbols via w↔h swap + terminal remap) ───
 document.getElementById('rotate-btn').addEventListener('click',()=>{
   if(!selected){ alert('Select a component first (use Select mode).'); return; }
+  // Prevent rotating single-terminal components
+  if(selected.type==='earth'||selected.type==='junction') return;
   saveHistory();
-  // Swap w and h to simulate 90° rotation, remap terminals
+  // Centre-anchor swap: keep the component centred after w↔h swap
+  const midX = selected.x + selected.w/2;
+  const midY = selected.y + selected.h/2;
   const tmp=selected.w; selected.w=selected.h; selected.h=tmp;
+  selected.x = snap(midX - selected.w/2);
+  selected.y = snap(midY - selected.h/2);
+  // Keep on canvas
+  selected.x = Math.max(0, Math.min(W - selected.w, selected.x));
+  selected.y = Math.max(0, Math.min(H - selected.h, selected.y));
   render();
 });
 
@@ -1029,7 +1198,7 @@ window.addEventListener('keydown',e=>{
     const terms=getTerminals(selected);
     wires=wires.filter(w=>{
       for(let t of terms)
-        if(Math.hypot(w.x1-t.x,w.y1-t.y)<8||Math.hypot(w.x2-t.x,w.y2-t.y)<8) return false;
+        if(Math.hypot(w.x1-t.x,w.y1-t.y)<16||Math.hypot(w.x2-t.x,w.y2-t.y)<16) return false;
       return true;
     });
     const idx=components.indexOf(selected);
