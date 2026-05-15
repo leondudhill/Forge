@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="ElectricFieldForge — Interactive electric field line drawer for GCSE Physics revision. Place charges and see field lines update live.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ElectricFieldForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff5f5;
+    --border: #fbbcbc;
+    --text: #3b0a0a;
+    --text-muted: #8b4444;
+    --accent: #dc2626;
+    --correct: #15803d;
+    --correct-light: #f0fdf4;
+    --wrong-light: #fff5f5;
+    --pos-color: #dc2626;
+    --neg-color: #2563eb;
+    --field-color: #6d28d9;
+    --equip-color: #059669;
+    --footer-h: 44px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 10px 20px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; background: #fff; z-index: 10;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 2px;
+    color: var(--text); line-height: 1; text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .byline { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .byline strong { color: var(--accent); font-weight: 700; }
+
+  .charge-legend {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 12px; border: 1.5px solid var(--border);
+    border-radius: 20px; background: var(--surface); font-size: 11px; font-weight: 600;
+  }
+  .charge-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+
+  /* ── APP LAYOUT ── */
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    flex: 1;
+    min-height: 0;
+    height: calc(100vh - 64px - var(--footer-h));
+  }
+
+  /* ── CANVAS SIDE ── */
+  #canvas-area {
+    display: flex; flex-direction: column;
+    padding: 12px 12px 12px 14px; gap: 8px;
+    min-width: 0;
+  }
+
+  /* ── TOOLBAR ── */
+  #toolbar {
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    background: #fff; border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 7px 12px;
+    box-shadow: 0 1px 4px rgba(220,38,38,.06);
+    flex-shrink: 0;
+  }
+  .ctrl-btn {
+    padding: 5px 14px; border: 1.5px solid var(--border); border-radius: 20px;
+    background: #fff; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; color: var(--text); font-weight: 600;
+    transition: all .15s; white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .ctrl-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active-pos { background: var(--pos-color); border-color: var(--pos-color); color: #fff; }
+  .ctrl-btn.active-neg { background: var(--neg-color); border-color: var(--neg-color); color: #fff; }
+  .ctrl-btn.active-del { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .ctrl-btn.active-move { background: #374151; border-color: #374151; color: #fff; }
+  .ctrl-btn.tog-on  { background: var(--equip-color); border-color: var(--equip-color); color: #fff; }
+  .ctrl-btn.danger  { color: var(--accent); border-color: #fca5a5; }
+  .ctrl-btn.danger:hover { background: var(--wrong-light); border-color: var(--accent); }
+  .ctrl-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+  .mode-pill {
+    font-size: 10.5px; padding: 3px 10px; border-radius: 20px;
+    background: var(--surface); color: var(--text-muted);
+    margin-left: auto; font-family: 'DM Mono', monospace; font-weight: 500;
+  }
+
+  /* ── CANVAS ── */
+  #canvas-wrap {
+    flex: 1; position: relative; background: #fff;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(220,38,38,.06);
+    overflow: hidden;
+    min-height: 0;
+  }
+  #field-canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+  /* ── STATUS BAR ── */
+  #status-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: #fff;
+    font-size: 12px; flex-shrink: 0;
+  }
+  #status-bar.insight { background: var(--correct-light); border-color: #86efac; }
+  .sdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: #d1d5db; }
+  .sdot-on { background: var(--correct); }
+  #smsg { font-weight: 600; font-size: 12px; }
+  #sdetail { color: var(--text-muted); font-size: 11px; margin-left: auto; font-family: 'DM Mono', monospace; }
+
+  #hint { font-size: 10.5px; color: var(--text-muted); padding: 0 2px; font-weight: 500; flex-shrink: 0; }
+
+  /* ── SIDE PANEL ── */
+  #side-panel {
+    background: #fff; border-left: 1.5px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 14px 8px; border-bottom: 1.5px solid var(--border); flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--text);
+  }
+  .panel-title span { color: var(--accent); }
+  .panel-sub { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+
+  .panel-scroll {
+    flex: 1; overflow-y: auto; padding: 10px 12px 60px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .panel-scroll::-webkit-scrollbar { width: 4px; }
+  .panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .preset-btn {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; background: var(--surface);
+    font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600;
+    color: var(--text); cursor: pointer; text-align: left;
+    transition: all .15s; display: flex; flex-direction: column; gap: 2px;
+  }
+  .preset-btn:hover { background: #fff; border-color: var(--accent); color: var(--accent); }
+  .preset-btn .preset-name { font-size: 12px; }
+  .preset-btn .preset-desc { font-size: 9.5px; color: var(--text-muted); font-weight: 400; }
+  .preset-btn:hover .preset-desc { color: var(--accent); opacity: 0.7; }
+
+  .cat-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 11px;
+    letter-spacing: 2px; color: var(--text-muted); padding: 4px 2px 0;
+  }
+
+  /* ── FIELD STRENGTH LEGEND ── */
+  .strength-bar {
+    margin: 4px 0; height: 8px; border-radius: 4px;
+    background: linear-gradient(to right, rgba(109,40,217,0.05), rgba(109,40,217,0.8));
+    border: 1px solid var(--border);
+  }
+  .strength-labels {
+    display: flex; justify-content: space-between;
+    font-size: 9px; color: var(--text-muted); font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+  }
+
+  /* ── CHARGE COUNT ── */
+  #charge-count {
+    padding: 6px 10px; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--surface); font-size: 10px; font-family: 'DM Mono', monospace;
+    color: var(--text-muted); display: flex; justify-content: space-between;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1.5px solid var(--border); padding: 11px 24px;
+    font-size: 11.5px; color: #111; background: var(--surface); line-height: 1.5;
+    flex-shrink: 0; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    height: var(--footer-h);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 760px) {
+    html, body { overflow: auto; height: auto; }
+    #app { grid-template-columns: 1fr; height: auto; }
+    #canvas-wrap { height: 55vw; min-height: 240px; }
+    #side-panel { border-left: none; border-top: 1.5px solid var(--border); height: 220px; }
+    .panel-scroll { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding: 8px; gap: 6px; }
+    .cat-label { display: none; }
+    .preset-btn { min-width: 130px; }
+    .mode-pill { display: none; }
+    #app { padding-bottom: var(--footer-h); }
+    .charge-legend { display: none; }
+  }
+  @media (max-width: 500px) {
+    .logo { font-size: 30px; }
+    header { padding: 8px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">ElectricField<span>Forge</span></a>
+  <div class="header-right">
+    <div class="charge-legend">
+      <div class="charge-dot" style="background:var(--pos-color)">+</div>
+      <span style="color:var(--pos-color)">positive</span>
+      <div class="charge-dot" style="background:var(--neg-color)">−</div>
+      <span style="color:var(--neg-color)">negative</span>
+    </div>
+    <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- CANVAS AREA -->
+  <div id="canvas-area">
+    <div id="toolbar">
+      <button class="ctrl-btn active-pos" id="btn-pos">＋ Place positive</button>
+      <button class="ctrl-btn" id="btn-neg">− Place negative</button>
+      <button class="ctrl-btn" id="btn-move">↖ Move</button>
+      <button class="ctrl-btn" id="btn-del">✕ Delete</button>
+      <div class="ctrl-sep"></div>
+      <button class="ctrl-btn" id="btn-equip">≋ Equipotentials</button>
+      <div class="ctrl-sep"></div>
+      <button class="ctrl-btn" id="btn-undo">↩ Undo</button>
+      <button class="ctrl-btn danger" id="btn-clear">🗑 Clear</button>
+      <span class="mode-pill" id="mode-pill">Place positive — click canvas to add a + charge</span>
+    </div>
+
+    <div id="canvas-wrap">
+      <canvas id="field-canvas"></canvas>
+    </div>
+
+    <div id="status-bar">
+      <div class="sdot" id="sdot"></div>
+      <span id="smsg">Place charges to see the electric field</span>
+      <span id="sdetail" id="sdetail"></span>
+    </div>
+    <div id="hint">Click to place charges · Move mode to drag · Delete mode to remove · Double-click any charge to delete</div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div id="side-panel">
+    <div class="panel-header">
+      <div class="panel-title">Presets<span>.</span></div>
+      <div class="panel-sub">Load a configuration</div>
+    </div>
+    <div class="panel-scroll" id="panel-scroll">
+
+      <div class="cat-label">Point Charges</div>
+
+      <button class="preset-btn" id="pre-single-pos">
+        <div class="preset-name">⊕ Single positive</div>
+        <div class="preset-desc">Radial field lines outward</div>
+      </button>
+
+      <button class="preset-btn" id="pre-single-neg">
+        <div class="preset-name">⊖ Single negative</div>
+        <div class="preset-desc">Radial field lines inward</div>
+      </button>
+
+      <button class="preset-btn" id="pre-opposite">
+        <div class="preset-name">⊕⊖ Opposite charges</div>
+        <div class="preset-desc">Lines from + to − (dipole)</div>
+      </button>
+
+      <button class="preset-btn" id="pre-same-pos">
+        <div class="preset-name">⊕⊕ Two positives</div>
+        <div class="preset-desc">Lines repel — neutral point between</div>
+      </button>
+
+      <button class="preset-btn" id="pre-same-neg">
+        <div class="preset-name">⊖⊖ Two negatives</div>
+        <div class="preset-desc">Lines repel inward — neutral point</div>
+      </button>
+
+      <button class="preset-btn" id="pre-triangle">
+        <div class="preset-name">⊕⊕⊖ Three charges</div>
+        <div class="preset-desc">Complex interaction pattern</div>
+      </button>
+
+      <div class="cat-label">Uniform Fields</div>
+
+      <button class="preset-btn" id="pre-plates">
+        <div class="preset-name">▥ Parallel plates</div>
+        <div class="preset-desc">Uniform field between capacitor plates</div>
+      </button>
+
+      <button class="preset-btn" id="pre-plates-unequal">
+        <div class="preset-name">▥ Unequal plates</div>
+        <div class="preset-desc">Stronger field near larger charge</div>
+      </button>
+
+      <div class="cat-label">Key Concepts</div>
+
+      <div style="font-size:10px;color:var(--text-muted);line-height:1.6;padding:4px 2px;">
+        <strong style="color:var(--text);">Line density</strong> = field strength<br>
+        <strong style="color:var(--text);">Direction</strong> = force on + test charge<br>
+        <strong style="color:var(--text);">Lines never cross</strong> — different directions impossible at same point<br>
+        <strong style="color:var(--text);">Equipotentials</strong> ⊥ field lines always
+      </div>
+
+      <div class="cat-label">Field Strength</div>
+      <div class="strength-bar"></div>
+      <div class="strength-labels"><span>weak</span><span>strong</span></div>
+
+      <div class="cat-label">Charges</div>
+      <div id="charge-count">
+        <span>Positive: <strong id="pos-count">0</strong></span>
+        <span>Negative: <strong id="neg-count">0</strong></span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span style="font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const POS_COLOR    = '#dc2626';
+const NEG_COLOR    = '#2563eb';
+const LINE_COLOR   = '#6d28d9';
+const EQUIP_COLOR  = '#059669';
+const CHARGE_R     = 18;          // visual radius of charge circle
+const K            = 1;           // Coulomb constant (normalised)
+const NUM_LINES    = 16;          // field lines per unit charge
+const STEP         = 3;           // integration step px
+const MAX_STEPS    = 1200;        // max steps per line
+const EQUIP_LEVELS = 12;          // number of equipotential contours
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let charges  = [];   // {x, y, q}  q=+1 or -1
+let mode     = 'pos'; // 'pos' | 'neg' | 'move' | 'del'
+let showEquip = false;
+let history  = [];
+let dragging = null, dragOff = {x:0, y:0};
+let nextId   = 1;
+let W = 0, H = 0, DPR = 1;
+
+// ─── CANVAS SETUP ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('field-canvas');
+const ctx    = canvas.getContext('2d');
+
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  const wrap = document.getElementById('canvas-wrap');
+  W = wrap.clientWidth; H = wrap.clientHeight;
+  canvas.width  = W * DPR; canvas.height = H * DPR;
+  canvas.style.width  = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(DPR, DPR);
+  render();
+}
+
+// ─── PHYSICS ──────────────────────────────────────────────────────────────────
+function fieldAt(x, y) {
+  let ex = 0, ey = 0;
+  for (const c of charges) {
+    const dx = x - c.x, dy = y - c.y;
+    const r2 = dx*dx + dy*dy;
+    if (r2 < 1) continue;
+    const r  = Math.sqrt(r2);
+    const mag = K * c.q / r2;
+    ex += mag * dx / r;
+    ey += mag * dy / r;
+  }
+  return {ex, ey};
+}
+
+function fieldMag(x, y) {
+  const {ex, ey} = fieldAt(x, y);
+  return Math.sqrt(ex*ex + ey*ey);
+}
+
+function potential(x, y) {
+  let v = 0;
+  for (const c of charges) {
+    const dx = x - c.x, dy = y - c.y;
+    const r = Math.sqrt(dx*dx + dy*dy);
+    if (r < 1) continue;
+    v += K * c.q / r;
+  }
+  return v;
+}
+
+// ─── FIELD LINE TRACING ───────────────────────────────────────────────────────
+function traceLine(startX, startY, direction) {
+  // direction: +1 follow field, -1 against
+  const pts = [{x: startX, y: startY}];
+  let x = startX, y = startY;
+  let prevX = x, prevY = y;
+
+  for (let s = 0; s < MAX_STEPS; s++) {
+    const {ex, ey} = fieldAt(x, y);
+    const mag = Math.sqrt(ex*ex + ey*ey);
+    if (mag < 1e-6) break;
+
+    const nx = direction * ex / mag;
+    const ny = direction * ey / mag;
+
+    x += nx * STEP;
+    y += ny * STEP;
+
+    // Stop if out of canvas (with margin)
+    if (x < -20 || x > W+20 || y < -20 || y > H+20) break;
+
+    // Stop if we've landed on a negative charge
+    let onCharge = false;
+    for (const c of charges) {
+      const dx = x - c.x, dy = y - c.y;
+      if (Math.sqrt(dx*dx+dy*dy) < CHARGE_R * 0.7) { onCharge = true; break; }
+    }
+    if (onCharge) break;
+
+    // Stop if line doubles back on itself (closed loop avoidance)
+    if (s > 10) {
+      const dx = x - startX, dy = y - startY;
+      if (Math.sqrt(dx*dx+dy*dy) < STEP*2 && s > 50) break;
+    }
+
+    pts.push({x, y});
+  }
+  return pts;
+}
+
+function drawArrowhead(x, y, dx, dy, size, color) {
+  const mag = Math.sqrt(dx*dx+dy*dy);
+  if (mag < 0.001) return;
+  const ux = dx/mag, uy = dy/mag;
+  const px = -uy, py = ux; // perpendicular
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x + ux*size, y + uy*size);
+  ctx.lineTo(x - ux*size + px*size*0.5, y - uy*size + py*size*0.5);
+  ctx.lineTo(x - ux*size - px*size*0.5, y - uy*size - py*size*0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFieldLines() {
+  if (charges.length === 0) return;
+
+  ctx.save();
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  for (const c of charges) {
+    const dir = c.q > 0 ? 1 : -1;
+
+    // Seed lines at equal angles around the charge
+    const nLines = NUM_LINES;
+    for (let i = 0; i < nLines; i++) {
+      const angle = (2 * Math.PI * i) / nLines;
+      const sx = c.x + Math.cos(angle) * (CHARGE_R + 2);
+      const sy = c.y + Math.sin(angle) * (CHARGE_R + 2);
+
+      const pts = traceLine(sx, sy, dir);
+      if (pts.length < 3) continue;
+
+      // Colour lines by local field strength (opacity mapping)
+      ctx.beginPath();
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.globalAlpha = 0.55;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let j = 1; j < pts.length; j++) {
+        ctx.lineTo(pts[j].x, pts[j].y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Draw arrowhead ~halfway along the line
+      const midIdx = Math.floor(pts.length * 0.45);
+      if (midIdx >= 1) {
+        const p1 = pts[midIdx - 1], p2 = pts[midIdx];
+        drawArrowhead(p2.x, p2.y, p2.x-p1.x, p2.y-p1.y, 5, LINE_COLOR);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// ─── EQUIPOTENTIAL CONTOURS ───────────────────────────────────────────────────
+// March-squares style: sample a grid of potentials and draw isolines
+function drawEquipotentials() {
+  if (charges.length === 0) return;
+
+  const GS = 8; // grid size in pixels
+  const cols = Math.ceil(W / GS) + 1;
+  const rows = Math.ceil(H / GS) + 1;
+
+  // Sample potential grid
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let col = 0; col < cols; col++) {
+      row.push(potential(col * GS, r * GS));
+    }
+    grid.push(row);
+  }
+
+  // Find potential range (excluding charge positions)
+  let vMin = Infinity, vMax = -Infinity;
+  for (let r = 0; r < rows; r++) {
+    for (let col = 0; col < cols; col++) {
+      const v = grid[r][col];
+      if (isFinite(v) && Math.abs(v) < 500) {
+        vMin = Math.min(vMin, v);
+        vMax = Math.max(vMax, v);
+      }
+    }
+  }
+  if (!isFinite(vMin) || !isFinite(vMax)) return;
+
+  // Draw contours at evenly spaced levels
+  ctx.save();
+  ctx.strokeStyle = EQUIP_COLOR;
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([5, 4]);
+  ctx.globalAlpha = 0.65;
+
+  const levels = [];
+  for (let i = 1; i < EQUIP_LEVELS; i++) {
+    levels.push(vMin + (vMax - vMin) * i / EQUIP_LEVELS);
+  }
+
+  for (const level of levels) {
+    // Linear interpolation along each cell edge
+    for (let r = 0; r < rows - 1; r++) {
+      for (let col = 0; col < cols - 1; col++) {
+        const v00 = grid[r][col],     v10 = grid[r][col+1];
+        const v01 = grid[r+1][col],   v11 = grid[r+1][col+1];
+        const x0 = col*GS, y0 = r*GS;
+
+        // Collect edge crossings
+        const pts = [];
+        function interp(va, vb, xa, ya, xb, yb) {
+          if ((va < level) === (vb < level)) return;
+          const t = (level - va) / (vb - va);
+          pts.push({x: xa + t*(xb-xa), y: ya + t*(yb-ya)});
+        }
+        interp(v00, v10, x0,    y0,    x0+GS, y0);
+        interp(v10, v11, x0+GS, y0,    x0+GS, y0+GS);
+        interp(v11, v01, x0+GS, y0+GS, x0,    y0+GS);
+        interp(v01, v00, x0,    y0+GS, x0,    y0);
+
+        if (pts.length === 2) {
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          ctx.lineTo(pts[1].x, pts[1].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// ─── CHARGE DRAWING ───────────────────────────────────────────────────────────
+function drawCharge(c, isSelected) {
+  const color = c.q > 0 ? POS_COLOR : NEG_COLOR;
+
+  // Glow
+  ctx.save();
+  const grad = ctx.createRadialGradient(c.x, c.y, CHARGE_R*0.3, c.x, c.y, CHARGE_R*2.2);
+  grad.addColorStop(0, c.q > 0 ? 'rgba(220,38,38,0.18)' : 'rgba(37,99,235,0.18)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, CHARGE_R*2.2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Circle
+  ctx.save();
+  ctx.beginPath(); ctx.arc(c.x, c.y, CHARGE_R, 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  if (isSelected) {
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+
+  // +/− label
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${CHARGE_R}px DM Sans, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(c.q > 0 ? '+' : '−', c.x, c.y + 1);
+  ctx.restore();
+}
+
+// ─── BACKGROUND FIELD DENSITY ─────────────────────────────────────────────────
+// Show a faint colour wash representing field magnitude
+function drawFieldBackground() {
+  if (charges.length === 0) return;
+  const GS = 16;
+  const cols = Math.ceil(W / GS);
+  const rows = Math.ceil(H / GS);
+  ctx.save();
+
+  for (let r = 0; r < rows; r++) {
+    for (let col = 0; col < cols; col++) {
+      const x = col * GS + GS/2, y = r * GS + GS/2;
+      // skip if on a charge
+      let onCharge = false;
+      for (const c of charges) {
+        if (Math.hypot(x-c.x, y-c.y) < CHARGE_R * 1.5) { onCharge=true; break; }
+      }
+      if (onCharge) continue;
+
+      const mag = fieldMag(x, y);
+      const norm = Math.min(1, mag / 0.02); // normalise to 0-1
+      const alpha = norm * 0.08;
+      ctx.fillStyle = `rgba(109,40,217,${alpha})`;
+      ctx.fillRect(col*GS, r*GS, GS, GS);
+    }
+  }
+  ctx.restore();
+}
+
+// ─── MAIN RENDER ──────────────────────────────────────────────────────────────
+function drawGrid() {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(220,38,38,0.05)'; ctx.lineWidth = 0.5;
+  for (let x = 0; x <= W; x += 20) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y <= H; y += 20) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  drawGrid();
+  if (charges.length > 0) {
+    drawFieldBackground();
+    drawFieldLines();
+    if (showEquip) drawEquipotentials();
+  }
+  for (const c of charges) drawCharge(c, c === dragging);
+  updateUI();
+}
+
+// ─── UI UPDATES ───────────────────────────────────────────────────────────────
+function updateUI() {
+  const posN = charges.filter(c => c.q > 0).length;
+  const negN = charges.filter(c => c.q < 0).length;
+  document.getElementById('pos-count').textContent = posN;
+  document.getElementById('neg-count').textContent = negN;
+
+  const smsg   = document.getElementById('smsg');
+  const sdetail = document.getElementById('sdetail');
+  const sdot   = document.getElementById('sdot');
+  const bar    = document.getElementById('status-bar');
+
+  if (charges.length === 0) {
+    bar.className = '';
+    sdot.className = 'sdot';
+    smsg.textContent = 'Place charges to see the electric field';
+    sdetail.textContent = '';
+    return;
+  }
+
+  // Generate an insight
+  let insight = '', detail = '';
+  sdot.className = 'sdot sdot-on';
+  bar.className = 'insight';
+
+  if (posN === 1 && negN === 0) {
+    insight = 'Radial field — lines point outward from a positive charge in all directions';
+    detail  = 'E ∝ 1/r²';
+  } else if (posN === 0 && negN === 1) {
+    insight = 'Radial field — lines point inward toward a negative charge';
+    detail  = 'E ∝ 1/r²';
+  } else if (posN === 1 && negN === 1) {
+    insight = 'Dipole — all field lines start on + and end on −. Notice the concentration between charges';
+    detail  = 'Lines from + to −';
+  } else if (posN === 2 && negN === 0) {
+    insight = 'Like charges repel — there is a neutral point midway where the field is zero';
+    detail  = 'Neutral point at centre';
+  } else if (posN === 0 && negN === 2) {
+    insight = 'Like charges repel — neutral point between them where fields cancel';
+    detail  = 'Neutral point at centre';
+  } else if (posN > 3 && negN > 3) {
+    insight = 'Parallel plate — field between plates is uniform (lines are parallel and equally spaced)';
+    detail  = 'E = V/d between plates';
+  } else {
+    insight = `Line density shows field strength — densest lines = strongest field. ${showEquip ? 'Equipotentials (green) are always perpendicular to field lines.' : ''}`;
+    detail  = `${charges.length} charge${charges.length>1?'s':''}`;
+  }
+
+  smsg.textContent  = insight;
+  sdetail.textContent = detail;
+}
+
+// ─── INTERACTION ──────────────────────────────────────────────────────────────
+function canvasPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+function chargeAt(x, y) {
+  for (let i = charges.length - 1; i >= 0; i--) {
+    const c = charges[i];
+    if (Math.hypot(x - c.x, y - c.y) < CHARGE_R + 6) return c;
+  }
+  return null;
+}
+
+function saveHistory() {
+  history.push(charges.map(c => ({...c})));
+  if (history.length > 30) history.shift();
+}
+
+canvas.addEventListener('mousedown', e => {
+  const {x, y} = canvasPos(e);
+  const hit = chargeAt(x, y);
+
+  if (mode === 'move') {
+    if (hit) { dragging = hit; dragOff = {x: x - hit.x, y: y - hit.y}; }
+    return;
+  }
+  if (mode === 'del') {
+    if (hit) { saveHistory(); charges = charges.filter(c => c !== hit); render(); }
+    return;
+  }
+  if (mode === 'pos' || mode === 'neg') {
+    if (hit) return; // don't place on top of existing charge
+    saveHistory();
+    charges.push({ id: nextId++, x, y, q: mode === 'pos' ? 1 : -1 });
+    render();
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const {x, y} = canvasPos(e);
+  if (dragging) {
+    dragging.x = Math.max(CHARGE_R, Math.min(W - CHARGE_R, x - dragOff.x));
+    dragging.y = Math.max(CHARGE_R, Math.min(H - CHARGE_R, y - dragOff.y));
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup', () => { dragging = null; });
+canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+// Touch support
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const {x, y} = canvasPos(e);
+  const hit = chargeAt(x, y);
+  if (mode === 'move') {
+    if (hit) { dragging = hit; dragOff = {x: x - hit.x, y: y - hit.y}; }
+  } else if (mode === 'del') {
+    if (hit) { saveHistory(); charges = charges.filter(c => c !== hit); render(); }
+  } else {
+    if (!hit) {
+      saveHistory();
+      charges.push({ id: nextId++, x, y, q: mode === 'pos' ? 1 : -1 });
+      render();
+    }
+  }
+}, {passive: false});
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const {x, y} = canvasPos(e);
+  if (dragging) {
+    dragging.x = Math.max(CHARGE_R, Math.min(W - CHARGE_R, x - dragOff.x));
+    dragging.y = Math.max(CHARGE_R, Math.min(H - CHARGE_R, y - dragOff.y));
+    render();
+  }
+}, {passive: false});
+
+canvas.addEventListener('touchend', () => { dragging = null; });
+
+// Double-click to delete
+canvas.addEventListener('dblclick', e => {
+  const {x, y} = canvasPos(e);
+  const hit = chargeAt(x, y);
+  if (hit) { saveHistory(); charges = charges.filter(c => c !== hit); render(); }
+});
+
+// ─── MODE BUTTONS ─────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  const pills = {
+    pos:  'Place positive — click canvas to add a + charge',
+    neg:  'Place negative — click canvas to add a − charge',
+    move: 'Move mode — drag charges to reposition',
+    del:  'Delete mode — click a charge to remove it'
+  };
+  document.getElementById('mode-pill').textContent = pills[m];
+  canvas.style.cursor = m === 'move' ? 'grab' : m === 'del' ? 'not-allowed' : 'crosshair';
+
+  const map = { pos: 'active-pos', neg: 'active-neg', move: 'active-move', del: 'active-del' };
+  ['btn-pos','btn-neg','btn-move','btn-del'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.className = 'ctrl-btn';
+    const modeKey = id.replace('btn-', '');
+    if (modeKey === m) btn.className = 'ctrl-btn ' + map[m];
+  });
+}
+
+document.getElementById('btn-pos').addEventListener('click', () => setMode('pos'));
+document.getElementById('btn-neg').addEventListener('click', () => setMode('neg'));
+document.getElementById('btn-move').addEventListener('click', () => setMode('move'));
+document.getElementById('btn-del').addEventListener('click', () => setMode('del'));
+
+document.getElementById('btn-equip').addEventListener('click', () => {
+  showEquip = !showEquip;
+  document.getElementById('btn-equip').className = 'ctrl-btn' + (showEquip ? ' tog-on' : '');
+  render();
+});
+
+document.getElementById('btn-undo').addEventListener('click', () => {
+  if (!history.length) return;
+  charges = history.pop();
+  render();
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (charges.length === 0) return;
+  if (confirm('Clear all charges?')) { saveHistory(); charges = []; render(); }
+});
+
+// ─── PRESETS ─────────────────────────────────────────────────────────────────
+function loadPreset(cfg) {
+  saveHistory();
+  charges = [];
+  // cfg is an array of {qx, qy, q} where qx/qy are fractions of W/H
+  for (const p of cfg) {
+    charges.push({ id: nextId++, x: p.fx * W, y: p.fy * H, q: p.q });
+  }
+  render();
+}
+
+document.getElementById('pre-single-pos').addEventListener('click', () =>
+  loadPreset([{fx:0.5, fy:0.5, q:1}])
+);
+document.getElementById('pre-single-neg').addEventListener('click', () =>
+  loadPreset([{fx:0.5, fy:0.5, q:-1}])
+);
+document.getElementById('pre-opposite').addEventListener('click', () =>
+  loadPreset([{fx:0.33, fy:0.5, q:1}, {fx:0.67, fy:0.5, q:-1}])
+);
+document.getElementById('pre-same-pos').addEventListener('click', () =>
+  loadPreset([{fx:0.3, fy:0.5, q:1}, {fx:0.7, fy:0.5, q:1}])
+);
+document.getElementById('pre-same-neg').addEventListener('click', () =>
+  loadPreset([{fx:0.3, fy:0.5, q:1}, {fx:0.7, fy:0.5, q:-1},
+              {fx:0.3, fy:0.5, q:1}, {fx:0.7, fy:0.5, q:-1}])
+);
+document.getElementById('pre-same-neg').addEventListener('click', () =>
+  loadPreset([{fx:0.3, fy:0.5, q:-1}, {fx:0.7, fy:0.5, q:-1}])
+);
+document.getElementById('pre-triangle').addEventListener('click', () =>
+  loadPreset([
+    {fx:0.5,  fy:0.28, q:1},
+    {fx:0.3,  fy:0.65, q:1},
+    {fx:0.7,  fy:0.65, q:-1}
+  ])
+);
+
+// Parallel plates — row of +ve on left, row of −ve on right
+document.getElementById('pre-plates').addEventListener('click', () => {
+  saveHistory(); charges = [];
+  const rows = 7, gap = 0.32;
+  for (let i = 0; i < rows; i++) {
+    const fy = 0.2 + (0.6 / (rows-1)) * i;
+    charges.push({id:nextId++, x:(0.5-gap)*W, y:fy*H, q: 1});
+    charges.push({id:nextId++, x:(0.5+gap)*W, y:fy*H, q:-1});
+  }
+  render();
+});
+
+document.getElementById('pre-plates-unequal').addEventListener('click', () => {
+  saveHistory(); charges = [];
+  const rows = 7, gap = 0.32;
+  for (let i = 0; i < rows; i++) {
+    const fy = 0.2 + (0.6 / (rows-1)) * i;
+    charges.push({id:nextId++, x:(0.5-gap)*W, y:fy*H, q: 1});
+  }
+  // Fewer negative charges = weaker negative plate
+  const negRows = 4;
+  for (let i = 0; i < negRows; i++) {
+    const fy = 0.28 + (0.44 / (negRows-1)) * i;
+    charges.push({id:nextId++, x:(0.5+gap)*W, y:fy*H, q:-1});
+  }
+  render();
+});
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); document.getElementById('btn-undo').click(); }
+  if (e.key === 'p' || e.key === 'P') setMode('pos');
+  if (e.key === 'n' || e.key === 'N') setMode('neg');
+  if (e.key === 'm' || e.key === 'M') setMode('move');
+  if (e.key === 'd' || e.key === 'D') setMode('del');
+  if (e.key === 'e' || e.key === 'E') document.getElementById('btn-equip').click();
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+window.addEventListener('DOMContentLoaded', () => {
+  resize();
+  setMode('pos');
+  // Load opposite charges as default — most instructive starting state
+  loadPreset([{fx:0.35, fy:0.5, q:1}, {fx:0.65, fy:0.5, q:-1}]);
+});
+</script>
+</body>
+</html>
