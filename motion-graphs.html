@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="MotionGraphForge — Interactive velocity-time and distance-time graph tool for GCSE Physics revision.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotionGraphForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff5f5;
+    --surface2: #fecaca;
+    --border: #fbbcbc;
+    --text: #3b0a0a;
+    --text-muted: #8b4444;
+    --accent: #dc2626;
+    --accent-light: #fff5f5;
+    --correct: #15803d;
+    --correct-light: #f0fdf4;
+    --wrong: #dc2626;
+    --wrong-light: #fff5f5;
+    --vt-color: #dc2626;
+    --st-color: #2563eb;
+    --footer-h: 44px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 10px 20px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; background: #fff; z-index: 10;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 2px;
+    color: var(--text); line-height: 1; text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .byline { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .byline strong { color: var(--accent); font-weight: 700; }
+  .legend-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 12px; border: 1.5px solid var(--border);
+    border-radius: 20px; background: var(--surface); font-size: 11px; font-weight: 600;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── MAIN LAYOUT ── */
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+    padding: 12px 14px;
+    padding-bottom: calc(var(--footer-h) + 12px);
+    column-gap: 12px;
+    row-gap: 8px;
+  }
+
+  /* ── TOOLBAR — spans full width ── */
+  #toolbar {
+    grid-column: 1 / -1;
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    background: #fff; border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 7px 12px;
+    box-shadow: 0 1px 4px rgba(220,38,38,.06);
+  }
+
+  .ctrl-btn {
+    padding: 5px 14px; border: 1.5px solid var(--border); border-radius: 20px;
+    background: #fff; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; color: var(--text); font-weight: 600;
+    transition: all .15s; white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .ctrl-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ctrl-btn.danger { color: var(--wrong); border-color: #fca5a5; }
+  .ctrl-btn.danger:hover { background: var(--wrong-light); border-color: var(--wrong); }
+  .ctrl-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+  .mode-pill {
+    font-size: 10.5px; padding: 3px 10px; border-radius: 20px;
+    background: var(--surface); color: var(--text-muted);
+    margin-left: auto; font-family: 'DM Mono', monospace; font-weight: 500;
+  }
+
+  /* ── GRAPH PANELS ── */
+  .graph-panel {
+    display: flex; flex-direction: column; gap: 6px; min-height: 0;
+  }
+  .graph-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 15px;
+    letter-spacing: 2px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .graph-label-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .graph-wrap {
+    flex: 1; position: relative;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: #fff; overflow: hidden;
+    box-shadow: 0 1px 6px rgba(220,38,38,.06);
+    cursor: crosshair;
+    min-height: 0;
+  }
+  .graph-wrap canvas { display: block; width: 100%; height: 100%; }
+
+  /* ── STATUS / INFO BAR — spans full width ── */
+  #info-bar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .info-card {
+    padding: 8px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: #fff;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .info-card.vt-card { border-color: #fca5a5; background: #fff8f8; }
+  .info-card.st-card { border-color: #93c5fd; background: #f0f6ff; }
+  .info-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-muted); font-family: 'DM Mono', monospace;
+  }
+  .info-value {
+    font-size: 16px; font-weight: 600; font-family: 'DM Mono', monospace;
+    color: var(--text);
+  }
+  .info-value span { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  /* ── INSIGHT PANEL ── */
+  #insight {
+    grid-column: 1 / -1;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-size: 11.5px; color: var(--text-muted); font-weight: 500;
+    min-height: 32px; display: flex; align-items: center; gap: 8px;
+  }
+  #insight strong { color: var(--accent); }
+  #insight.positive { border-color: #86efac; background: var(--correct-light); }
+  #insight.positive strong { color: var(--correct); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1.5px solid var(--border); padding: 11px 24px;
+    font-size: 11.5px; color: #111; background: var(--surface); line-height: 1.5;
+    flex-shrink: 0; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    height: var(--footer-h);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 700px) {
+    html, body { overflow: auto; height: auto; }
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      height: auto;
+      padding-bottom: calc(var(--footer-h) + 12px);
+    }
+    #info-bar { grid-template-columns: repeat(2,1fr); }
+    .logo { font-size: 30px; }
+    .legend-pill { display: none; }
+    .graph-wrap { height: 42vw; min-height: 180px; }
+    .mode-pill { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../physics/index.html" class="logo">MotionGraph<span>Forge</span></a>
+  <div class="header-right">
+    <div class="legend-pill">
+      <div class="legend-dot" style="background:var(--vt-color)"></div>
+      <span style="color:var(--vt-color)">v–t graph</span>
+      <div class="legend-dot" style="background:var(--st-color)"></div>
+      <span style="color:var(--st-color)">s–t graph</span>
+    </div>
+    <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <button class="ctrl-btn active" id="btn-draw-vt">✏ Draw v–t</button>
+    <button class="ctrl-btn" id="btn-draw-st">✏ Draw s–t</button>
+    <div class="ctrl-sep"></div>
+    <button class="ctrl-btn" id="btn-preset-uniform">Uniform speed</button>
+    <button class="ctrl-btn" id="btn-preset-accel">Constant accel</button>
+    <button class="ctrl-btn" id="btn-preset-decel">Brake to stop</button>
+    <button class="ctrl-btn" id="btn-preset-complex">Journey</button>
+    <div class="ctrl-sep"></div>
+    <button class="ctrl-btn" id="btn-undo">↩ Undo</button>
+    <button class="ctrl-btn danger" id="btn-clear">🗑 Clear</button>
+    <span class="mode-pill" id="mode-pill">Drawing v–t · click &amp; drag to draw the velocity–time graph</span>
+  </div>
+
+  <!-- V–T GRAPH -->
+  <div class="graph-panel">
+    <div class="graph-label">
+      <div class="graph-label-dot" style="background:var(--vt-color)"></div>
+      Velocity–Time Graph
+    </div>
+    <div class="graph-wrap" id="vt-wrap">
+      <canvas id="vt-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- S–T GRAPH -->
+  <div class="graph-panel">
+    <div class="graph-label">
+      <div class="graph-label-dot" style="background:var(--st-color)"></div>
+      Distance–Time Graph
+    </div>
+    <div class="graph-wrap" id="st-wrap">
+      <canvas id="st-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- INFO CARDS -->
+  <div id="info-bar">
+    <div class="info-card vt-card">
+      <div class="info-label">Acceleration</div>
+      <div class="info-value" id="val-accel">— <span>m/s²</span></div>
+    </div>
+    <div class="info-card vt-card">
+      <div class="info-label">Area under v–t <span style="font-size:8px">(= displacement)</span></div>
+      <div class="info-value" id="val-area">— <span>m</span></div>
+    </div>
+    <div class="info-card st-card">
+      <div class="info-label">Gradient of s–t <span style="font-size:8px">(= speed)</span></div>
+      <div class="info-value" id="val-grad">— <span>m/s</span></div>
+    </div>
+    <div class="info-card st-card">
+      <div class="info-label">Total distance</div>
+      <div class="info-value" id="val-dist">— <span>m</span></div>
+    </div>
+  </div>
+
+  <!-- INSIGHT -->
+  <div id="insight">Draw on either graph above — the other updates automatically. Hover to read values.</div>
+
+</div>
+
+<footer>
+  <span style="font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const T_MAX   = 10;   // seconds on x-axis
+const V_MAX   = 20;   // m/s on y-axis (v-t)
+const S_MAX   = 100;  // metres on y-axis (s-t)
+const SAMPLES = 200;  // number of time points stored
+
+const VT_COLOR = '#dc2626';
+const ST_COLOR = '#2563eb';
+const GRID_COLOR = 'rgba(220,38,38,0.07)';
+const AXIS_COLOR = '#3b0a0a';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+// vtPoints[i] = velocity at time i*(T_MAX/SAMPLES), or null if not set
+let vtPoints = new Array(SAMPLES).fill(null);
+let stPoints = new Array(SAMPLES).fill(null); // derived from vt, or directly drawn
+let drawMode = 'vt'; // 'vt' or 'st'
+let isDrawing = false;
+let history   = [];
+
+// ─── CANVAS SETUP ─────────────────────────────────────────────────────────────
+const vtWrap   = document.getElementById('vt-wrap');
+const stWrap   = document.getElementById('st-wrap');
+const vtCanvas = document.getElementById('vt-canvas');
+const stCanvas = document.getElementById('st-canvas');
+const vtCtx    = vtCanvas.getContext('2d');
+const stCtx    = stCanvas.getContext('2d');
+
+let VW=0, VH=0, SW=0, SH=0, DPR=1;
+
+// Margins for axes
+const M = {top:14, right:14, bottom:38, left:48};
+
+function resizeCanvas(canvas, wrap) {
+  DPR = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  canvas.width  = w * DPR; canvas.height = h * DPR;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  return {w, h};
+}
+
+function resize() {
+  ({w:VW, h:VH} = resizeCanvas(vtCanvas, vtWrap));
+  vtCtx.scale(DPR, DPR);
+  ({w:SW, h:SH} = resizeCanvas(stCanvas, stWrap));
+  stCtx.scale(DPR, DPR);
+  render();
+}
+
+// ─── COORDINATE HELPERS ───────────────────────────────────────────────────────
+// Plot area
+function plotW(W) { return W - M.left - M.right; }
+function plotH(H) { return H - M.top  - M.bottom; }
+
+// Data → canvas pixels
+function tToX(t, W)    { return M.left + (t / T_MAX) * plotW(W); }
+function vToY(v, H)    { return M.top  + (1 - v / V_MAX) * plotH(H); }
+function sToY(s, H)    { return M.top  + (1 - s / S_MAX) * plotH(H); }
+
+// Canvas pixels → data
+function xToT(px, W)   { return Math.max(0, Math.min(T_MAX, (px - M.left) / plotW(W) * T_MAX)); }
+function yToV(py, H)   { return Math.max(0, Math.min(V_MAX, (1 - (py - M.top) / plotH(H)) * V_MAX)); }
+function yToS(py, H)   { return Math.max(0, Math.min(S_MAX, (1 - (py - M.top) / plotH(H)) * S_MAX)); }
+
+function tToIdx(t)     { return Math.round(t / T_MAX * (SAMPLES-1)); }
+function idxToT(i)     { return i / (SAMPLES-1) * T_MAX; }
+
+// ─── GRAPH DRAWING ────────────────────────────────────────────────────────────
+function drawAxes(ctx, W, H, yMax, yLabel, xLabel, color) {
+  ctx.clearRect(0, 0, W, H);
+  const pw = plotW(W), ph = plotH(H);
+
+  // Grid
+  ctx.save();
+  ctx.strokeStyle = GRID_COLOR; ctx.lineWidth = 0.8;
+  // Vertical grid lines (time)
+  for (let t=0; t<=T_MAX; t++) {
+    const x = tToX(t, W);
+    ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, M.top+ph); ctx.stroke();
+  }
+  // Horizontal grid lines
+  const ySteps = 5;
+  for (let i=0; i<=ySteps; i++) {
+    const y = M.top + (i/ySteps)*ph;
+    ctx.beginPath(); ctx.moveTo(M.left, y); ctx.lineTo(M.left+pw, y); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle = AXIS_COLOR; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(M.left, M.top); ctx.lineTo(M.left, M.top+ph); // Y axis
+  ctx.moveTo(M.left, M.top+ph); ctx.lineTo(M.left+pw, M.top+ph); // X axis
+  ctx.stroke();
+
+  // Axis tick labels
+  ctx.fillStyle = '#8b4444'; ctx.font = '10px DM Mono, monospace'; ctx.textAlign = 'center';
+  for (let t=0; t<=T_MAX; t+=2) {
+    const x = tToX(t, W);
+    ctx.fillText(t, x, M.top+ph+14);
+  }
+  ctx.textAlign = 'right';
+  for (let i=0; i<=ySteps; i++) {
+    const val = (yMax * (ySteps-i) / ySteps).toFixed(0);
+    const y   = M.top + (i/ySteps)*ph;
+    ctx.fillText(val, M.left-6, y+4);
+  }
+
+  // Axis labels
+  ctx.save();
+  ctx.fillStyle = color; ctx.font = 'bold 11px DM Sans, sans-serif'; ctx.textAlign = 'center';
+  // X label
+  ctx.fillText(xLabel, M.left + pw/2, H - 4);
+  // Y label (rotated)
+  ctx.translate(12, M.top + ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+  ctx.restore();
+}
+
+function drawLine(ctx, points, yFn, H, color, W) {
+  const validPts = points.map((v,i) => v !== null ? {x: tToX(idxToT(i), W), y: yFn(v, H)} : null);
+  // Draw connected segments
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+  let inSeg = false;
+  ctx.beginPath();
+  for (let i=0; i<validPts.length; i++) {
+    const p = validPts[i];
+    if (p === null) { inSeg = false; continue; }
+    if (!inSeg) { ctx.moveTo(p.x, p.y); inSeg = true; }
+    else        { ctx.lineTo(p.x, p.y); }
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function fillAreaVT(ctx, W, H) {
+  // Fill area under v-t curve (= displacement)
+  const ph = plotH(H), baseline = M.top + ph;
+  ctx.save();
+  ctx.fillStyle = 'rgba(220,38,38,0.09)';
+  ctx.beginPath();
+  let started = false;
+  for (let i=0; i<vtPoints.length; i++) {
+    if (vtPoints[i] === null) { if (started) { ctx.closePath(); ctx.fill(); ctx.beginPath(); started=false; } continue; }
+    const x = tToX(idxToT(i), W), y = vToY(vtPoints[i], H);
+    if (!started) { ctx.moveTo(x, baseline); ctx.lineTo(x, y); started=true; }
+    else ctx.lineTo(x, y);
+  }
+  if (started) { 
+    const lastValid = [...vtPoints].reverse().findIndex(v=>v!==null);
+    const lastIdx = vtPoints.length - 1 - lastValid;
+    ctx.lineTo(tToX(idxToT(lastIdx), W), baseline);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Hover crosshair state
+let vtHover = null, stHover = null;
+
+function drawHoverCrosshair(ctx, W, H, hoverX, yFn, yMax, color) {
+  if (hoverX === null) return;
+  const idx = Math.round(hoverX / T_MAX * (SAMPLES-1));
+  const clampedIdx = Math.max(0, Math.min(SAMPLES-1, idx));
+  const val = (hoverX === 'vt' ? vtPoints : stPoints)[clampedIdx];
+  if (val === null) return;
+
+  const px = tToX(hoverX, W), py = yFn(val, H);
+  const ph = plotH(H), pw = plotW(W);
+
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(px, M.top); ctx.lineTo(px, M.top+ph); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(M.left, py); ctx.lineTo(M.left+pw, py); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2);
+  ctx.fillStyle = color; ctx.fill();
+  ctx.restore();
+}
+
+function render() {
+  // VT graph
+  drawAxes(vtCtx, VW, VH, V_MAX, 'v (m/s)', 'time (s)', VT_COLOR);
+  fillAreaVT(vtCtx, VW, VH);
+  drawLine(vtCtx, vtPoints, vToY, VH, VT_COLOR, VW);
+  if (vtHover !== null) {
+    const idx = tToIdx(vtHover);
+    if (vtPoints[idx] !== null) {
+      const px = tToX(vtHover, VW), py = vToY(vtPoints[idx], VH);
+      const ph = plotH(VH), pw = plotW(VW);
+      vtCtx.save(); vtCtx.strokeStyle = VT_COLOR; vtCtx.lineWidth=1; vtCtx.setLineDash([4,3]);
+      vtCtx.beginPath(); vtCtx.moveTo(px,M.top); vtCtx.lineTo(px,M.top+ph); vtCtx.stroke();
+      vtCtx.beginPath(); vtCtx.moveTo(M.left,py); vtCtx.lineTo(M.left+pw,py); vtCtx.stroke();
+      vtCtx.setLineDash([]);
+      vtCtx.beginPath(); vtCtx.arc(px,py,5,0,Math.PI*2); vtCtx.fillStyle=VT_COLOR; vtCtx.fill();
+      vtCtx.restore();
+    }
+  }
+
+  // ST graph
+  drawAxes(stCtx, SW, SH, S_MAX, 's (m)', 'time (s)', ST_COLOR);
+  drawLine(stCtx, stPoints, sToY, SH, ST_COLOR, SW);
+  if (stHover !== null) {
+    const idx = tToIdx(stHover);
+    if (stPoints[idx] !== null) {
+      const px = tToX(stHover, SW), py = sToY(stPoints[idx], SH);
+      const ph = plotH(SH), pw = plotW(SW);
+      stCtx.save(); stCtx.strokeStyle = ST_COLOR; stCtx.lineWidth=1; stCtx.setLineDash([4,3]);
+      stCtx.beginPath(); stCtx.moveTo(px,M.top); stCtx.lineTo(px,M.top+ph); stCtx.stroke();
+      stCtx.beginPath(); stCtx.moveTo(M.left,py); stCtx.lineTo(M.left+pw,py); stCtx.stroke();
+      stCtx.setLineDash([]);
+      stCtx.beginPath(); stCtx.arc(px,py,5,0,Math.PI*2); stCtx.fillStyle=ST_COLOR; stCtx.fill();
+      stCtx.restore();
+    }
+  }
+
+  updateInfoCards();
+}
+
+// ─── DERIVED GRAPH COMPUTATION ───────────────────────────────────────────────
+// Integrate v-t → s-t using trapezoid rule
+function integrateVT() {
+  const dt = T_MAX / SAMPLES;
+  stPoints = new Array(SAMPLES).fill(null);
+  let s = 0, lastV = null, lastI = -1;
+  for (let i=0; i<SAMPLES; i++) {
+    if (vtPoints[i] === null) { lastV = null; continue; }
+    if (lastV === null) {
+      // Start of a new segment
+      if (i > 0 && stPoints[i-1] !== null) s = stPoints[i-1];
+      else s = 0;
+      stPoints[i] = s;
+    } else {
+      s += (lastV + vtPoints[i]) / 2 * dt;
+      stPoints[i] = Math.max(0, Math.min(S_MAX, s));
+    }
+    lastV = vtPoints[i]; lastI = i;
+  }
+}
+
+// Differentiate s-t → v-t using central differences
+function differentiateSTtoVT() {
+  const dt = T_MAX / SAMPLES;
+  vtPoints = new Array(SAMPLES).fill(null);
+  for (let i=0; i<SAMPLES; i++) {
+    if (stPoints[i] === null) continue;
+    let prev = i > 0 ? stPoints[i-1] : null;
+    let next = i < SAMPLES-1 ? stPoints[i+1] : null;
+    if (prev === null && next === null) continue;
+    if (prev === null) { vtPoints[i] = (next - stPoints[i]) / dt; }
+    else if (next === null) { vtPoints[i] = (stPoints[i] - prev) / dt; }
+    else { vtPoints[i] = (next - prev) / (2*dt); }
+    vtPoints[i] = Math.max(0, Math.min(V_MAX, vtPoints[i]));
+  }
+}
+
+// ─── INFO CARDS ───────────────────────────────────────────────────────────────
+function updateInfoCards() {
+  // Acceleration = gradient of v-t at hover point (or over whole range)
+  const accelEl = document.getElementById('val-accel');
+  const areaEl  = document.getElementById('val-area');
+  const gradEl  = document.getElementById('val-grad');
+  const distEl  = document.getElementById('val-dist');
+
+  const dt = T_MAX / SAMPLES;
+
+  // Area under v-t (total displacement)
+  let area = 0, areaValid = false;
+  for (let i=1; i<SAMPLES; i++) {
+    if (vtPoints[i]!==null && vtPoints[i-1]!==null) {
+      area += (vtPoints[i] + vtPoints[i-1]) / 2 * dt;
+      areaValid = true;
+    }
+  }
+
+  // Total distance from s-t (last non-null value)
+  let totalDist = null;
+  for (let i=SAMPLES-1; i>=0; i--) {
+    if (stPoints[i] !== null) { totalDist = stPoints[i]; break; }
+  }
+
+  // Acceleration at hover (gradient of v-t)
+  let accel = null;
+  if (vtHover !== null) {
+    const idx = tToIdx(vtHover);
+    const i1 = Math.max(0, idx-3), i2 = Math.min(SAMPLES-1, idx+3);
+    if (vtPoints[i1]!==null && vtPoints[i2]!==null && i2>i1) {
+      accel = (vtPoints[i2]-vtPoints[i1]) / ((i2-i1)*dt);
+    }
+  } else {
+    // Overall acceleration (first to last non-null)
+    let first=null, last=null, fi=0, li=0;
+    for (let i=0;i<SAMPLES;i++) { if(vtPoints[i]!==null){if(first===null){first=vtPoints[i];fi=i;}last=vtPoints[i];li=i;} }
+    if (first!==null && li>fi) accel = (last-first)/((li-fi)*dt);
+  }
+
+  // Speed (gradient of s-t) at hover
+  let grad = null;
+  if (stHover !== null) {
+    const idx = tToIdx(stHover);
+    const i1 = Math.max(0, idx-3), i2 = Math.min(SAMPLES-1, idx+3);
+    if (stPoints[i1]!==null && stPoints[i2]!==null && i2>i1) {
+      grad = (stPoints[i2]-stPoints[i1]) / ((i2-i1)*dt);
+    }
+  }
+
+  accelEl.innerHTML = accel!==null ? `${accel.toFixed(2)} <span>m/s²</span>` : `— <span>m/s²</span>`;
+  areaEl.innerHTML  = areaValid    ? `${area.toFixed(1)} <span>m</span>` : `— <span>m</span>`;
+  gradEl.innerHTML  = grad!==null  ? `${grad.toFixed(2)} <span>m/s</span>` : `— <span>m/s</span>`;
+  distEl.innerHTML  = totalDist!==null ? `${totalDist.toFixed(1)} <span>m</span>` : `— <span>m</span>`;
+
+  updateInsight(accel, area, areaValid, totalDist);
+}
+
+function updateInsight(accel, area, areaValid, totalDist) {
+  const el = document.getElementById('insight');
+  const hasVT = vtPoints.some(v=>v!==null);
+  const hasST = stPoints.some(v=>v!==null);
+
+  if (!hasVT && !hasST) {
+    el.className = '';
+    el.innerHTML = 'Draw on either graph above — the other updates automatically. Hover to read values.';
+    return;
+  }
+
+  let msgs = [];
+
+  if (accel !== null) {
+    const a = parseFloat(accel.toFixed(2));
+    if (Math.abs(a) < 0.05)      msgs.push('<strong>Constant velocity</strong> — flat v–t line means zero acceleration');
+    else if (a > 0)               msgs.push(`<strong>Accelerating</strong> at ${a} m/s² — gradient of v–t line = acceleration`);
+    else                          msgs.push(`<strong>Decelerating</strong> at ${Math.abs(a)} m/s² — negative gradient on v–t`);
+  }
+
+  if (areaValid && area > 0.5)
+    msgs.push(`Area under v–t = <strong>${area.toFixed(1)} m</strong> displacement`);
+
+  if (msgs.length === 0 && hasVT)
+    msgs.push('The <strong>gradient</strong> of the v–t graph gives acceleration. The <strong>area</strong> gives displacement.');
+
+  el.className = accel !== null && Math.abs(accel) < 0.05 ? 'positive' : '';
+  el.innerHTML = msgs.join(' · ');
+}
+
+// ─── DRAWING INTERACTION ──────────────────────────────────────────────────────
+function saveHistory() {
+  history.push({
+    vt: [...vtPoints],
+    st: [...stPoints]
+  });
+  if (history.length > 30) history.shift();
+}
+
+function undo() {
+  if (!history.length) return;
+  const s = history.pop();
+  vtPoints = s.vt; stPoints = s.st;
+  render();
+}
+
+function clearAll() {
+  saveHistory();
+  vtPoints = new Array(SAMPLES).fill(null);
+  stPoints = new Array(SAMPLES).fill(null);
+  render();
+}
+
+function getCanvasPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+function isInPlotArea(x, y, W, H) {
+  return x >= M.left && x <= W - M.right && y >= M.top && y <= H - M.bottom;
+}
+
+function handleDrawStart(e, canvas, isVT) {
+  e.preventDefault();
+  saveHistory();
+  isDrawing = true;
+  handleDrawMove(e, canvas, isVT);
+}
+
+function handleDrawMove(e, canvas, isVT) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  const {x, y} = getCanvasPos(e, canvas);
+  const W = isVT ? VW : SW, H = isVT ? VH : SH;
+  if (!isInPlotArea(x, y, W, H)) return;
+
+  const t   = xToT(x, W);
+  const idx = tToIdx(t);
+
+  if (isVT) {
+    const v = yToV(y, H);
+    // Smooth: fill in between last drawn point
+    vtPoints[idx] = v;
+    integrateVT();
+  } else {
+    const s = yToS(y, H);
+    stPoints[idx] = s;
+    // Ensure monotonically non-decreasing for distance (distance can't decrease)
+    // Actually for displacement it can, but GCSE uses distance so clamp
+    for (let i = idx-1; i >= 0; i--) {
+      if (stPoints[i] === null) continue;
+      if (stPoints[i] > stPoints[idx]) stPoints[i] = stPoints[idx];
+      else break;
+    }
+    differentiateSTtoVT();
+  }
+  render();
+}
+
+function handleDrawEnd(e) {
+  isDrawing = false;
+}
+
+// Smooth the drawn line by interpolating gaps
+function interpolateGaps(arr) {
+  let result = [...arr];
+  let i = 0;
+  while (i < result.length) {
+    if (result[i] !== null) { i++; continue; }
+    // Find start and end of gap
+    let start = i - 1, end = i;
+    while (end < result.length && result[end] === null) end++;
+    if (start >= 0 && end < result.length) {
+      const vStart = result[start], vEnd = result[end];
+      for (let j = start+1; j < end; j++) {
+        result[j] = vStart + (vEnd - vStart) * (j-start) / (end-start);
+      }
+    }
+    i = end;
+  }
+  return result;
+}
+
+// ── VT canvas events ──
+vtCanvas.addEventListener('mousedown', e => { if(drawMode==='vt') handleDrawStart(e, vtCanvas, true); });
+vtCanvas.addEventListener('mousemove', e => {
+  const {x,y} = getCanvasPos(e, vtCanvas);
+  if (drawMode==='vt') handleDrawMove(e, vtCanvas, true);
+  // Hover
+  if (isInPlotArea(x,y,VW,VH)) { vtHover = xToT(x, VW); stHover = vtHover; }
+  else { vtHover = null; }
+  render();
+});
+vtCanvas.addEventListener('mouseup',   handleDrawEnd);
+vtCanvas.addEventListener('mouseleave', () => { vtHover = null; stHover = null; isDrawing=false; render(); });
+vtCanvas.addEventListener('touchstart', e => { if(drawMode==='vt') handleDrawStart(e, vtCanvas, true); }, {passive:false});
+vtCanvas.addEventListener('touchmove',  e => { if(drawMode==='vt') handleDrawMove(e, vtCanvas, true); }, {passive:false});
+vtCanvas.addEventListener('touchend',   handleDrawEnd);
+
+// ── ST canvas events ──
+stCanvas.addEventListener('mousedown', e => { if(drawMode==='st') handleDrawStart(e, stCanvas, false); });
+stCanvas.addEventListener('mousemove', e => {
+  const {x,y} = getCanvasPos(e, stCanvas);
+  if (drawMode==='st') handleDrawMove(e, stCanvas, false);
+  if (isInPlotArea(x,y,SW,SH)) { stHover = xToT(x, SW); vtHover = stHover; }
+  else { stHover = null; }
+  render();
+});
+stCanvas.addEventListener('mouseup',   handleDrawEnd);
+stCanvas.addEventListener('mouseleave', () => { stHover = null; vtHover = null; isDrawing=false; render(); });
+stCanvas.addEventListener('touchstart', e => { if(drawMode==='st') handleDrawStart(e, stCanvas, false); }, {passive:false});
+stCanvas.addEventListener('touchmove',  e => { if(drawMode==='st') handleDrawMove(e, stCanvas, false); }, {passive:false});
+stCanvas.addEventListener('touchend',   handleDrawEnd);
+
+// ─── PRESETS ─────────────────────────────────────────────────────────────────
+function applyPreset(vtFn) {
+  saveHistory();
+  vtPoints = new Array(SAMPLES).fill(null);
+  for (let i=0; i<SAMPLES; i++) {
+    const t = idxToT(i);
+    vtPoints[i] = Math.max(0, Math.min(V_MAX, vtFn(t)));
+  }
+  integrateVT();
+  render();
+}
+
+document.getElementById('btn-preset-uniform').addEventListener('click', () =>
+  applyPreset(t => 10)
+);
+document.getElementById('btn-preset-accel').addEventListener('click', () =>
+  applyPreset(t => 2 * t)
+);
+document.getElementById('btn-preset-decel').addEventListener('click', () =>
+  applyPreset(t => Math.max(0, 20 - 2.5*t))
+);
+document.getElementById('btn-preset-complex').addEventListener('click', () =>
+  applyPreset(t => {
+    if (t < 2)        return 5 * t;           // accelerate 0→10 m/s
+    if (t < 5)        return 10;               // constant 10 m/s
+    if (t < 7)        return 10 - 3*(t-5);    // decelerate to 4 m/s
+    if (t < 8)        return 4;               // brief constant
+    if (t < 10)       return Math.max(0, 4 - 2*(t-8)); // brake to stop
+    return 0;
+  })
+);
+
+// ─── TOOLBAR BUTTONS ─────────────────────────────────────────────────────────
+function setDrawMode(m) {
+  drawMode = m;
+  document.getElementById('btn-draw-vt').className = 'ctrl-btn' + (m==='vt'?' active':'');
+  document.getElementById('btn-draw-st').className = 'ctrl-btn' + (m==='st'?' active':'');
+  document.getElementById('mode-pill').textContent =
+    m === 'vt'
+      ? 'Drawing v–t · click & drag to draw the velocity–time graph'
+      : 'Drawing s–t · click & drag to draw the distance–time graph';
+  vtCanvas.style.cursor = m==='vt' ? 'crosshair' : 'default';
+  stCanvas.style.cursor = m==='st' ? 'crosshair' : 'default';
+}
+
+document.getElementById('btn-draw-vt').addEventListener('click', () => setDrawMode('vt'));
+document.getElementById('btn-draw-st').addEventListener('click', () => setDrawMode('st'));
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (confirm('Clear both graphs?')) clearAll();
+});
+
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey)&&e.key==='z') { e.preventDefault(); undo(); }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+window.addEventListener('DOMContentLoaded', () => {
+  resize();
+  setDrawMode('vt');
+  // Load the "journey" preset by default so there's something to look at
+  applyPreset(t => {
+    if (t < 2)  return 5 * t;
+    if (t < 5)  return 10;
+    if (t < 7)  return 10 - 3*(t-5);
+    if (t < 8)  return 4;
+    if (t < 10) return Math.max(0, 4 - 2*(t-8));
+    return 0;
+  });
+});
+</script>
+</body>
+</html>
