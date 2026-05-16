@@ -95,6 +95,8 @@
   .tc-8  { --card-color: #e11d48; --card-border: #fda4af; --card-bg: #fff1f2; }
   .tc-9  { --card-color: #ea580c; --card-border: #fb923c; --card-bg: #fff7ed; }
   .tc-10 { --card-color: #f59e0b; --card-border: #fcd34d; --card-bg: #fffbeb; }
+  .tc-density { --card-color: #c2410c; --card-border: #fdba74; --card-bg: #fff7ed; }
+  .tc-moment  { --card-color: #b45309; --card-border: #fcd34d; --card-bg: #fffbeb; }
 
   .section-label {
     width: min(960px, 100%); font-family: 'Bebas Neue', sans-serif;
@@ -108,8 +110,6 @@
   }
   .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
 
-  .tc-density { --card-color: #c2410c; --card-border: #fdba74; --card-bg: #fff7ed; }
-  .tc-moment { --card-color: #b45309; --card-border: #fcd34d; --card-bg: #fffbeb; }
   @media (max-width: 700px) {
     .topic-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
     .topic-card { padding: 22px 16px; min-height: 140px; }
@@ -133,6 +133,7 @@
 <main class="main">
   <a href="index.html" class="back-link">← Back to ReviseForge</a>
 
+  <!-- ── TOOLS (alphabetical) ── -->
   <div class="section-label">Tools</div>
   <div class="topic-grid">
 
@@ -142,7 +143,7 @@
       <div class="topic-desc">Build &amp; test circuits interactively</div>
     </a>
 
-   <a href="electricfieldforge.html" class="topic-card tc-3">
+    <a href="electricfieldforge.html" class="topic-card tc-3">
       <div class="topic-icon">⚡</div>
       <div class="topic-name">ElectricField<span class="forge">Forge</span></div>
       <div class="topic-desc">Place charges &amp; see field lines live</div>
@@ -154,9 +155,9 @@
       <div class="topic-desc">v–t &amp; s–t graphs, live &amp; linked</div>
     </a>
 
-
   </div>
 
+  <!-- ── DRILLS (alphabetical) ── -->
   <div class="section-label">Drills</div>
   <div class="topic-grid">
 
@@ -172,55 +173,79 @@
       <div class="topic-desc">Mass, volume &amp; density calculations</div>
     </a>
 
-        <a href="equationforge.html" class="topic-card tc-3">
+    <a href="equationforge.html" class="topic-card tc-3">
       <div class="topic-icon">🔣</div>
       <div class="topic-name">Equation<span class="forge">Forge</span></div>
       <div class="topic-desc">Rearrange &amp; solve physics equations</div>
     </a>
 
-    <a href="energyforge.html" class="topic-card tc-3">
+    <a href="energyforge.html" class="topic-card tc-4">
       <div class="topic-icon">🔋</div>
       <div class="topic-name">Energy<span class="forge">Forge</span></div>
       <div class="topic-desc">Energy transfers, stores &amp; efficiency</div>
     </a>
 
-    <a href="forceforge.html" class="topic-card tc-4">
+    <a href="forceforge.html" class="topic-card tc-5">
       <div class="topic-icon">🏃</div>
       <div class="topic-name">Force<span class="forge">Forge</span></div>
       <div class="topic-desc">Newton's laws, friction &amp; motion</div>
     </a>
 
-    <a href="halflifeforge.html" class="topic-card tc-5">
+    <a href="halflifeforge.html" class="topic-card tc-6">
       <div class="topic-icon">☢️</div>
       <div class="topic-name">HalfLife<span class="forge">Forge</span></div>
       <div class="topic-desc">Radioactive decay &amp; half-life calculations</div>
     </a>
 
-    <a href="momentforge.html" class="topic-card tc-moment">
+    <a href="magnetismforge.html" class="topic-card tc-moment">
+      <div class="topic-icon">🧲</div>
+      <div class="topic-name">Magnetism<span class="forge">Forge</span></div>
+      <div class="topic-desc">Fields, motor effect &amp; Fleming's rule</div>
+    </a>
+
+    <a href="momentforge.html" class="topic-card tc-7">
       <div class="topic-icon">⚖️</div>
       <div class="topic-name">Moment<span class="forge">Forge</span></div>
       <div class="topic-desc">Moments, levers &amp; turning forces</div>
     </a>
 
-    <a href="spaceforge.html" class="topic-card tc-7">
+    <a href="particleforge.html" class="topic-card tc-8">
+      <div class="topic-icon">⚛️</div>
+      <div class="topic-name">Particle<span class="forge">Forge</span></div>
+      <div class="topic-desc">Atomic structure &amp; nuclear equations</div>
+    </a>
+
+    <a href="pressureforge.html" class="topic-card tc-9">
+      <div class="topic-icon">🌊</div>
+      <div class="topic-name">Pressure<span class="forge">Forge</span></div>
+      <div class="topic-desc">P = F/A, fluid pressure &amp; hydraulics</div>
+    </a>
+
+    <a href="spaceforge.html" class="topic-card tc-10">
       <div class="topic-icon">🌌</div>
       <div class="topic-name">Space<span class="forge">Forge</span></div>
       <div class="topic-desc">Solar system, stars &amp; the universe</div>
     </a>
 
-    <a href="spectrumforge.html" class="topic-card tc-8">
+    <a href="spectrumforge.html" class="topic-card tc-1">
       <div class="topic-icon">🌈</div>
       <div class="topic-name">Spectrum<span class="forge">Forge</span></div>
       <div class="topic-desc">Electromagnetic spectrum &amp; wave properties</div>
     </a>
 
-    <a href="unitforge.html" class="topic-card tc-9">
+    <a href="transformerforge.html" class="topic-card tc-2">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Transformer<span class="forge">Forge</span></div>
+      <div class="topic-desc">Transformers, induction &amp; national grid</div>
+    </a>
+
+    <a href="unitforge.html" class="topic-card tc-3">
       <div class="topic-icon">📏</div>
       <div class="topic-name">Unit<span class="forge">Forge</span></div>
       <div class="topic-desc">Physics units &amp; conversions</div>
     </a>
 
-    <a href="waveforge.html" class="topic-card tc-10">
+    <a href="waveforge.html" class="topic-card tc-4">
       <div class="topic-icon">🌊</div>
       <div class="topic-name">Wave<span class="forge">Forge</span></div>
       <div class="topic-desc">Frequency, wavelength &amp; wave speed</div>
