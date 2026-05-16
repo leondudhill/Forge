@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="PressureForge — GCSE Physics pressure drill. Practice P = F/A, P = hρg and fluid pressure calculations.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PressureForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fff5f5;
+    --surface2: #fecaca;
+    --border: #fca5a5;
+    --text: #3b0a0a;
+    --text-muted: #8b3a3a;
+    --accent: #dc2626;
+    --accent2: #f59e0b;
+    --correct: #2a9d5c;
+    --wrong: #e84c1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill { display: flex; align-items: center; justify-content: space-between; height: 44px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; user-select: none; padding: 0 14px; }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; background: var(--accent2); border-radius: 50%; border: 1.5px solid #fff; display: none; }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; gap: 18px; }
+  .question-card { text-align: center; max-width: 520px; width: 100%; }
+  .topic-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; margin-bottom: 12px; }
+  .diagram-wrap { width: 100%; max-width: 300px; margin: 0 auto 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+  .question-text { font-family: 'DM Sans', sans-serif; font-size: clamp(14px, 2.8vw, 17px); font-weight: 600; line-height: 1.45; color: var(--text); margin-bottom: 4px; }
+  .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.4px; min-height: 20px; }
+  .timer-wrap { width: min(320px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning { background: #f5c518; }
+  .timer-bar.warning-orange { background: #f07d20; }
+  .timer-bar.urgent { background: var(--wrong); }
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(16px, 4vw, 24px); font-weight: 500; width: 160px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input:focus { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash { border-color: var(--wrong); background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+  .unit-label { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text-muted); }
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover { filter: brightness(1.1); }
+  .submit-btn:active { transform: scale(0.97); }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct { color: var(--correct); }
+  .feedback-msg.wrong { color: var(--wrong); }
+  .feedback-msg.mastered { color: var(--accent2); }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 24px 14px; gap: 14px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+</style>
+</head>
+<body>
+<header>
+  <a href="../physics/index.html" class="logo">Pressure<span>Forge</span></a>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="diagram-wrap" id="diagramWrap"></div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <span class="unit-label" id="unitLabel">Pa</span>
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block">
+      <div class="stat-label">Correct / Total</div>
+      <div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-value"><span id="statPct">—</span></div>
+      <div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div>
+      <div class="stat-sub" id="statStreak"></div>
+    </div>
+    <hr class="divider">
+    <div class="stat-block">
+      <div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div>
+      <div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div>
+    </div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions">
+    <button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button>
+    <button class="reset-btn" id="resetBtnMobile">Reset Progress</button>
+  </div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+// ── SVG HELPERS ──────────────────────────────────────────────
+const AC='#dc2626', BLU='#2563eb', GRN='#16a34a', ORG='#ea580c', GRY='#6b7280', TXT='#3b0a0a';
+function svgP(body,w=300,h=240){ return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:'DM Sans',sans-serif">${body}</svg>`; }
+function lbl(x,y,text,color=TXT,size=11,anchor='middle',weight='700'){ return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="${color}" font-family="DM Mono,monospace">${text}</text>`; }
+function rect(x,y,w,h,fill='#fff5f5',stroke=AC,sw=2,rx=6){ return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`; }
+function arrow(x1,y1,x2,y2,color=AC,sw=2.5){
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  const ux=dx/len,uy=dy/len,hx=x2-ux*10,hy=y2-uy*10,px=-uy*5,py=ux*5;
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/><polygon points="${x2},${y2} ${hx+px},${hy+py} ${hx-px},${hy-py}" fill="${color}"/>`;
+}
+
+// ── DIAGRAMS ─────────────────────────────────────────────────
+const DIAGRAMS = {
+
+  // P = F / A — basic block
+  pfa_basic: () => svgP(
+    rect(75,80,150,60,'#fff5f5',AC) +
+    lbl(150,105,'F = 500 N',TXT,11) + lbl(150,120,'A = 0.25 m²',TXT,11) +
+    arrow(150,80,150,30,AC) + lbl(150,22,'P = ?',AC,12) +
+    lbl(150,210,'P = F ÷ A',GRY,10,'middle','400')
+  ),
+
+  pfa_find_f: () => svgP(
+    rect(75,80,150,60,'#fff5f5',AC) +
+    lbl(150,105,'P = 4000 Pa',TXT,11) + lbl(150,120,'A = 0.5 m²',TXT,11) +
+    arrow(150,80,150,30,AC) + lbl(150,22,'F = ?',AC,12) +
+    lbl(150,210,'F = P × A',GRY,10,'middle','400')
+  ),
+
+  pfa_find_a: () => svgP(
+    rect(75,80,150,60,'#fff5f5',AC) +
+    lbl(150,105,'P = 3000 Pa',TXT,11) + lbl(150,120,'F = 600 N',TXT,11) +
+    arrow(150,80,150,30,AC) + lbl(150,22,'A = ?',AC,12) +
+    lbl(150,210,'A = F ÷ P',GRY,10,'middle','400')
+  ),
+
+  // Ski / snowshoe — same force different area
+  skis: () => svgP(
+    // Person standing on skis (wide) vs boots (narrow)
+    `<ellipse cx="90" cy="170" rx="40" ry="8" fill="#bfdbfe" stroke="${BLU}" stroke-width="1.5"/>` +
+    `<ellipse cx="210" cy="170" rx="12" ry="8" fill="#fecaca" stroke="${AC}" stroke-width="1.5"/>` +
+    rect(70,100,40,65,'#fff5f5',BLU,1.5,3) + rect(195,100,30,65,'#fff5f5',AC,1.5,3) +
+    lbl(90,95,'Ski: A = 0.4 m²',BLU,9) + lbl(210,95,'Boot: A = 0.04 m²',AC,9) +
+    lbl(90,180,'F = 600 N',GRY,9) + lbl(210,180,'F = 600 N',GRY,9) +
+    lbl(150,220,'Which has greater pressure?',TXT,10,'middle','400')
+  ),
+
+  // Fluid pressure P = hρg
+  fluid_tank: () => svgP(
+    // Tank of water
+    `<rect x="60" y="50" width="180" height="150" rx="4" fill="#dbeafe" stroke="${BLU}" stroke-width="2"/>` +
+    `<text x="150" y="35" text-anchor="middle" font-size="10" fill="${GRY}" font-family="DM Sans,sans-serif">water ρ = 1000 kg/m³</text>` +
+    // Depth arrow
+    `<line x1="260" y1="50" x2="260" y2="200" stroke="${AC}" stroke-width="1.5" stroke-dasharray="4,3"/>` +
+    arrow(260,50,260,200,AC,1.5) +
+    lbl(278,125,'h = 3 m',AC,10,'start') +
+    lbl(150,200,'g = 10 N/kg',GRY,10) +
+    lbl(150,220,'P = hρg = ?',AC,11)
+  ),
+
+  fluid_find_h: () => svgP(
+    `<rect x="60" y="50" width="180" height="150" rx="4" fill="#dbeafe" stroke="${BLU}" stroke-width="2"/>` +
+    `<text x="150" y="35" text-anchor="middle" font-size="10" fill="${GRY}" font-family="DM Sans,sans-serif">water ρ = 1000 kg/m³</text>` +
+    `<line x1="260" y1="50" x2="260" y2="200" stroke="${AC}" stroke-width="1.5" stroke-dasharray="4,3"/>` +
+    arrow(260,50,260,200,AC,1.5) +
+    lbl(278,125,'h = ?',AC,10,'start') +
+    lbl(150,200,'P = 20000 Pa, g = 10',GRY,10) +
+    lbl(150,220,'h = P ÷ (ρg) = ?',AC,11)
+  ),
+
+  // Atmospheric pressure / manometer concept
+  atmos: () => svgP(
+    `<rect x="40" y="30" width="220" height="60" rx="6" fill="#f0fdf4" stroke="${GRN}" stroke-width="1.5"/>` +
+    lbl(150,55,'Atmospheric pressure',GRN,11) +
+    lbl(150,72,'≈ 100 000 Pa',GRN,13) +
+    arrow(150,95,150,145,TXT,2) +
+    rect(100,145,100,50,'#fff5f5',AC) +
+    lbl(150,175,'P_gauge = 20 000 Pa',AC,10) +
+    lbl(150,220,'P_abs = P_atm + P_gauge = ?',TXT,10,'middle','400')
+  ),
+
+  // Pressure in two objects different area
+  pin_thumb: () => svgP(
+    // Thumb (large area) vs pin (tiny area)
+    `<ellipse cx="90" cy="130" rx="35" ry="20" fill="#fecaca" stroke="${AC}" stroke-width="1.5"/>` +
+    `<line x1="90" y1="110" x2="90" y2="80" stroke="${TXT}" stroke-width="2"/>` +
+    lbl(90,72,'F = 10 N',TXT,10) +
+    lbl(90,155,'A = 0.01 m²',AC,9) +
+    // Pin
+    `<polygon points="210,90 205,170 215,170" fill="#e5e7eb" stroke="${GRY}" stroke-width="1.5"/>` +
+    `<line x1="210" y1="80" x2="210" y2="90" stroke="${TXT}" stroke-width="2"/>` +
+    lbl(210,72,'F = 10 N',TXT,10) +
+    lbl(210,185,'A = 0.000001 m²',GRY,8) +
+    lbl(150,220,'Find pressure at the pin tip',TXT,10,'middle','400')
+  ),
+
+  // Hydraulic press
+  hydraulic: () => svgP(
+    // Left small piston
+    rect(40,120,50,70,'#dbeafe',BLU,1.5) +
+    lbl(65,110,'A₁ = 0.01 m²',BLU,9) +
+    arrow(65,115,65,80,BLU) + lbl(65,72,'F₁ = 100 N',BLU,10) +
+    // Connecting pipe
+    `<rect x="90" y="170" width="120" height="20" fill="#dbeafe" stroke="${BLU}" stroke-width="1.5"/>` +
+    // Right large piston
+    rect(210,120,60,70,'#fff5f5',AC,1.5) +
+    lbl(240,110,'A₂ = 0.1 m²',AC,9) +
+    arrow(240,115,240,75,AC) + lbl(240,67,'F₂ = ?',AC,11) +
+    lbl(150,222,'Pascal\'s Principle: P₁ = P₂',GRY,9,'middle','400')
+  ),
+};
+
+// ── QUESTIONS ────────────────────────────────────────────────
+const QUESTIONS = [
+  // P = F/A
+  {id:'pfa1', topic:'P = F ÷ A', diagram:'pfa_basic', question:'Calculate the pressure. (P = F ÷ A)', answer:'2000', unit:'Pa'},
+  {id:'pfa2', topic:'P = F ÷ A', diagram:'pfa_find_f', question:'Find the force. (F = P × A)', answer:'2000', unit:'N'},
+  {id:'pfa3', topic:'P = F ÷ A', diagram:'pfa_find_a', question:'Find the contact area. (A = F ÷ P)', answer:'0.2', unit:'m²'},
+  {id:'pfa4', topic:'P = F ÷ A', diagram:'pin_thumb', question:'A 10 N force on area 0.000001 m². Find the pressure at the pin tip.', answer:'10000000', unit:'Pa', accept:['10000000','1e7','10,000,000']},
+  {id:'pfa5', topic:'P = F ÷ A', diagram:'skis', question:'Force = 600 N, ski area = 0.4 m². Find the pressure under the ski.', answer:'1500', unit:'Pa'},
+  {id:'pfa6', topic:'P = F ÷ A', diagram:'skis', question:'Same 600 N force on boot area 0.04 m². Find pressure under the boot.', answer:'15000', unit:'Pa'},
+  {id:'pfa7', topic:'P = F ÷ A', diagram:'pfa_basic', question:'P = 2000 Pa, A = 0.25 m². Find the force.', answer:'500', unit:'N'},
+  {id:'pfa8', topic:'P = F ÷ A', diagram:'pfa_basic', question:'A 800 N force gives pressure 4000 Pa. Find the area.', answer:'0.2', unit:'m²'},
+
+  // Fluid pressure P = hρg
+  {id:'flu1', topic:'Fluid Pressure', diagram:'fluid_tank', question:'Calculate pressure at 3 m depth. (P = hρg, ρ = 1000, g = 10)', answer:'30000', unit:'Pa'},
+  {id:'flu2', topic:'Fluid Pressure', diagram:'fluid_find_h', question:'P = 20 000 Pa, ρ = 1000 kg/m³, g = 10. Find depth h.', answer:'2', unit:'m'},
+  {id:'flu3', topic:'Fluid Pressure', diagram:'fluid_tank', question:'What is the pressure at 5 m depth in water? (ρ = 1000, g = 10)', answer:'50000', unit:'Pa'},
+  {id:'flu4', topic:'Fluid Pressure', diagram:'fluid_tank', question:'Pressure = 60 000 Pa, g = 10, h = 6 m. Find density ρ.', answer:'1000', unit:'kg/m³'},
+  {id:'flu5', topic:'Fluid Pressure', diagram:'fluid_tank', question:'Why does pressure increase with depth in a fluid?', answer:'more fluid above', unit:'', accept:['more fluid above','weight of fluid above','more weight above','greater weight']},
+  {id:'flu6', topic:'Fluid Pressure', diagram:'fluid_tank', question:'h = 2 m, ρ = 800 kg/m³, g = 10. Find the pressure.', answer:'16000', unit:'Pa'},
+
+  // Atmospheric & absolute
+  {id:'atm1', topic:'Atmospheric Pressure', diagram:'atmos', question:'P_atm = 100 000 Pa, P_gauge = 20 000 Pa. Find absolute pressure.', answer:'120000', unit:'Pa'},
+  {id:'atm2', topic:'Atmospheric Pressure', diagram:'atmos', question:'Atmospheric pressure decreases with altitude because…', answer:'less air above', unit:'', accept:['less air above','fewer air molecules','less atmosphere','less weight of air']},
+  {id:'atm3', topic:'Atmospheric Pressure', diagram:'atmos', question:'Standard atmospheric pressure ≈', answer:'100000', unit:'Pa', accept:['100000','101325','101000']},
+
+  // Hydraulic systems
+  {id:'hyd1', topic:'Hydraulic Systems', diagram:'hydraulic', question:'P = F₁ ÷ A₁ = 100 ÷ 0.01. Find the pressure transmitted.', answer:'10000', unit:'Pa'},
+  {id:'hyd2', topic:'Hydraulic Systems', diagram:'hydraulic', question:'Pressure = 10 000 Pa, A₂ = 0.1 m². Find force F₂.', answer:'1000', unit:'N'},
+  {id:'hyd3', topic:'Hydraulic Systems', diagram:'hydraulic', question:'Why can a small force produce a large force in a hydraulic system?', answer:'larger area', unit:'', accept:['larger area','bigger area','greater area','large piston area']},
+  {id:'hyd4', topic:'Hydraulic Systems', diagram:'hydraulic', question:'Hydraulic systems transmit pressure using…', answer:'liquid', unit:'', accept:['liquid','fluid','oil','incompressible fluid']},
+];
+
+const TOPICS = ['P = F ÷ A','Fluid Pressure','Atmospheric Pressure','Hydraulic Systems'];
+const STORAGE_KEY = 'pressureforge_v1';
+
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({enabledTopics, mastered:[...mastered], stats, streaks})); }
+
+const saved=loadState();
+let enabledTopics=saved?.enabledTopics||Object.fromEntries(TOPICS.map(t=>[t,true]));
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+TOPICS.forEach(t=>{ if(enabledTopics[t]===undefined) enabledTopics[t]=true; });
+
+function getPool(){ return QUESTIONS.filter(q=>enabledTopics[q.topic]&&!mastered.has(q.id)); }
+function buildQuestion(previous){ const pool=getPool(); if(!pool.length) return null; const filtered=previous?pool.filter(q=>q.id!==previous.id):pool; const candidates=filtered.length>0?filtered:pool; return candidates[Math.floor(Math.random()*candidates.length)]; }
+
+const topicBadge=document.getElementById('topicBadge');
+const diagramWrap=document.getElementById('diagramWrap');
+const questionText=document.getElementById('questionText');
+const questionSub=document.getElementById('questionSub');
+const answerInput=document.getElementById('answerInput');
+const submitBtn=document.getElementById('submitBtn');
+const unitLabel=document.getElementById('unitLabel');
+const feedbackMsg=document.getElementById('feedbackMsg');
+const timerBar=document.getElementById('timerBar');
+const streakDotsEl=document.getElementById('streakDots');
+const statCorrect=document.getElementById('statCorrect');
+const statTotal=document.getElementById('statTotal');
+const statPct=document.getElementById('statPct');
+const pctBar=document.getElementById('pctBar');
+const statStreak=document.getElementById('statStreak');
+const masteredList=document.getElementById('masteredList');
+const masteredCount=document.getElementById('masteredCount');
+const sbCorrect=document.getElementById('sbCorrect');
+const sbTotal=document.getElementById('sbTotal');
+const sbPct=document.getElementById('sbPct');
+const sbPctBar=document.getElementById('sbPctBar');
+const sbMastered=document.getElementById('sbMastered');
+const levelGridDesktop=document.getElementById('levelGridDesktop');
+const levelGridMobile=document.getElementById('levelGridMobile');
+const toast=document.getElementById('toast');
+const drawerToggle=document.getElementById('drawerToggle');
+const mobileDrawer=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(gridEl){
+  gridEl.innerHTML='';
+  TOPICS.forEach(topic=>{
+    const hasMastered=QUESTIONS.some(q=>q.topic===topic&&mastered.has(q.id));
+    const wrapper=document.createElement('label');
+    wrapper.className='lv-toggle'+(hasMastered?' has-mastered':'');
+    const input=document.createElement('input'); input.type='checkbox'; input.checked=enabledTopics[topic];
+    input.addEventListener('change',()=>{ enabledTopics[topic]=input.checked; syncTopicToggle(topic,input.checked); saveState(); nextQuestion(); });
+    const pill=document.createElement('div'); pill.className='pill'; pill.innerHTML=`<span class="lv-name">${topic}</span>`;
+    const badge=document.createElement('div'); badge.className='mastered-badge';
+    wrapper.appendChild(input); wrapper.appendChild(pill); wrapper.appendChild(badge);
+    gridEl.appendChild(wrapper);
+  });
+}
+function renderToggles(){ renderLevelGrid(levelGridDesktop); renderLevelGrid(levelGridMobile); }
+function syncTopicToggle(topic,checked){ [levelGridDesktop,levelGridMobile].forEach(grid=>{ grid.querySelectorAll('.lv-toggle').forEach(label=>{ const inp=label.querySelector('input'); if(label.querySelector('.lv-name').textContent===topic) inp.checked=checked; }); }); }
+
+function renderStreakDots(count){ streakDotsEl.innerHTML=''; for(let i=0;i<6;i++){ const d=document.createElement('div'); d.className='streak-dot'+(i<count?' filled':''); streakDotsEl.appendChild(d); } }
+
+let currentQ=null, timerInterval=null, timerStart=null;
+const TIME_LIMIT=6000;
+function startTimer(){ clearInterval(timerInterval); timerStart=Date.now(); timerBar.style.transition='none'; timerBar.style.width='100%'; timerBar.className='timer-bar'; timerInterval=setInterval(()=>{ const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100); timerBar.style.transition='width 0.1s linear'; timerBar.style.width=pct+'%'; if(pct<=16) timerBar.className='timer-bar urgent'; else if(pct<=33) timerBar.className='timer-bar warning-orange'; else if(pct<=55) timerBar.className='timer-bar warning'; else timerBar.className='timer-bar'; },100); }
+function stopTimer(){ clearInterval(timerInterval); }
+function getElapsed(){ return Date.now()-(timerStart||Date.now()); }
+
+function nextQuestion(){
+  stopTimer(); feedbackMsg.textContent=''; feedbackMsg.className='feedback-msg';
+  answerInput.value=''; answerInput.className='answer-input'; answerInput.disabled=false; diagramWrap.innerHTML='';
+  const anyEnabled=TOPICS.some(t=>enabledTopics[t]);
+  if(!anyEnabled){ topicBadge.textContent='—'; questionText.textContent='Enable a topic to begin.'; questionSub.textContent=''; currentQ=null; timerBar.style.width='0%'; renderStreakDots(0); return; }
+  const q=buildQuestion(currentQ);
+  if(!q){ topicBadge.textContent='🎉 DONE'; questionText.textContent='All questions mastered!'; questionSub.textContent='Enable more topics or reset progress.'; currentQ=null; timerBar.style.width='0%'; renderStreakDots(0); return; }
+  currentQ=q; topicBadge.textContent=q.topic; diagramWrap.innerHTML=DIAGRAMS[q.diagram]();
+  questionText.textContent=q.question; unitLabel.textContent=q.unit||'';
+  const streak=streaks[q.id]||0; renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:'';
+  startTimer(); if(!('ontouchstart' in window)) answerInput.focus();
+}
+
+function submitAnswer(){
+  if(!currentQ||answerInput.disabled) return;
+  const raw=answerInput.value.trim().toLowerCase(); if(!raw){ answerInput.focus(); return; }
+  const elapsed=getElapsed(); stopTimer(); stats.total++;
+  const corrLower=currentQ.answer.toLowerCase();
+  const userNum=parseFloat(raw.replace(/,/g,'')), corrNum=parseFloat(currentQ.answer);
+  const numMatch=!isNaN(userNum)&&!isNaN(corrNum)&&Math.abs(userNum-corrNum)<Math.max(0.001,Math.abs(corrNum)*0.001);
+  const strMatch=raw===corrLower;
+  const extraMatch=currentQ.accept?currentQ.accept.some(a=>raw===a.toLowerCase()||parseFloat(raw.replace(/,/g,''))===parseFloat(a)):false;
+  const isCorrect=strMatch||numMatch||extraMatch;
+  if(isCorrect){
+    stats.correct++; stats.sessionStreak=(stats.sessionStreak||0)+1;
+    answerInput.className='answer-input correct-flash';
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id]; renderStreakDots(streak);
+    if(streak>=6){ mastered.add(currentQ.id); streaks[currentQ.id]=0; feedbackMsg.textContent='★ MASTERED!'; feedbackMsg.className='feedback-msg mastered'; showToast('Question mastered! 🔥',true); renderToggles(); renderMastered(); }
+    else{ const msgs=['Correct!','Nice!','Spot on!','Yes!','✓ Right!']; feedbackMsg.textContent=msgs[Math.floor(Math.random()*msgs.length)]; feedbackMsg.className='feedback-msg correct'; }
+  } else {
+    stats.sessionStreak=0; streaks[currentQ.id]=0; renderStreakDots(0);
+    answerInput.className='answer-input wrong-flash';
+    const dispUnit=currentQ.unit?' '+currentQ.unit:'';
+    feedbackMsg.textContent=`✗  Answer: ${currentQ.answer}${dispUnit}`; feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats(); saveState(); answerInput.disabled=true;
+  setTimeout(()=>nextQuestion(),1000);
+}
+
+function updateStats(){
+  const c=stats.correct,t=stats.total,pct=t>0?Math.round((c/t)*100):null;
+  const pctStr=pct!==null?pct+'%':'—', pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c; statTotal.textContent=t; statPct.textContent=pctStr; pctBar.style.width=pctW;
+  sbCorrect.textContent=c; sbTotal.textContent=t; sbPct.textContent=pctStr; sbPctBar.style.width=pctW; sbMastered.textContent=mastered.size;
+  const barColor=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=barColor; sbPctBar.style.background=barColor;
+  const ss=stats.sessionStreak||0; statStreak.textContent=ss>=5?'🔥'.repeat(Math.min(3,Math.floor(ss/5)))+' '+ss+' in a row':'';
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size; sbMastered.textContent=mastered.size;
+  if(!mastered.size){ masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>'; return; }
+  masteredList.innerHTML=[...mastered].sort().map(id=>{ const q=QUESTIONS.find(x=>x.id===id); return `<div class="mastered-item">★ ${q?q.question.slice(0,30)+'…':id}</div>`; }).join('');
+}
+let toastTimeout;
+function showToast(msg,isMastered=false){ toast.textContent=msg; toast.className='toast'+(isMastered?' mastered-toast':'')+' show'; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>{ toast.className='toast'+(isMastered?' mastered-toast':''); },2500); }
+let allOn=true;
+function toggleAll(){ allOn=!allOn; TOPICS.forEach(t=>enabledTopics[t]=allOn); saveState(); renderToggles(); nextQuestion(); }
+function doReset(){ if(!confirm('Reset all mastery progress and stats? This cannot be undone.')) return; mastered=new Set(); streaks={}; stats={correct:0,total:0,sessionStreak:0}; allOn=true; TOPICS.forEach(t=>enabledTopics[t]=true); saveState(); renderToggles(); renderMastered(); updateStats(); nextQuestion(); showToast('Progress reset.'); }
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{ const open=mobileDrawer.classList.toggle('open'); drawerToggle.classList.toggle('open',open); });
+submitBtn.addEventListener('click',submitAnswer);
+answerInput.addEventListener('keydown',e=>{ if(e.key==='Enter') submitAnswer(); });
+renderToggles(); renderMastered(); updateStats(); nextQuestion();
+</script>
+</body>
+</html>

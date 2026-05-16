@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="StatsForge — GCSE Maths statistics drill. Practice mean, median, mode and range.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatsForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f0f5ff; --surface2: #dbeafe;
+    --border: #bdd0f7; --text: #0d1b3e; --text-muted: #4a6190;
+    --accent: #2563eb; --accent2: #f5a623; --correct: #2a9d5c; --wrong: #e84c1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 14px 24px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .logo span { color: var(--accent); }
+  .byline { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; font-weight: 500; }
+  .byline strong { font-weight: 700; color: var(--accent); }
+  .score-bar { display: none; background: var(--surface); border-bottom: 1.5px solid var(--border); padding: 10px 20px; gap: 16px; align-items: center; flex-shrink: 0; }
+  .score-bar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .score-bar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-bar-value { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--text); }
+  .score-bar-pct-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .score-bar-pct-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-bar-pct-fill { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+  .score-bar-pct-label { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: var(--text-muted); }
+  .layout { display: grid; grid-template-columns: 210px 1fr 210px; flex: 1; min-height: 0; }
+  .sidebar { border-right: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-right { border-right: none; border-left: 1.5px solid var(--border); padding: 22px 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 14px; }
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .lv-toggle { position: relative; cursor: pointer; }
+  .lv-toggle input { display: none; }
+  .lv-toggle .pill { display: flex; align-items: center; height: 44px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; user-select: none; padding: 0 14px; }
+  .lv-toggle input:checked + .pill { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .lv-toggle .mastered-badge { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; background: var(--accent2); border-radius: 50%; border: 1.5px solid #fff; display: none; }
+  .lv-toggle.has-mastered .mastered-badge { display: block; }
+  .toggle-all-btn { margin-top: 12px; width: 100%; padding: 8px; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .toggle-all-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn { margin-top: 8px; width: 100%; padding: 8px; background: none; border: 1.5px solid #f2c4bb; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--wrong); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; }
+  .reset-btn:hover { background: #fff0ed; }
+  .main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 24px; }
+  .question-card { text-align: center; max-width: 520px; width: 100%; }
+
+  /* Giant stat word — like the operator in AdditionForge */
+  .stat-word {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 8vw, 88px);
+    letter-spacing: 3px; line-height: 1;
+    color: var(--accent);  /* accent colour — the "what to find" */
+  }
+
+  /* Data display — the numbers, compact and clean */
+  .data-row {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(18px, 3.5vw, 28px);
+    font-weight: 600; letter-spacing: 2px;
+    color: var(--text); margin: 10px 0 4px;
+    line-height: 1.3;
+  }
+
+  /* Frequency table */
+  .freq-table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-family: 'DM Mono', monospace; font-size: 13px; }
+  .freq-table th { background: var(--accent); color: #fff; padding: 6px 12px; font-weight: 700; letter-spacing: 1px; }
+  .freq-table td { padding: 5px 12px; border-bottom: 1px solid var(--border); text-align: center; }
+  .freq-table tr:nth-child(even) td { background: var(--surface); }
+
+  .question-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.5px; min-height: 20px; }
+
+  .timer-wrap { width: min(280px, 80vw); height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .timer-bar { height: 100%; width: 100%; background: var(--correct); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
+  .timer-bar.warning { background: #f5c518; } .timer-bar.warning-orange { background: #f07d20; } .timer-bar.urgent { background: var(--wrong); }
+  .streak-dots { display: flex; gap: 6px; justify-content: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); transition: all 0.2s ease; }
+  .streak-dot.filled { background: var(--correct); border-color: var(--correct); transform: scale(1.2); }
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .answer-input { font-family: 'DM Mono', monospace; font-size: clamp(16px, 5vw, 28px); font-weight: 500; width: 140px; text-align: center; border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.15s, background 0.15s; }
+  .answer-input:focus { border-color: var(--accent); background: #fff; }
+  .answer-input.correct-flash { border-color: var(--correct); background: #edfaf3; }
+  .answer-input.wrong-flash { border-color: var(--wrong); background: #fff0ed; }
+  .answer-input:disabled { opacity: 0.5; }
+  .submit-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 12px 22px; border: none; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; min-height: 48px; min-width: 64px; }
+  .submit-btn:hover { filter: brightness(1.1); } .submit-btn:active { transform: scale(0.97); }
+  .feedback-msg { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; min-height: 26px; }
+  .feedback-msg.correct { color: var(--correct); } .feedback-msg.wrong { color: var(--wrong); } .feedback-msg.mastered { color: var(--accent2); }
+  .stat-block { margin-bottom: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pct-bar-wrap { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; background: var(--correct); border-radius: 3px; transition: width 0.5s ease; }
+  .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+  .mastered-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .mastered-item { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 3px 6px; background: var(--surface); border-radius: 4px; }
+  .mobile-drawer-toggle { display: none; width: 100%; padding: 12px 20px; background: var(--surface); border: none; border-top: 1.5px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; letter-spacing: 0.3px; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .mobile-drawer-toggle .arrow { font-size: 10px; transition: transform 0.25s; color: var(--text-muted); }
+  .mobile-drawer-toggle.open .arrow { transform: rotate(180deg); }
+  .mobile-drawer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px 20px; flex-shrink: 0; }
+  .mobile-drawer.open { display: block; }
+  .mobile-drawer-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .mobile-drawer-actions .toggle-all-btn, .mobile-drawer-actions .reset-btn { margin: 0; flex: 1; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 30px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.mastered-toast { background: var(--accent2); color: var(--text); }
+  footer { border-top: 1.5px solid var(--border); padding: 11px 24px; font-size: 11.5px; color: #111111; background: var(--surface); line-height: 1.5; flex-shrink: 0; }
+  .footer-label { font-weight: 700; letter-spacing: 1px; color: var(--accent); margin-right: 6px; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 200px 1fr; } .sidebar-right { display: none; } .score-bar { display: flex; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .score-bar { display: flex; } .mobile-drawer-toggle { display: flex; } .main { padding: 28px 16px; gap: 18px; } header { padding: 12px 16px; } .byline { display: none; } footer { padding: 10px 16px; font-size: 10.5px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Stats<span>Forge</span></div>
+  <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="level-grid" id="levelGridDesktop"></div>
+    <button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button>
+    <button class="reset-btn" id="resetBtnDesktop">Reset Progress</button>
+  </div>
+  <div class="main">
+    <div class="question-card">
+      <!-- stat word (MEAN / MEDIAN / etc) in accent colour at the top -->
+      <div class="stat-word" id="statWord">—</div>
+      <!-- the data itself -->
+      <div id="dataDisplay"></div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="input-row">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="decimal">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block"><div class="stat-label">Correct / Total</div><div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div></div>
+    <div class="stat-block"><div class="stat-label">Accuracy</div><div class="stat-value"><span id="statPct">—</span></div><div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div><div class="stat-sub" id="statStreak"></div></div>
+    <hr class="divider">
+    <div class="stat-block"><div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div><div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div></div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Options</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions"><button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button><button class="reset-btn" id="resetBtnMobile">Reset Progress</button></div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function r2(n){return Math.round(n*100)/100;}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function mean(arr){return r2(arr.reduce((a,b)=>a+b,0)/arr.length);}
+function median(arr){const s=[...arr].sort((a,b)=>a-b),m=Math.floor(s.length/2);return s.length%2===0?r2((s[m-1]+s[m])/2):s[m];}
+function mode(arr){const f={};arr.forEach(x=>f[x]=(f[x]||0)+1);const mx=Math.max(...Object.values(f));const ms=Object.keys(f).filter(k=>f[k]===mx).map(Number);return ms.length===1?ms[0]:null;}
+function range(arr){return Math.max(...arr)-Math.min(...arr);}
+
+// Stat word → what's shown big in accent colour
+// data → shown below as numbers / table
+// answer → numeric
+// key, sub, tol
+
+const LEVELS=[
+  {
+    id:'l1', name:'List (5 nums)', timeLimit:12000,
+    gen(){
+      // Guarantee a single mode by including one duplicate
+      const base=shuffle([...new Set(Array.from({length:6},()=>ri(1,15)))]).slice(0,4);
+      const modeVal=pick(base);
+      const data=shuffle([...base,modeVal]);
+      const stat=pick(['mean','median','mode','range']);
+      const statLabels={mean:'Mean',median:'Median',mode:'Mode',range:'Range'};
+      let answer;
+      if(stat==='mean') answer=mean(data);
+      else if(stat==='median') answer=median(data);
+      else if(stat==='mode') answer=modeVal;
+      else answer=range(data);
+      return{
+        statWord: statLabels[stat],
+        dataHTML: `<div class="data-row">${data.join('  ,  ')}</div>`,
+        answer, key:`list5-${stat}`, tol:0.05, sub:`Find the ${stat} of this list`
+      };
+    }
+  },
+  {
+    id:'l2', name:'List (7 nums)', timeLimit:14000,
+    gen(){
+      const base=Array.from({length:5},()=>ri(1,20));
+      const modeVal=pick(base);
+      const data=shuffle([...base,modeVal,ri(1,20)]);
+      const stat=pick(['mean','median','mode','range']);
+      const statLabels={mean:'Mean',median:'Median',mode:'Mode',range:'Range'};
+      let answer;
+      if(stat==='mean') answer=r2(data.reduce((a,b)=>a+b,0)/data.length);
+      else if(stat==='median') answer=median(data);
+      else if(stat==='mode') answer=modeVal;
+      else answer=range(data);
+      return{
+        statWord: statLabels[stat],
+        dataHTML: `<div class="data-row">${data.join('  ,  ')}</div>`,
+        answer, key:`list7-${stat}`, tol:0.1, sub:`Find the ${stat} — round to 1 d.p. if needed`
+      };
+    }
+  },
+  {
+    id:'l3', name:'Frequency table', timeLimit:18000,
+    gen(){
+      const numRows=ri(4,6);
+      const vals=[];const seen=new Set();
+      while(vals.length<numRows){const v=ri(1,15);if(!seen.has(v)){seen.add(v);vals.push(v);}}
+      vals.sort((a,b)=>a-b);
+      const freqs=vals.map(()=>ri(1,8));
+      const totalF=freqs.reduce((a,b)=>a+b,0);
+      const totalFX=vals.reduce((s,v,i)=>s+v*freqs[i],0);
+      const meanVal=r2(totalFX/totalF);
+      const modeVal=vals[freqs.indexOf(Math.max(...freqs))];
+      const stat=pick(['mean','mode','total_freq']);
+      const statLabels={mean:'Mean',mode:'Mode',total_freq:'Total Freq'};
+      let answer;
+      if(stat==='mean') answer=meanVal;
+      else if(stat==='mode') answer=modeVal;
+      else answer=totalF;
+      const rows=vals.map((v,i)=>`<tr><td>${v}</td><td>${freqs[i]}</td><td>${v*freqs[i]}</td></tr>`).join('');
+      return{
+        statWord: statLabels[stat],
+        dataHTML:`<table class="freq-table"><thead><tr><th>x</th><th>f</th><th>fx</th></tr></thead><tbody>${rows}</tbody></table>`,
+        answer, key:`freq-${stat}`, tol:0.05,
+        sub: stat==='mean'?'Find the mean (Σfx ÷ Σf)': stat==='mode'?'Highest frequency value':'Add up the frequency column'
+      };
+    }
+  },
+  {
+    id:'l4', name:'Grouped data', timeLimit:20000,
+    gen(){
+      const start=pick([0,10,20]), width=pick([5,10]), numGroups=ri(4,5);
+      const groups=Array.from({length:numGroups},(_,i)=>[start+i*width,start+(i+1)*width-1]);
+      const midpoints=groups.map(([a,b])=>(a+b)/2);
+      const freqs=groups.map(()=>ri(2,12));
+      const totalF=freqs.reduce((a,b)=>a+b,0);
+      const totalFX=midpoints.reduce((s,m,i)=>s+m*freqs[i],0);
+      const estMean=r2(totalFX/totalF);
+      const stat=pick(['mean','midpoint','total']);
+      let answer, sub, statWord;
+      if(stat==='mean'){answer=estMean;sub='Estimate the mean (Σfx ÷ Σf)';statWord='Est. Mean';}
+      else if(stat==='midpoint'){const idx=ri(0,numGroups-1);answer=midpoints[idx];sub=`Midpoint of group ${groups[idx][0]}–${groups[idx][1]}`;statWord='Midpoint';}
+      else{answer=totalF;sub='Add up the frequency column';statWord='Total Freq';}
+      const rows=groups.map(([a,b],i)=>`<tr><td>${a}–${b}</td><td>${midpoints[i]}</td><td>${freqs[i]}</td><td>${midpoints[i]*freqs[i]}</td></tr>`).join('');
+      return{
+        statWord,
+        dataHTML:`<table class="freq-table"><thead><tr><th>Group</th><th>Mid</th><th>f</th><th>fx</th></tr></thead><tbody>${rows}</tbody></table>`,
+        answer, key:`grp-${stat}`, tol:0.1, sub
+      };
+    }
+  },
+];
+
+const STORAGE_KEY='statsforge_v2';
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({enabledLevels,mastered:[...mastered],stats,streaks}));}
+const saved=loadState();
+let enabledLevels=saved?.enabledLevels||{l1:true,l2:false,l3:false,l4:false};
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+LEVELS.forEach(l=>{if(enabledLevels[l.id]===undefined)enabledLevels[l.id]=false;});
+
+function buildQuestion(prev){
+  const active=LEVELS.filter(l=>enabledLevels[l.id]);
+  if(!active.length)return null;
+  for(let i=0;i<20;i++){const lv=pick(active);const q=lv.gen();q.timeLimit=lv.timeLimit;return q;}
+  return null;
+}
+
+const swEl=document.getElementById('statWord'),ddEl=document.getElementById('dataDisplay'),qS=document.getElementById('questionSub'),aI=document.getElementById('answerInput'),sB=document.getElementById('submitBtn'),fM=document.getElementById('feedbackMsg'),tB=document.getElementById('timerBar'),sD=document.getElementById('streakDots'),stC=document.getElementById('statCorrect'),stT=document.getElementById('statTotal'),stP=document.getElementById('statPct'),pB=document.getElementById('pctBar'),stSt=document.getElementById('statStreak'),mL=document.getElementById('masteredList'),mC=document.getElementById('masteredCount'),sbC=document.getElementById('sbCorrect'),sbT=document.getElementById('sbTotal'),sbP=document.getElementById('sbPct'),sbPB=document.getElementById('sbPctBar'),sbM=document.getElementById('sbMastered'),lgD=document.getElementById('levelGridDesktop'),lgM=document.getElementById('levelGridMobile'),toast=document.getElementById('toast'),dT=document.getElementById('drawerToggle'),mD=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(g){g.innerHTML='';LEVELS.forEach(l=>{const w=document.createElement('label');w.className='lv-toggle';const inp=document.createElement('input');inp.type='checkbox';inp.checked=enabledLevels[l.id];inp.addEventListener('change',()=>{enabledLevels[l.id]=inp.checked;[lgD,lgM].forEach(gr=>{const idx=LEVELS.findIndex(x=>x.id===l.id);const ins=gr.querySelectorAll('input[type=checkbox]');if(ins[idx])ins[idx].checked=inp.checked;});saveState();nextQuestion();});const p=document.createElement('div');p.className='pill';p.textContent=l.name;const b=document.createElement('div');b.className='mastered-badge';w.appendChild(inp);w.appendChild(p);w.appendChild(b);g.appendChild(w);});}
+function renderToggles(){renderLevelGrid(lgD);renderLevelGrid(lgM);}
+function renderStreakDots(n){sD.innerHTML='';for(let i=0;i<6;i++){const d=document.createElement('div');d.className='streak-dot'+(i<n?' filled':'');sD.appendChild(d);}}
+
+let currentQ=null,timerInterval=null,timerStart=null,activeTimeLimit=12000;
+function startTimer(limit){activeTimeLimit=limit;clearInterval(timerInterval);timerStart=Date.now();tB.style.transition='none';tB.style.width='100%';tB.className='timer-bar';timerInterval=setInterval(()=>{const pct=Math.max(0,100-((Date.now()-timerStart)/activeTimeLimit)*100);tB.style.transition='width 0.1s linear';tB.style.width=pct+'%';if(pct<=16)tB.className='timer-bar urgent';else if(pct<=33)tB.className='timer-bar warning-orange';else if(pct<=55)tB.className='timer-bar warning';else tB.className='timer-bar';},100);}
+function stopTimer(){clearInterval(timerInterval);}
+function getElapsed(){return Date.now()-(timerStart||Date.now());}
+
+function nextQuestion(){
+  stopTimer();fM.textContent='';fM.className='feedback-msg';aI.value='';aI.className='answer-input';aI.disabled=false;ddEl.innerHTML='';
+  if(!LEVELS.some(l=>enabledLevels[l.id])){swEl.textContent='—';qS.textContent='Enable a level to begin.';currentQ=null;tB.style.width='0%';renderStreakDots(0);return;}
+  const q=buildQuestion(currentQ);
+  if(!q){swEl.textContent='🎉';qS.textContent='All mastered! Enable more levels.';currentQ=null;tB.style.width='0%';renderStreakDots(0);return;}
+  currentQ=q;
+  swEl.textContent=q.statWord;
+  ddEl.innerHTML=q.dataHTML;
+  const streak=streaks[q.key]||0;renderStreakDots(streak);
+  qS.textContent=streak>0?`${streak}/6 mastery streak`:q.sub||'';
+  startTimer(q.timeLimit);if(!('ontouchstart' in window))aI.focus();
+}
+
+function submitAnswer(){
+  if(!currentQ||aI.disabled)return;
+  const raw=aI.value.trim();if(!raw){aI.focus();return;}
+  const elapsed=getElapsed();stopTimer();stats.total++;
+  const userNum=parseFloat(raw),tol=currentQ.tol||0.05;
+  const ok=!isNaN(userNum)&&Math.abs(userNum-currentQ.answer)<=tol;
+  if(ok){
+    stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;aI.className='answer-input correct-flash';
+    streaks[currentQ.key]=elapsed<=activeTimeLimit?(streaks[currentQ.key]||0)+1:0;
+    const streak=streaks[currentQ.key];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.key);streaks[currentQ.key]=0;fM.textContent='★ MASTERED!';fM.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{fM.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);fM.className='feedback-msg correct';}
+  }else{
+    stats.sessionStreak=0;streaks[currentQ.key]=0;renderStreakDots(0);aI.className='answer-input wrong-flash';
+    fM.textContent=`✗  Answer: ${currentQ.answer}`;fM.className='feedback-msg wrong';
+  }
+  updateStats();saveState();aI.disabled=true;setTimeout(()=>nextQuestion(),1400);
+}
+
+function updateStats(){const c=stats.correct,t=stats.total,pct=t>0?Math.round((c/t)*100):null;const ps=pct!==null?pct+'%':'—',pw=pct!==null?pct+'%':'0%';stC.textContent=c;stT.textContent=t;stP.textContent=ps;pB.style.width=pw;sbC.textContent=c;sbT.textContent=t;sbP.textContent=ps;sbPB.style.width=pw;sbM.textContent=mastered.size;const bc=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';pB.style.background=bc;sbPB.style.background=bc;const ss=stats.sessionStreak||0;stSt.textContent=ss>=5?'🔥'.repeat(Math.floor(ss/5))+' '+ss+' in a row':'';}
+function renderMastered(){mC.textContent=mastered.size;sbM.textContent=mastered.size;if(!mastered.size){mL.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}mL.innerHTML=[...mastered].sort().map(k=>`<div class="mastered-item">★ ${k}</div>`).join('');}
+let toastTimeout;
+function showToast(msg,isMastered=false){toast.textContent=msg;toast.className='toast'+(isMastered?' mastered-toast':'')+' show';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{toast.className='toast'+(isMastered?' mastered-toast':'');},2500);}
+let allOn=true;
+function toggleAll(){allOn=!allOn;LEVELS.forEach(l=>enabledLevels[l.id]=allOn);saveState();renderToggles();nextQuestion();}
+function doReset(){if(!confirm('Reset all progress?'))return;mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};allOn=true;LEVELS.forEach(l=>enabledLevels[l.id]=l.id==='l1');saveState();renderToggles();renderMastered();updateStats();nextQuestion();showToast('Progress reset.');}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+dT.addEventListener('click',()=>{const o=mD.classList.toggle('open');dT.classList.toggle('open',o);});
+sB.addEventListener('click',submitAnswer);
+aI.addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+renderToggles();renderMastered();updateStats();nextQuestion();
+</script>
+</body>
+</html>
