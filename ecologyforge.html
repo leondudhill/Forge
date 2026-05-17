@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="EcologyForge — GCSE Biology ecology drill. Practice food chains, biodiversity, sampling and population estimates.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcologyForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--surface:#f7fee7;--surface2:#d9f99d;--border:#bef264;--text:#1a2e05;--text-muted:#365314;--accent:#65a30d;--accent2:#f5a623;--correct:#4d7c0f;--wrong:#e84c1e;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;}
+  .logo span{color:var(--accent);}
+  .byline{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;font-weight:500;}
+  .byline strong{font-weight:700;color:var(--accent);}
+  .score-bar{display:none;background:var(--surface);border-bottom:1.5px solid var(--border);padding:10px 20px;gap:16px;align-items:center;flex-shrink:0;}
+  .score-bar-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
+  .score-bar-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);}
+  .score-bar-value{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);}
+  .score-bar-pct-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .score-bar-pct-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+  .score-bar-pct-fill{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;width:0%;}
+  .score-bar-pct-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-muted);}
+  .layout{display:grid;grid-template-columns:210px 1fr 210px;flex:1;min-height:0;}
+  .sidebar{border-right:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-right{border-right:none;border-left:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-muted);margin-bottom:14px;}
+  .level-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .lv-toggle{position:relative;cursor:pointer;}
+  .lv-toggle input{display:none;}
+  .lv-toggle .pill{display:flex;align-items:center;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all 0.15s ease;user-select:none;padding:0 14px;}
+  .lv-toggle input:checked+.pill{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .lv-toggle .mastered-badge{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:1.5px solid #fff;display:none;}
+  .lv-toggle.has-mastered .mastered-badge{display:block;}
+  .toggle-all-btn{margin-top:12px;width:100%;padding:8px;background:none;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .toggle-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .reset-btn{margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #f2c4bb;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--wrong);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .reset-btn:hover{background:#fff0ed;}
+  .main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:24px;}
+  .question-card{text-align:center;max-width:600px;width:100%;}
+  .topic-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-bottom:10px;}
+  .question-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,3.5vw,44px);letter-spacing:2px;line-height:1.2;color:var(--text);}
+  .question-sub{font-size:13px;color:var(--text-muted);margin-top:6px;font-weight:500;letter-spacing:0.5px;min-height:20px;}
+  .timer-wrap{width:min(280px,80vw);height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .timer-bar{height:100%;width:100%;background:var(--correct);border-radius:2px;transition:width 0.1s linear,background 0.3s;}
+  .timer-bar.warning{background:#f5c518;}.timer-bar.warning-orange{background:#f07d20;}.timer-bar.urgent{background:var(--wrong);}
+  .streak-dots{display:flex;gap:6px;justify-content:center;}
+  .streak-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all 0.2s ease;}
+  .streak-dot.filled{background:var(--correct);border-color:var(--correct);transform:scale(1.2);}
+  .mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(500px,100%);}
+  .mc-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.4;}
+  .mc-btn:hover:not(:disabled){border-color:var(--accent);background:var(--surface2);color:var(--accent);}
+  .mc-btn:active:not(:disabled){transform:scale(0.97);}
+  .mc-btn.correct-flash{border-color:var(--correct);background:#ecfccb;color:var(--correct);}
+  .mc-btn.wrong-flash{border-color:var(--wrong);background:#fff0ed;color:var(--wrong);}
+  .mc-btn:disabled{cursor:default;}
+  .input-row{display:flex;gap:10px;align-items:center;}
+  .answer-input{font-family:'DM Mono',monospace;font-size:clamp(16px,5vw,26px);font-weight:500;width:160px;text-align:center;border:2px solid var(--border);border-radius:10px;padding:10px 12px;outline:none;background:var(--surface);color:var(--text);transition:border-color 0.15s,background 0.15s;}
+  .answer-input:focus{border-color:var(--accent);background:#fff;}
+  .answer-input.correct-flash{border-color:var(--correct);background:#ecfccb;}
+  .answer-input.wrong-flash{border-color:var(--wrong);background:#fff0ed;}
+  .answer-input:disabled{opacity:0.5;}
+  .submit-btn{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:12px 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;transition:all 0.15s;min-height:48px;min-width:64px;}
+  .submit-btn:hover{filter:brightness(1.1);}
+  .submit-btn:active{transform:scale(0.97);}
+  .feedback-msg{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;min-height:26px;}
+  .feedback-msg.correct{color:var(--correct);}.feedback-msg.wrong{color:var(--wrong);}.feedback-msg.mastered{color:var(--accent2);}
+  .stat-block{margin-bottom:18px;flex-shrink:0;}
+  .stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+  .stat-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1;color:var(--text);}
+  .stat-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .pct-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .pct-bar{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease,background 0.3s;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:18px 0;}
+  .mastered-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;}
+  .mastered-item{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text-muted);padding:3px 6px;background:var(--surface);border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mobile-drawer-toggle{display:none;width:100%;padding:12px 20px;background:var(--surface);border:none;border-top:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;letter-spacing:0.3px;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .mobile-drawer-toggle .arrow{font-size:10px;transition:transform 0.25s;color:var(--text-muted);}
+  .mobile-drawer-toggle.open .arrow{transform:rotate(180deg);}
+  .mobile-drawer{display:none;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px 20px;flex-shrink:0;}
+  .mobile-drawer.open{display:block;}
+  .mobile-drawer-actions{display:flex;gap:8px;margin-top:10px;}
+  .mobile-drawer-actions .toggle-all-btn,.mobile-drawer-actions .reset-btn{margin:0;flex:1;}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:12px 24px;border-radius:30px;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.mastered-toast{background:var(--accent2);color:var(--text);}
+  footer{border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111;background:var(--surface);line-height:1.5;flex-shrink:0;}
+  .footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+  @media(max-width:860px){.layout{grid-template-columns:200px 1fr;}.sidebar-right{display:none;}.score-bar{display:flex;}}
+  @media(max-width:580px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.score-bar{display:flex;}.mobile-drawer-toggle{display:flex;}.main{padding:28px 16px;gap:18px;}header{padding:12px 16px;}.byline{display:none;}footer{padding:10px 16px;font-size:10.5px;}}
+  @media(max-width:400px){.mc-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Ecology<span>Forge</span></div>
+  <div class="byline">A drill by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar"><div class="level-grid" id="levelGridDesktop"></div><button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button><button class="reset-btn" id="resetBtnDesktop">Reset Progress</button></div>
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="mc-grid" id="mcGrid"></div>
+    <div class="input-row" id="inputRow" style="display:none">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off" inputmode="numeric">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block"><div class="stat-label">Correct / Total</div><div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div></div>
+    <div class="stat-block"><div class="stat-label">Accuracy</div><div class="stat-value"><span id="statPct">—</span></div><div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div><div class="stat-sub" id="statStreak"></div></div>
+    <hr class="divider">
+    <div class="stat-block"><div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div><div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div></div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions"><button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button><button class="reset-btn" id="resetBtnMobile">Reset Progress</button></div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+const TOPICS=['Food Chains & Webs','Biodiversity','Sampling','Population Estimates'];
+
+// type:'mc' or type:'typed'. Typed questions have procedural generation via gen().
+const STATIC_QUESTIONS=[
+  // Food Chains & Webs
+  {id:'fc1',topic:'Food Chains & Webs',type:'mc',q:'What does the arrow in a food chain represent?',correct:'The direction of energy flow',options:['Who eats whom','The direction of energy flow','Migration of organisms','A predator-prey relationship']},
+  {id:'fc2',topic:'Food Chains & Webs',type:'mc',q:'What is a producer in a food chain?',correct:'An organism that makes its own food via photosynthesis',options:['An animal that eats plants','An organism that makes its own food via photosynthesis','A decomposer','An organism at the top of the chain']},
+  {id:'fc3',topic:'Food Chains & Webs',type:'mc',q:'What is a primary consumer?',correct:'An organism that eats producers (plants)',options:['A top predator','An organism that eats producers (plants)','A decomposer','An organism that eats other consumers']},
+  {id:'fc4',topic:'Food Chains & Webs',type:'mc',q:'What is an apex predator?',correct:'A predator with no natural predators (top of the food chain)',options:['A predator that only eats plants','A predator with no natural predators (top of the food chain)','A primary consumer','A decomposer']},
+  {id:'fc5',topic:'Food Chains & Webs',type:'mc',q:'What happens to most energy as it passes up a food chain?',correct:'It is lost as heat during respiration',options:['It is stored permanently in each organism','It is lost as heat during respiration','It increases at each level','It is absorbed from the soil']},
+  {id:'fc6',topic:'Food Chains & Webs',type:'mc',q:'Approximately what percentage of energy is transferred between trophic levels?',correct:'10%',options:['50%','10%','90%','25%']},
+  {id:'fc7',topic:'Food Chains & Webs',type:'mc',q:'What is a food web?',correct:'Multiple interconnected food chains in an ecosystem',options:['A single food chain','Multiple interconnected food chains in an ecosystem','A diagram of nutrient cycles','A map of an ecosystem']},
+  {id:'fc8',topic:'Food Chains & Webs',type:'mc',q:'If a herbivore population increases, what happens to the plant population in the short term?',correct:'It decreases (more plants eaten)',options:['It increases','It stays the same','It decreases (more plants eaten)','It also increases']},
+  {id:'fc9',topic:'Food Chains & Webs',type:'mc',q:'What are decomposers?',correct:'Organisms (bacteria/fungi) that break down dead organic matter',options:['Top predators','Organisms (bacteria/fungi) that break down dead organic matter','Primary consumers','Plants that absorb nutrients']},
+  // Biodiversity
+  {id:'bd1',topic:'Biodiversity',type:'mc',q:'What is biodiversity?',correct:'The variety of living organisms in an area',options:['The number of individuals in a population','The variety of living organisms in an area','The number of different ecosystems','The total mass of all organisms']},
+  {id:'bd2',topic:'Biodiversity',type:'mc',q:'Which human activity is the GREATEST threat to biodiversity globally?',correct:'Habitat destruction',options:['Climate change alone','Habitat destruction','Overhunting','Pollution of rivers']},
+  {id:'bd3',topic:'Biodiversity',type:'mc',q:'Why is high biodiversity important?',correct:'It makes ecosystems more stable and resilient',options:['It increases food production only','It makes ecosystems more stable and resilient','It reduces the number of predators','It reduces competition for resources']},
+  {id:'bd4',topic:'Biodiversity',type:'mc',q:'What is a keystone species?',correct:'A species that has a disproportionately large effect on its ecosystem',options:['The most numerous species','A species that has a disproportionately large effect on its ecosystem','A species at the top of the food chain','An invasive species']},
+  {id:'bd5',topic:'Biodiversity',type:'mc',q:'Deforestation reduces biodiversity because…',correct:'It destroys habitats and displaces or kills species',options:['It increases CO₂ levels only','It destroys habitats and displaces or kills species','It reduces rainfall','It increases soil fertility']},
+  {id:'bd6',topic:'Biodiversity',type:'mc',q:'What is the main cause of the current rapid decline in biodiversity?',correct:'Human activities (habitat loss, pollution, climate change)',options:['Natural disasters','Human activities (habitat loss, pollution, climate change)','Predator-prey cycles','Random mutation']},
+  // Sampling
+  {id:'sm1',topic:'Sampling',type:'mc',q:'What is a quadrat used for?',correct:'Sampling the number or distribution of organisms in an area',options:['Measuring water pH','Sampling the number or distribution of organisms in an area','Trapping insects','Measuring temperature']},
+  {id:'sm2',topic:'Sampling',type:'mc',q:'Why should quadrats be placed RANDOMLY?',correct:'To avoid bias and get a representative sample',options:['To target the most species-rich areas','To avoid bias and get a representative sample','To save time','To focus on rare species']},
+  {id:'sm3',topic:'Sampling',type:'mc',q:'What is a transect?',correct:'A line along which samples are taken to show change across a habitat',options:['A type of quadrat','A line along which samples are taken to show change across a habitat','A random sampling method','A trap for animals']},
+  {id:'sm4',topic:'Sampling',type:'mc',q:'Why is it important to take multiple samples?',correct:'To improve reliability and reduce the effect of anomalies',options:['To cover more species','To improve reliability and reduce the effect of anomalies','Because one sample is always wrong','To increase the sample area']},
+  {id:'sm5',topic:'Sampling',type:'mc',q:'What is percentage cover in a quadrat?',correct:'The percentage of the quadrat area covered by a species',options:['The number of individual plants counted','The percentage of the quadrat area covered by a species','The height of the tallest plant','The number of quadrats used']},
+];
+
+// Procedurally generated capture-recapture questions
+function genCaptureRecapture(){
+  // N = n1 × n2 / r  →  student finds N
+  const n1=[20,30,40,50,60,80,100][Math.floor(Math.random()*7)];
+  const r=Math.floor(n1*(0.1+Math.random()*0.3)); // 10-40% recaptured
+  const N=Math.round(n1*n1/r); // simplified: assume n2=n1 for clean numbers
+  const n2=n1;
+  const rActual=Math.round(n1*n2/N);
+  const Nactual=Math.round(n1*n2/rActual);
+  return{
+    id:`cr_${n1}_${rActual}`,
+    topic:'Population Estimates',
+    type:'typed',
+    q:`Capture-recapture: first catch ${n1}, mark & release. Second catch ${n2}, ${rActual} are marked. Estimate population N.`,
+    answer:String(Nactual),
+    accept:[String(Nactual)],
+    sub:`N = n₁ × n₂ ÷ r = ${n1} × ${n2} ÷ ${rActual}`
+  };
+}
+
+// Static population questions (MC)
+const POP_MC=[
+  {id:'pp1',topic:'Population Estimates',type:'mc',q:'What is the capture-recapture formula?',correct:'N = n₁ × n₂ ÷ r',options:['N = n₁ + n₂ − r','N = n₁ × n₂ ÷ r','N = r × n₁ ÷ n₂','N = n₁ ÷ (n₂ × r)']},
+  {id:'pp2',topic:'Population Estimates',type:'mc',q:'In capture-recapture, what assumption must be true for the estimate to be valid?',correct:'The population does not change between samples (no births, deaths, migration)',options:['All animals must be captured','The population does not change between samples (no births, deaths, migration)','The habitat must be uniform','The same trap must be used both times']},
+  {id:'pp3',topic:'Population Estimates',type:'mc',q:'In capture-recapture, marks must not affect the animal. Why?',correct:'Marked animals must behave normally and mix back into the population',options:['Marks must look attractive','Marked animals must behave normally and mix back into the population','Marks must be permanent','Marks help identify species']},
+  {id:'pp4',topic:'Population Estimates',type:'mc',q:'A higher proportion of marked animals in the second catch suggests the population is…',correct:'Smaller',options:['Larger','Smaller','The same','Impossible to determine']},
+];
+
+const ALL_STATIC=[...STATIC_QUESTIONS,...POP_MC];
+
+const STORAGE_KEY='ecologyforge_v1';
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({enabledTopics,mastered:[...mastered],stats,streaks}));}
+const saved=loadState();
+let enabledTopics=saved?.enabledTopics||Object.fromEntries(TOPICS.map(t=>[t,true]));
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+TOPICS.forEach(t=>{if(enabledTopics[t]===undefined)enabledTopics[t]=true;});
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function buildQuestion(prev){
+  // Mix static + occasional procedural capture-recapture
+  const useCR=enabledTopics['Population Estimates']&&Math.random()<0.35;
+  if(useCR)return genCaptureRecapture();
+  const pool=ALL_STATIC.filter(q=>enabledTopics[q.topic]&&!mastered.has(q.id));
+  if(!pool.length)return null;
+  const f=prev?pool.filter(q=>q.id!==prev.id):pool;
+  return(f.length?f:pool)[Math.floor(Math.random()*(f.length||pool.length))];
+}
+
+const topicBadge=document.getElementById('topicBadge'),questionText=document.getElementById('questionText'),questionSub=document.getElementById('questionSub'),mcGrid=document.getElementById('mcGrid'),inputRow=document.getElementById('inputRow'),answerInput=document.getElementById('answerInput'),submitBtn=document.getElementById('submitBtn'),feedbackMsg=document.getElementById('feedbackMsg'),timerBarEl=document.getElementById('timerBar'),streakDotsEl=document.getElementById('streakDots'),statCorrect=document.getElementById('statCorrect'),statTotal=document.getElementById('statTotal'),statPct=document.getElementById('statPct'),pctBar=document.getElementById('pctBar'),statStreak=document.getElementById('statStreak'),masteredList=document.getElementById('masteredList'),masteredCount=document.getElementById('masteredCount'),sbCorrect=document.getElementById('sbCorrect'),sbTotal=document.getElementById('sbTotal'),sbPct=document.getElementById('sbPct'),sbPctBar=document.getElementById('sbPctBar'),sbMastered=document.getElementById('sbMastered'),lgD=document.getElementById('levelGridDesktop'),lgM=document.getElementById('levelGridMobile'),toast=document.getElementById('toast'),drawerToggle=document.getElementById('drawerToggle'),mobileDrawer=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(g){g.innerHTML='';TOPICS.forEach(topic=>{const hM=ALL_STATIC.some(q=>q.topic===topic&&mastered.has(q.id));const w=document.createElement('label');w.className='lv-toggle'+(hM?' has-mastered':'');const inp=document.createElement('input');inp.type='checkbox';inp.checked=enabledTopics[topic];inp.addEventListener('change',()=>{enabledTopics[topic]=inp.checked;[lgD,lgM].forEach(gr=>{const idx=TOPICS.indexOf(topic);const ins=gr.querySelectorAll('input[type=checkbox]');if(ins[idx])ins[idx].checked=inp.checked;});saveState();nextQuestion();});const p=document.createElement('div');p.className='pill';p.textContent=topic;const b=document.createElement('div');b.className='mastered-badge';w.appendChild(inp);w.appendChild(p);w.appendChild(b);g.appendChild(w);});}
+function renderToggles(){renderLevelGrid(lgD);renderLevelGrid(lgM);}
+function renderStreakDots(n){streakDotsEl.innerHTML='';for(let i=0;i<6;i++){const d=document.createElement('div');d.className='streak-dot'+(i<n?' filled':'');streakDotsEl.appendChild(d);}}
+
+const TIME_LIMIT=12000; // more time for calculation questions
+let currentQ=null,answered=false,timerInterval=null,timerStart=null;
+function startTimer(){timerStart=Date.now();timerBarEl.style.transition='none';timerBarEl.style.width='100%';timerBarEl.className='timer-bar';clearInterval(timerInterval);timerInterval=setInterval(()=>{const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100);timerBarEl.style.transition='width 0.1s linear,background 0.3s';timerBarEl.style.width=pct+'%';if(pct<=16)timerBarEl.className='timer-bar urgent';else if(pct<=33)timerBarEl.className='timer-bar warning-orange';else if(pct<=55)timerBarEl.className='timer-bar warning';else timerBarEl.className='timer-bar';},100);}
+function stopTimer(){clearInterval(timerInterval);}
+function getElapsed(){return Date.now()-(timerStart||Date.now());}
+
+function nextQuestion(){
+  stopTimer();answered=false;feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';
+  mcGrid.innerHTML='';inputRow.style.display='none';answerInput.value='';answerInput.className='answer-input';answerInput.disabled=false;
+  if(!TOPICS.some(t=>enabledTopics[t])){topicBadge.textContent='—';questionText.textContent='Enable a topic to begin.';questionSub.textContent='';renderStreakDots(0);return;}
+  const q=buildQuestion(currentQ);
+  if(!q){topicBadge.textContent='🎉 DONE';questionText.textContent='All questions mastered!';questionSub.textContent='Enable more topics or reset progress.';renderStreakDots(0);return;}
+  currentQ=q;topicBadge.textContent=q.topic;questionText.textContent=q.q;
+  const streak=streaks[q.id]||0;renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:q.sub||'';
+  if(q.type==='typed'){
+    inputRow.style.display='flex';
+    if(!('ontouchstart' in window))answerInput.focus();
+  } else {
+    shuffle(q.options).forEach(opt=>{const btn=document.createElement('button');btn.className='mc-btn';btn.textContent=opt;btn.onclick=()=>handleMC(opt,btn);mcGrid.appendChild(btn);});
+  }
+  startTimer();
+}
+
+function handleMC(chosen,btn){
+  if(answered)return;answered=true;stopTimer();stats.total++;
+  document.querySelectorAll('.mc-btn').forEach(b=>b.disabled=true);
+  const elapsed=getElapsed();
+  if(chosen===currentQ.correct){
+    btn.classList.add('correct-flash');stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    btn.classList.add('wrong-flash');
+    document.querySelectorAll('.mc-btn').forEach(b=>{if(b.textContent===currentQ.correct)b.classList.add('correct-flash');});
+    stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  '+currentQ.correct;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+function handleTyped(){
+  if(answered||answerInput.disabled)return;
+  const raw=answerInput.value.trim();if(!raw){answerInput.focus();return;}
+  answered=true;stopTimer();stats.total++;answerInput.disabled=true;
+  const elapsed=getElapsed();
+  const userNum=parseFloat(raw),corrNum=parseFloat(currentQ.answer);
+  const numOk=!isNaN(userNum)&&!isNaN(corrNum)&&Math.abs(userNum-corrNum)<=Math.max(1,Math.abs(corrNum)*0.05);
+  const strOk=raw.toLowerCase()===currentQ.answer.toLowerCase();
+  const accOk=currentQ.accept&&currentQ.accept.some(a=>raw.toLowerCase()===a.toLowerCase());
+  const ok=numOk||strOk||accOk;
+  if(ok){
+    answerInput.className='answer-input correct-flash';stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    answerInput.className='answer-input wrong-flash';stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  Answer: '+currentQ.answer;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+submitBtn.addEventListener('click',handleTyped);
+answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')handleTyped();});
+
+function updateStats(){
+  const c=stats.correct,t=stats.total,ss=stats.sessionStreak||0;
+  const pct=t>0?Math.round((c/t)*100):null,pctStr=pct!==null?pct+'%':'—',pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c;statTotal.textContent=t;statPct.textContent=pctStr;pctBar.style.width=pctW;
+  sbCorrect.textContent=c;sbTotal.textContent=t;sbPct.textContent=pctStr;sbPctBar.style.width=pctW;sbMastered.textContent=mastered.size;
+  const fires=Math.floor(ss/5);statStreak.textContent=ss>0?(fires>0?'🔥'.repeat(fires)+' ':'')+ss+' in a row':'';
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col;sbPctBar.style.background=col;
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size;sbMastered.textContent=mastered.size;
+  if(!mastered.size){masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}
+  masteredList.innerHTML=[...mastered].sort().map(id=>{const q=ALL_STATIC.find(x=>x.id===id);return`<div class="mastered-item">★ ${q?q.q.slice(0,34)+'…':id}</div>`;}).join('');
+}
+let toastTimeout;
+function showToast(msg,isMastered=false){toast.textContent=msg;toast.className='toast'+(isMastered?' mastered-toast':'')+' show';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{toast.className='toast'+(isMastered?' mastered-toast':'');},2500);}
+let allOn=true;
+function toggleAll(){allOn=!allOn;TOPICS.forEach(t=>enabledTopics[t]=allOn);saveState();renderToggles();nextQuestion();}
+function doReset(){if(!confirm('Reset all mastery progress and stats?'))return;mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};allOn=true;TOPICS.forEach(t=>enabledTopics[t]=true);saveState();renderToggles();renderMastered();updateStats();nextQuestion();showToast('Progress reset.');}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{const o=mobileDrawer.classList.toggle('open');drawerToggle.classList.toggle('open',o);});
+renderToggles();renderMastered();updateStats();nextQuestion();
+</script>
+</body>
+</html>

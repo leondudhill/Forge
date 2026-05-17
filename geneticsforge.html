@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="GeneticsForge — GCSE Biology genetics drill. Practice inheritance, Punnett squares and genetic crosses.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeneticsForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--surface:#f0fdf4;--surface2:#a7f3d0;--border:#6ee7b7;--text:#022c22;--text-muted:#065f46;--accent:#15803d;--accent2:#f5a623;--correct:#15803d;--wrong:#e84c1e;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;}
+  .logo span{color:var(--accent);}
+  .byline{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;font-weight:500;}
+  .byline strong{font-weight:700;color:var(--accent);}
+  .score-bar{display:none;background:var(--surface);border-bottom:1.5px solid var(--border);padding:10px 20px;gap:16px;align-items:center;flex-shrink:0;}
+  .score-bar-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
+  .score-bar-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);}
+  .score-bar-value{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);}
+  .score-bar-pct-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .score-bar-pct-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+  .score-bar-pct-fill{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;width:0%;}
+  .score-bar-pct-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-muted);}
+  .layout{display:grid;grid-template-columns:210px 1fr 210px;flex:1;min-height:0;}
+  .sidebar{border-right:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-right{border-right:none;border-left:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-muted);margin-bottom:14px;}
+  .level-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .lv-toggle{position:relative;cursor:pointer;}
+  .lv-toggle input{display:none;}
+  .lv-toggle .pill{display:flex;align-items:center;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all 0.15s ease;user-select:none;padding:0 14px;}
+  .lv-toggle input:checked+.pill{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .lv-toggle .mastered-badge{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:1.5px solid #fff;display:none;}
+  .lv-toggle.has-mastered .mastered-badge{display:block;}
+  .toggle-all-btn{margin-top:12px;width:100%;padding:8px;background:none;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .toggle-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .reset-btn{margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #f2c4bb;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--wrong);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .reset-btn:hover{background:#fff0ed;}
+  .main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:24px;}
+  .question-card{text-align:center;max-width:600px;width:100%;}
+  .topic-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-bottom:10px;}
+  .question-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,3.5vw,44px);letter-spacing:2px;line-height:1.2;color:var(--text);}
+  /* Punnett square display */
+  .punnett{display:inline-grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:2px;margin:10px auto;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;}
+  .punnett-cell{display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .punnett-header{background:var(--surface2);color:var(--accent);}
+  .punnett-body{background:var(--surface);border:1px solid var(--border);}
+  .punnett-corner{background:transparent;}
+  .question-sub{font-size:13px;color:var(--text-muted);margin-top:6px;font-weight:500;letter-spacing:0.5px;min-height:20px;}
+  .timer-wrap{width:min(280px,80vw);height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .timer-bar{height:100%;width:100%;background:var(--correct);border-radius:2px;transition:width 0.1s linear,background 0.3s;}
+  .timer-bar.warning{background:#f5c518;}.timer-bar.warning-orange{background:#f07d20;}.timer-bar.urgent{background:var(--wrong);}
+  .streak-dots{display:flex;gap:6px;justify-content:center;}
+  .streak-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all 0.2s ease;}
+  .streak-dot.filled{background:var(--correct);border-color:var(--correct);transform:scale(1.2);}
+  /* MC */
+  .mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(500px,100%);}
+  .mc-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.4;}
+  .mc-btn:hover:not(:disabled){border-color:var(--accent);background:var(--surface2);color:var(--accent);}
+  .mc-btn:active:not(:disabled){transform:scale(0.97);}
+  .mc-btn.correct-flash{border-color:var(--correct);background:#dcfce7;color:var(--correct);}
+  .mc-btn.wrong-flash{border-color:var(--wrong);background:#fff0ed;color:var(--wrong);}
+  .mc-btn:disabled{cursor:default;}
+  /* Typed input */
+  .input-row{display:flex;gap:10px;align-items:center;}
+  .answer-input{font-family:'DM Mono',monospace;font-size:clamp(16px,5vw,26px);font-weight:500;width:160px;text-align:center;border:2px solid var(--border);border-radius:10px;padding:10px 12px;outline:none;background:var(--surface);color:var(--text);transition:border-color 0.15s,background 0.15s;}
+  .answer-input:focus{border-color:var(--accent);background:#fff;}
+  .answer-input.correct-flash{border-color:var(--correct);background:#dcfce7;}
+  .answer-input.wrong-flash{border-color:var(--wrong);background:#fff0ed;}
+  .answer-input:disabled{opacity:0.5;}
+  .submit-btn{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:12px 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;transition:all 0.15s;min-height:48px;min-width:64px;}
+  .submit-btn:hover{filter:brightness(1.1);}
+  .submit-btn:active{transform:scale(0.97);}
+  .feedback-msg{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;min-height:26px;}
+  .feedback-msg.correct{color:var(--correct);}.feedback-msg.wrong{color:var(--wrong);}.feedback-msg.mastered{color:var(--accent2);}
+  .stat-block{margin-bottom:18px;flex-shrink:0;}
+  .stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+  .stat-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1;color:var(--text);}
+  .stat-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .pct-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .pct-bar{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease,background 0.3s;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:18px 0;}
+  .mastered-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;}
+  .mastered-item{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text-muted);padding:3px 6px;background:var(--surface);border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mobile-drawer-toggle{display:none;width:100%;padding:12px 20px;background:var(--surface);border:none;border-top:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;letter-spacing:0.3px;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .mobile-drawer-toggle .arrow{font-size:10px;transition:transform 0.25s;color:var(--text-muted);}
+  .mobile-drawer-toggle.open .arrow{transform:rotate(180deg);}
+  .mobile-drawer{display:none;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px 20px;flex-shrink:0;}
+  .mobile-drawer.open{display:block;}
+  .mobile-drawer-actions{display:flex;gap:8px;margin-top:10px;}
+  .mobile-drawer-actions .toggle-all-btn,.mobile-drawer-actions .reset-btn{margin:0;flex:1;}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:12px 24px;border-radius:30px;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.mastered-toast{background:var(--accent2);color:var(--text);}
+  footer{border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111;background:var(--surface);line-height:1.5;flex-shrink:0;}
+  .footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+  @media(max-width:860px){.layout{grid-template-columns:200px 1fr;}.sidebar-right{display:none;}.score-bar{display:flex;}}
+  @media(max-width:580px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.score-bar{display:flex;}.mobile-drawer-toggle{display:flex;}.main{padding:28px 16px;gap:18px;}header{padding:12px 16px;}.byline{display:none;}footer{padding:10px 16px;font-size:10.5px;}}
+  @media(max-width:400px){.mc-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Genetics<span>Forge</span></div>
+  <div class="byline">A drill by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar"><div class="level-grid" id="levelGridDesktop"></div><button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button><button class="reset-btn" id="resetBtnDesktop">Reset Progress</button></div>
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="question-text" id="questionText">—</div>
+      <div id="punnettDisplay"></div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="mc-grid" id="mcGrid"></div>
+    <div class="input-row" id="inputRow" style="display:none">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block"><div class="stat-label">Correct / Total</div><div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div></div>
+    <div class="stat-block"><div class="stat-label">Accuracy</div><div class="stat-value"><span id="statPct">—</span></div><div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div><div class="stat-sub" id="statStreak"></div></div>
+    <hr class="divider">
+    <div class="stat-block"><div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div><div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div></div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions"><button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button><button class="reset-btn" id="resetBtnMobile">Reset Progress</button></div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+const TOPICS=['Key Definitions','Monohybrid Crosses','Punnett Square Ratios','Sex Determination','Variation'];
+
+// Questions: type='mc' → multiple choice. type='typed' → text input.
+// For typed: answer is a string, accept[] lists alternatives.
+const QUESTIONS=[
+  // Key Definitions
+  {id:'kd1',topic:'Key Definitions',type:'mc',q:'What is an allele?',correct:'A version of a gene',options:['A full chromosome','A version of a gene','A protein made by DNA','A type of mutation']},
+  {id:'kd2',topic:'Key Definitions',type:'mc',q:'What does DOMINANT mean?',correct:'The allele that is always expressed when present',options:['The allele that is only expressed when two copies are present','The allele that is always expressed when present','The allele found only in females','The weaker allele']},
+  {id:'kd3',topic:'Key Definitions',type:'mc',q:'What does RECESSIVE mean?',correct:'Only expressed when two copies are present (homozygous)',options:['Always expressed when present','Only expressed when two copies are present (homozygous)','Expressed in males only','Found only on the X chromosome']},
+  {id:'kd4',topic:'Key Definitions',type:'mc',q:'What is a GENOTYPE?',correct:'The alleles an organism actually has',options:['The physical appearance of an organism','The alleles an organism actually has','The environment an organism lives in','The number of chromosomes']},
+  {id:'kd5',topic:'Key Definitions',type:'mc',q:'What is a PHENOTYPE?',correct:'The observable characteristics of an organism',options:['The DNA sequence of an organism','The observable characteristics of an organism','The set of alleles an organism carries','A type of mutation']},
+  {id:'kd6',topic:'Key Definitions',type:'mc',q:'What is a HOMOZYGOUS organism?',correct:'Has two identical alleles for a gene (e.g. BB or bb)',options:['Has two different alleles for a gene','Has two identical alleles for a gene (e.g. BB or bb)','Has only one chromosome','Is always dominant']},
+  {id:'kd7',topic:'Key Definitions',type:'mc',q:'What is a HETEROZYGOUS organism?',correct:'Has two different alleles for a gene (e.g. Bb)',options:['Has two identical alleles','Has two different alleles for a gene (e.g. Bb)','Has an extra chromosome','Is always recessive']},
+  {id:'kd8',topic:'Key Definitions',type:'mc',q:'What is a CARRIER?',correct:'A heterozygous individual who carries a recessive allele but is unaffected',options:['Someone who has the disease','A heterozygous individual who carries a recessive allele but is unaffected','A homozygous dominant individual','Someone with a mutation']},
+
+  // Monohybrid Crosses — MC conceptual
+  {id:'mc1',topic:'Monohybrid Crosses',type:'mc',q:'In genetics, a capital letter (B) represents which type of allele?',correct:'Dominant',options:['Recessive','Dominant','Codominant','Sex-linked']},
+  {id:'mc2',topic:'Monohybrid Crosses',type:'mc',q:'Brown eyes (B) are dominant over blue eyes (b). What is the genotype of a blue-eyed person?',correct:'bb',options:['BB','Bb','bb','bB']},
+  {id:'mc3',topic:'Monohybrid Crosses',type:'mc',q:'If both parents are Bb (heterozygous), how many different genotypes can the offspring have?',correct:'3 (BB, Bb, bb)',options:['1','2','3 (BB, Bb, bb)','4']},
+  {id:'mc4',topic:'Monohybrid Crosses',type:'mc',q:'Two homozygous dominant parents (BB × BB) produce offspring with what genotype?',correct:'All BB',options:['All bb','All Bb','All BB','25% bb']},
+  {id:'mc5',topic:'Monohybrid Crosses',type:'mc',q:'A Bb parent crossed with a bb parent — what fraction of offspring show the dominant phenotype?',correct:'1/2 (50%)',options:['All of them','1/2 (50%)','1/4 (25%)','None']},
+  {id:'mc6',topic:'Monohybrid Crosses',type:'mc',q:'Cystic fibrosis is caused by a recessive allele (f). Two carrier parents have a child. What is the probability of the child having cystic fibrosis?',correct:'1 in 4 (25%)',options:['1 in 2 (50%)','1 in 4 (25%)','All children','0%']},
+
+  // Punnett Square Ratios — TYPED
+  {id:'pr1',topic:'Punnett Square Ratios',type:'typed',
+   q:'Bb × Bb cross. What is the phenotype ratio of dominant : recessive offspring?',
+   punnett:{r:['B','b'],c:['B','b'],cells:['BB','Bb','Bb','bb']},
+   answer:'3:1',accept:['3:1','3 to 1','3 dominant 1 recessive'],
+   sub:'Type the ratio e.g. 3:1'},
+  {id:'pr2',topic:'Punnett Square Ratios',type:'typed',
+   q:'Bb × bb cross. What is the genotype ratio of Bb : bb offspring?',
+   punnett:{r:['B','b'],c:['b','b'],cells:['Bb','Bb','bb','bb']},
+   answer:'1:1',accept:['1:1','1 to 1','equal'],
+   sub:'Type the ratio e.g. 1:1'},
+  {id:'pr3',topic:'Punnett Square Ratios',type:'typed',
+   q:'BB × bb cross. What fraction of offspring are heterozygous (Bb)?',
+   punnett:{r:['B','B'],c:['b','b'],cells:['Bb','Bb','Bb','Bb']},
+   answer:'all',accept:['all','100%','1','4/4','100','all of them','4'],
+   sub:'Type: all, 100%, or a fraction'},
+  {id:'pr4',topic:'Punnett Square Ratios',type:'typed',
+   q:'Bb × Bb cross. What is the probability (%) of a homozygous recessive (bb) offspring?',
+   punnett:{r:['B','b'],c:['B','b'],cells:['BB','Bb','Bb','bb']},
+   answer:'25',accept:['25','25%','1/4','0.25'],
+   sub:'Type a percentage e.g. 25'},
+  {id:'pr5',topic:'Punnett Square Ratios',type:'typed',
+   q:'Bb × Bb cross. What is the probability (%) of a heterozygous (Bb) offspring?',
+   punnett:{r:['B','b'],c:['B','b'],cells:['BB','Bb','Bb','bb']},
+   answer:'50',accept:['50','50%','1/2','0.5','2/4'],
+   sub:'Type a percentage e.g. 50'},
+  {id:'pr6',topic:'Punnett Square Ratios',type:'typed',
+   q:'Ff × Ff cross (F = unaffected, f = cystic fibrosis). What % of offspring will have cystic fibrosis?',
+   punnett:{r:['F','f'],c:['F','f'],cells:['FF','Ff','Ff','ff']},
+   answer:'25',accept:['25','25%','1/4','0.25'],
+   sub:'Type a percentage'},
+
+  // Sex Determination
+  {id:'sd1',topic:'Sex Determination',type:'mc',q:'What sex chromosomes does a human FEMALE have?',correct:'XX',options:['XY','XX','YY','X only']},
+  {id:'sd2',topic:'Sex Determination',type:'mc',q:'What sex chromosomes does a human MALE have?',correct:'XY',options:['XY','XX','YY','Y only']},
+  {id:'sd3',topic:'Sex Determination',type:'mc',q:'Which parent determines the sex of a child?',correct:'The father (sperm carries X or Y)',options:['The mother (eggs carry X or Y)','The father (sperm carries X or Y)','Both equally','Neither — it is random from both']},
+  {id:'sd4',topic:'Sex Determination',type:'typed',
+   q:'In a sex determination cross (XX × XY), what is the probability (%) of having a boy?',
+   answer:'50',accept:['50','50%','1/2','0.5'],
+   sub:'Type a percentage'},
+  {id:'sd5',topic:'Sex Determination',type:'mc',q:'What are the only sex chromosomes an egg cell can carry?',correct:'X only',options:['X only','Y only','X or Y','XX or XY']},
+  {id:'sd6',topic:'Sex Determination',type:'mc',q:'What are the sex chromosomes a sperm cell can carry?',correct:'X or Y',options:['X only','Y only','X or Y','XX or XY']},
+
+  // Variation
+  {id:'vr1',topic:'Variation',type:'mc',q:'What are the two types of variation?',correct:'Genetic and environmental',options:['Dominant and recessive','Genetic and environmental','Continuous and discrete','Natural and artificial']},
+  {id:'vr2',topic:'Variation',type:'mc',q:'Which type of variation is caused by mutations?',correct:'Genetic variation',options:['Environmental variation','Genetic variation','Continuous variation only','Phenotypic variation only']},
+  {id:'vr3',topic:'Variation',type:'mc',q:'Blood group is an example of which type of variation?',correct:'Discontinuous (distinct categories)',options:['Continuous (a range)','Discontinuous (distinct categories)','Environmental','Acquired']},
+  {id:'vr4',topic:'Variation',type:'mc',q:'Height in humans is an example of which type of variation?',correct:'Continuous (a range of values)',options:['Discontinuous','Continuous (a range of values)','Genetic only','Environmental only']},
+  {id:'vr5',topic:'Variation',type:'mc',q:'A mutation that occurs in a gamete (egg or sperm) can be…',correct:'Passed on to offspring',options:['Never passed on','Passed on to offspring','Only expressed in males','Always harmful']},
+];
+
+function punnettHTML(p){
+  if(!p)return'';
+  const {r,c,cells}=p;
+  return`<div class="punnett">
+    <div class="punnett-cell punnett-corner"></div>
+    <div class="punnett-cell punnett-header">${c[0]}</div>
+    <div class="punnett-cell punnett-header">${c[1]}</div>
+    <div class="punnett-cell punnett-header">${r[0]}</div>
+    <div class="punnett-cell punnett-body">${cells[0]}</div>
+    <div class="punnett-cell punnett-body">${cells[1]}</div>
+    <div class="punnett-cell punnett-header">${r[1]}</div>
+    <div class="punnett-cell punnett-body">${cells[2]}</div>
+    <div class="punnett-cell punnett-body">${cells[3]}</div>
+  </div>`;
+}
+
+const STORAGE_KEY='geneticsforge_v1';
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({enabledTopics,mastered:[...mastered],stats,streaks}));}
+const saved=loadState();
+let enabledTopics=saved?.enabledTopics||Object.fromEntries(TOPICS.map(t=>[t,true]));
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+TOPICS.forEach(t=>{if(enabledTopics[t]===undefined)enabledTopics[t]=true;});
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function getPool(){return QUESTIONS.filter(q=>enabledTopics[q.topic]&&!mastered.has(q.id));}
+function buildQuestion(prev){const pool=getPool();if(!pool.length)return null;const f=prev?pool.filter(q=>q.id!==prev.id):pool;return(f.length?f:pool)[Math.floor(Math.random()*(f.length||pool.length))];}
+
+const topicBadge=document.getElementById('topicBadge'),questionText=document.getElementById('questionText'),punnettDisplay=document.getElementById('punnettDisplay'),questionSub=document.getElementById('questionSub'),mcGrid=document.getElementById('mcGrid'),inputRow=document.getElementById('inputRow'),answerInput=document.getElementById('answerInput'),submitBtn=document.getElementById('submitBtn'),feedbackMsg=document.getElementById('feedbackMsg'),timerBarEl=document.getElementById('timerBar'),streakDotsEl=document.getElementById('streakDots'),statCorrect=document.getElementById('statCorrect'),statTotal=document.getElementById('statTotal'),statPct=document.getElementById('statPct'),pctBar=document.getElementById('pctBar'),statStreak=document.getElementById('statStreak'),masteredList=document.getElementById('masteredList'),masteredCount=document.getElementById('masteredCount'),sbCorrect=document.getElementById('sbCorrect'),sbTotal=document.getElementById('sbTotal'),sbPct=document.getElementById('sbPct'),sbPctBar=document.getElementById('sbPctBar'),sbMastered=document.getElementById('sbMastered'),lgD=document.getElementById('levelGridDesktop'),lgM=document.getElementById('levelGridMobile'),toast=document.getElementById('toast'),drawerToggle=document.getElementById('drawerToggle'),mobileDrawer=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(g){g.innerHTML='';TOPICS.forEach(topic=>{const hM=QUESTIONS.some(q=>q.topic===topic&&mastered.has(q.id));const w=document.createElement('label');w.className='lv-toggle'+(hM?' has-mastered':'');const inp=document.createElement('input');inp.type='checkbox';inp.checked=enabledTopics[topic];inp.addEventListener('change',()=>{enabledTopics[topic]=inp.checked;[lgD,lgM].forEach(gr=>{const idx=TOPICS.indexOf(topic);const ins=gr.querySelectorAll('input[type=checkbox]');if(ins[idx])ins[idx].checked=inp.checked;});saveState();nextQuestion();});const p=document.createElement('div');p.className='pill';p.textContent=topic;const b=document.createElement('div');b.className='mastered-badge';w.appendChild(inp);w.appendChild(p);w.appendChild(b);g.appendChild(w);});}
+function renderToggles(){renderLevelGrid(lgD);renderLevelGrid(lgM);}
+function renderStreakDots(n){streakDotsEl.innerHTML='';for(let i=0;i<6;i++){const d=document.createElement('div');d.className='streak-dot'+(i<n?' filled':'');streakDotsEl.appendChild(d);}}
+
+const TIME_LIMIT=10000;
+let currentQ=null,answered=false,timerInterval=null,timerStart=null;
+function startTimer(){timerStart=Date.now();timerBarEl.style.transition='none';timerBarEl.style.width='100%';timerBarEl.className='timer-bar';clearInterval(timerInterval);timerInterval=setInterval(()=>{const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100);timerBarEl.style.transition='width 0.1s linear,background 0.3s';timerBarEl.style.width=pct+'%';if(pct<=16)timerBarEl.className='timer-bar urgent';else if(pct<=33)timerBarEl.className='timer-bar warning-orange';else if(pct<=55)timerBarEl.className='timer-bar warning';else timerBarEl.className='timer-bar';},100);}
+function stopTimer(){clearInterval(timerInterval);}
+function getElapsed(){return Date.now()-(timerStart||Date.now());}
+
+function nextQuestion(){
+  stopTimer();answered=false;feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';
+  mcGrid.innerHTML='';inputRow.style.display='none';answerInput.value='';answerInput.className='answer-input';answerInput.disabled=false;
+  punnettDisplay.innerHTML='';
+  if(!TOPICS.some(t=>enabledTopics[t])){topicBadge.textContent='—';questionText.textContent='Enable a topic to begin.';questionSub.textContent='';renderStreakDots(0);return;}
+  const q=buildQuestion(currentQ);
+  if(!q){topicBadge.textContent='🎉 DONE';questionText.textContent='All questions mastered!';questionSub.textContent='Enable more topics or reset progress.';renderStreakDots(0);return;}
+  currentQ=q;topicBadge.textContent=q.topic;questionText.textContent=q.q;
+  if(q.punnett)punnettDisplay.innerHTML=punnettHTML(q.punnett);
+  const streak=streaks[q.id]||0;renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:q.sub||'';
+  if(q.type==='typed'){
+    inputRow.style.display='flex';
+    if(!('ontouchstart' in window))answerInput.focus();
+  } else {
+    shuffle(q.options).forEach(opt=>{const btn=document.createElement('button');btn.className='mc-btn';btn.textContent=opt;btn.onclick=()=>handleMC(opt,btn);mcGrid.appendChild(btn);});
+  }
+  startTimer();
+}
+
+function checkTyped(raw,q){
+  const r=raw.trim().toLowerCase();
+  if(r===q.answer.toLowerCase())return true;
+  if(q.accept&&q.accept.some(a=>r===a.toLowerCase()))return true;
+  return false;
+}
+
+function handleMC(chosen,btn){
+  if(answered)return;answered=true;stopTimer();stats.total++;
+  document.querySelectorAll('.mc-btn').forEach(b=>b.disabled=true);
+  const elapsed=getElapsed();
+  if(chosen===currentQ.correct){
+    btn.classList.add('correct-flash');stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    btn.classList.add('wrong-flash');
+    document.querySelectorAll('.mc-btn').forEach(b=>{if(b.textContent===currentQ.correct)b.classList.add('correct-flash');});
+    stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  '+currentQ.correct;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+function handleTyped(){
+  if(answered||answerInput.disabled)return;
+  const raw=answerInput.value;if(!raw.trim()){answerInput.focus();return;}
+  answered=true;stopTimer();stats.total++;answerInput.disabled=true;
+  const elapsed=getElapsed();
+  if(checkTyped(raw,currentQ)){
+    answerInput.className='answer-input correct-flash';stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    answerInput.className='answer-input wrong-flash';stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  Answer: '+currentQ.answer;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+submitBtn.addEventListener('click',handleTyped);
+answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')handleTyped();});
+
+function updateStats(){
+  const c=stats.correct,t=stats.total,ss=stats.sessionStreak||0;
+  const pct=t>0?Math.round((c/t)*100):null,pctStr=pct!==null?pct+'%':'—',pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c;statTotal.textContent=t;statPct.textContent=pctStr;pctBar.style.width=pctW;
+  sbCorrect.textContent=c;sbTotal.textContent=t;sbPct.textContent=pctStr;sbPctBar.style.width=pctW;sbMastered.textContent=mastered.size;
+  const fires=Math.floor(ss/5);statStreak.textContent=ss>0?(fires>0?'🔥'.repeat(fires)+' ':'')+ss+' in a row':'';
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col;sbPctBar.style.background=col;
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size;sbMastered.textContent=mastered.size;
+  if(!mastered.size){masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}
+  masteredList.innerHTML=[...mastered].sort().map(id=>{const q=QUESTIONS.find(x=>x.id===id);return`<div class="mastered-item">★ ${q?q.q.slice(0,34)+'…':id}</div>`;}).join('');
+}
+let toastTimeout;
+function showToast(msg,isMastered=false){toast.textContent=msg;toast.className='toast'+(isMastered?' mastered-toast':'')+' show';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{toast.className='toast'+(isMastered?' mastered-toast':'');},2500);}
+let allOn=true;
+function toggleAll(){allOn=!allOn;TOPICS.forEach(t=>enabledTopics[t]=allOn);saveState();renderToggles();nextQuestion();}
+function doReset(){if(!confirm('Reset all mastery progress and stats?'))return;mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};allOn=true;TOPICS.forEach(t=>enabledTopics[t]=true);saveState();renderToggles();renderMastered();updateStats();nextQuestion();showToast('Progress reset.');}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{const o=mobileDrawer.classList.toggle('open');drawerToggle.classList.toggle('open',o);});
+renderToggles();renderMastered();updateStats();nextQuestion();
+</script>
+</body>
+</html>
