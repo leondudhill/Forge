@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="AcidsForge — GCSE Chemistry acids and bases drill. Practice pH, neutralisation, salt formation and indicators.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcidsForge — ReviseForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--surface:#f5f3ff;--surface2:#ede9fe;--border:#ddd6fe;--text:#1e0a3e;--text-muted:#6b45a0;--accent:#7c3aed;--accent2:#f5a623;--correct:#2a9d5c;--wrong:#e84c1e;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;text-decoration:none;}
+  .logo .logo-main{color:var(--text);}.logo .logo-forge{color:var(--accent);}
+  .byline{font-size:11px;color:#111111;letter-spacing:0.5px;font-weight:400;text-align:right;}
+  .byline strong{font-weight:700;color:var(--accent);}
+  .score-bar{display:none;background:var(--surface);border-bottom:1.5px solid var(--border);padding:10px 20px;gap:16px;align-items:center;flex-shrink:0;}
+  .score-bar-item{display:flex;flex-direction:column;align-items:center;gap:1px;}
+  .score-bar-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);}
+  .score-bar-value{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);}
+  .score-bar-pct-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .score-bar-pct-track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+  .score-bar-pct-fill{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;width:0%;}
+  .score-bar-pct-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-muted);}
+  .layout{display:grid;grid-template-columns:210px 1fr 210px;flex:1;min-height:0;}
+  .sidebar{border-right:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-right{border-right:none;border-left:1.5px solid var(--border);padding:22px 18px;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-muted);margin-bottom:14px;}
+  .level-grid{display:grid;grid-template-columns:1fr;gap:8px;}
+  .lv-toggle{position:relative;cursor:pointer;}
+  .lv-toggle input{display:none;}
+  .lv-toggle .pill{display:flex;align-items:center;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all 0.15s ease;user-select:none;padding:0 14px;}
+  .lv-toggle input:checked+.pill{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .lv-toggle .mastered-badge{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:1.5px solid #fff;display:none;}
+  .lv-toggle.has-mastered .mastered-badge{display:block;}
+  .toggle-all-btn{margin-top:12px;width:100%;padding:8px;background:none;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .toggle-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .reset-btn{margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #f2c4bb;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--wrong);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .reset-btn:hover{background:#fff0ed;}
+  .main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:24px;}
+  .question-card{text-align:center;max-width:600px;width:100%;}
+  .topic-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-bottom:10px;}
+  .question-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,3.5vw,44px);letter-spacing:2px;line-height:1.2;color:var(--text);}
+  .question-sub{font-size:13px;color:var(--text-muted);margin-top:6px;font-weight:500;letter-spacing:0.5px;min-height:20px;}
+  .timer-wrap{width:min(280px,80vw);height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .timer-bar{height:100%;width:100%;background:var(--correct);border-radius:2px;transition:width 0.1s linear,background 0.3s;}
+  .timer-bar.warning{background:#f5c518;}.timer-bar.warning-orange{background:#f07d20;}.timer-bar.urgent{background:var(--wrong);}
+  .streak-dots{display:flex;gap:6px;justify-content:center;}
+  .streak-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all 0.2s ease;}
+  .streak-dot.filled{background:var(--correct);border-color:var(--correct);transform:scale(1.2);}
+  .mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(500px,100%);}
+  .mc-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.4;}
+  .mc-btn:hover:not(:disabled){border-color:var(--accent);background:var(--surface2);color:var(--accent);}
+  .mc-btn:active:not(:disabled){transform:scale(0.97);}
+  .mc-btn.correct-flash{border-color:var(--correct);background:#edfaf3;color:var(--correct);}
+  .mc-btn.wrong-flash{border-color:var(--wrong);background:#fff0ed;color:var(--wrong);}
+  .mc-btn:disabled{cursor:default;}
+  .input-row{display:flex;gap:10px;align-items:center;}
+  .answer-input{font-family:'DM Mono',monospace;font-size:clamp(16px,5vw,26px);font-weight:500;width:160px;text-align:center;border:2px solid var(--border);border-radius:10px;padding:10px 12px;outline:none;background:var(--surface);color:var(--text);transition:border-color 0.15s,background 0.15s;}
+  .answer-input:focus{border-color:var(--accent);background:#fff;}
+  .answer-input.correct-flash{border-color:var(--correct);background:#edfaf3;}
+  .answer-input.wrong-flash{border-color:var(--wrong);background:#fff0ed;}
+  .answer-input:disabled{opacity:0.5;}
+  .submit-btn{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:12px 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;transition:all 0.15s;min-height:48px;min-width:64px;}
+  .submit-btn:hover{filter:brightness(1.1);}.submit-btn:active{transform:scale(0.97);}
+  .feedback-msg{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;min-height:26px;text-align:center;}
+  .feedback-msg.correct{color:var(--correct);}.feedback-msg.wrong{color:var(--wrong);}.feedback-msg.mastered{color:var(--accent2);}
+  .stat-block{margin-bottom:18px;flex-shrink:0;}
+  .stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+  .stat-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1;color:var(--text);}
+  .stat-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .pct-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .pct-bar{height:100%;background:var(--correct);border-radius:3px;transition:width 0.5s ease;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:18px 0;}
+  .mastered-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;}
+  .mastered-item{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text-muted);padding:3px 6px;background:var(--surface);border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mobile-drawer-toggle{display:none;width:100%;padding:12px 20px;background:var(--surface);border:none;border-top:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;letter-spacing:0.3px;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .mobile-drawer-toggle .arrow{font-size:10px;transition:transform 0.25s;color:var(--text-muted);}
+  .mobile-drawer-toggle.open .arrow{transform:rotate(180deg);}
+  .mobile-drawer{display:none;background:var(--surface);border-top:1px solid var(--border);padding:16px 20px 20px;flex-shrink:0;}
+  .mobile-drawer.open{display:block;}
+  .mobile-drawer-actions{display:flex;gap:8px;margin-top:10px;}
+  .mobile-drawer-actions .toggle-all-btn,.mobile-drawer-actions .reset-btn{margin:0;flex:1;}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:12px 24px;border-radius:30px;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.mastered-toast{background:var(--accent2);color:var(--text);}
+  footer{border-top:1.5px solid var(--border);padding:11px 24px;font-size:11.5px;color:#111;background:var(--surface);line-height:1.5;flex-shrink:0;}
+  .footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px;}
+  @media(max-width:860px){.layout{grid-template-columns:200px 1fr;}.sidebar-right{display:none;}.score-bar{display:flex;}}
+  @media(max-width:580px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.score-bar{display:flex;}.mobile-drawer-toggle{display:flex;}.main{padding:28px 16px;gap:18px;}header{padding:12px 16px;}.byline{display:none;}footer{padding:10px 16px;font-size:10.5px;}}
+  @media(max-width:400px){.mc-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <a href="chemistry.html" class="logo"><span class="logo-main">Acids</span><span class="logo-forge">Forge</span></a>
+  <div class="byline">A drill by <strong>Leon Dudhill</strong></div>
+</header>
+<div class="score-bar" id="scoreBar">
+  <div class="score-bar-item"><span class="score-bar-label">Correct</span><span class="score-bar-value" id="sbCorrect">0</span></div>
+  <div class="score-bar-item"><span class="score-bar-label">Total</span><span class="score-bar-value" id="sbTotal">0</span></div>
+  <div class="score-bar-pct-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="score-bar-label">Accuracy</span><span class="score-bar-pct-label" id="sbPct">—</span></div>
+    <div class="score-bar-pct-track"><div class="score-bar-pct-fill" id="sbPctBar"></div></div>
+  </div>
+  <div class="score-bar-item"><span class="score-bar-label">Mastered</span><span class="score-bar-value" id="sbMastered">0</span></div>
+</div>
+<div class="layout">
+  <div class="sidebar"><div class="level-grid" id="levelGridDesktop"></div><button class="toggle-all-btn" id="toggleAllBtnDesktop">Toggle All</button><button class="reset-btn" id="resetBtnDesktop">Reset Progress</button></div>
+  <div class="main">
+    <div class="question-card">
+      <div class="topic-badge" id="topicBadge">—</div>
+      <div class="question-text" id="questionText">—</div>
+      <div class="question-sub" id="questionSub"></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="streak-dots" id="streakDots"></div>
+    <div class="mc-grid" id="mcGrid"></div>
+    <div class="input-row" id="inputRow" style="display:none">
+      <input type="text" class="answer-input" id="answerInput" placeholder="?" autocomplete="off">
+      <button class="submit-btn" id="submitBtn">Go</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div class="sidebar-title">Score</div>
+    <div class="stat-block"><div class="stat-label">Correct / Total</div><div class="stat-value"><span id="statCorrect">0</span><span style="font-size:20px;color:var(--border)">/</span><span id="statTotal">0</span></div></div>
+    <div class="stat-block"><div class="stat-label">Accuracy</div><div class="stat-value"><span id="statPct">—</span></div><div class="pct-bar-wrap"><div class="pct-bar" id="pctBar" style="width:0%"></div></div><div class="stat-sub" id="statStreak"></div></div>
+    <hr class="divider">
+    <div class="stat-block"><div class="stat-label">Mastered (<span id="masteredCount">0</span>)</div><div class="mastered-list" id="masteredList"><div style="font-size:12px;color:var(--text-muted)">None yet</div></div></div>
+  </div>
+</div>
+<button class="mobile-drawer-toggle" id="drawerToggle"><span>⚙ Topics</span><span class="arrow">▼</span></button>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="level-grid" id="levelGridMobile" style="grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;"></div>
+  <div class="mobile-drawer-actions"><button class="toggle-all-btn" id="toggleAllBtnMobile">Toggle All</button><button class="reset-btn" id="resetBtnMobile">Reset Progress</button></div>
+</div>
+<footer><span class="footer-label">DISCLAIMER</span> This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+const TOPICS=['pH & Indicators','Acids & Bases','Neutralisation','Salt Formation'];
+const QUESTIONS=[
+  // pH & Indicators
+  {id:'ph1',topic:'pH & Indicators',type:'mc',q:'What pH does a neutral solution have?',correct:'7',options:['0','7','14','5']},
+  {id:'ph2',topic:'pH & Indicators',type:'mc',q:'Acids have a pH…',correct:'Less than 7',options:['Greater than 7','Equal to 7','Less than 7','Equal to 14']},
+  {id:'ph3',topic:'pH & Indicators',type:'mc',q:'Alkalis have a pH…',correct:'Greater than 7',options:['Less than 7','Equal to 7','Greater than 7','Equal to 0']},
+  {id:'ph4',topic:'pH & Indicators',type:'mc',q:'What colour does litmus turn in an acid?',correct:'Red',options:['Blue','Red','Purple','Yellow']},
+  {id:'ph5',topic:'pH & Indicators',type:'mc',q:'What colour does litmus turn in an alkali?',correct:'Blue',options:['Red','Blue','Green','Orange']},
+  {id:'ph6',topic:'pH & Indicators',type:'mc',q:'Universal indicator turns green in a solution of pH…',correct:'7 (neutral)',options:['1–2 (strongly acidic)','4–5 (weakly acidic)','7 (neutral)','10–14 (strongly alkaline)']},
+  {id:'ph7',topic:'pH & Indicators',type:'mc',q:'Which indicator gives a precise pH value?',correct:'Universal indicator',options:['Litmus','Phenolphthalein','Universal indicator','Methyl orange']},
+  {id:'ph8',topic:'pH & Indicators',type:'mc',q:'What does a pH probe (meter) measure?',correct:'The pH of a solution electronically',options:['The colour of an indicator','The pH of a solution electronically','The temperature of an acid','The concentration of an acid']},
+  {id:'ph9',topic:'pH & Indicators',type:'mc',q:'A strong acid has a pH of approximately…',correct:'1–2',options:['6–7','4–5','1–2','8–9']},
+  {id:'ph10',topic:'pH & Indicators',type:'mc',q:'Phenolphthalein is colourless in acid and pink in alkali. What is it used to detect?',correct:'The end point of a neutralisation (when alkali is in excess)',options:['The presence of an acid','The exact pH value','The end point of a neutralisation (when alkali is in excess)','Carbon dioxide gas']},
+  // Acids & Bases
+  {id:'ab1',topic:'Acids & Bases',type:'mc',q:'What ion do all acids produce in water?',correct:'H⁺ (hydrogen ions)',options:['OH⁻ (hydroxide ions)','H⁺ (hydrogen ions)','Na⁺ (sodium ions)','Cl⁻ (chloride ions)']},
+  {id:'ab2',topic:'Acids & Bases',type:'mc',q:'What ion do all alkalis produce in water?',correct:'OH⁻ (hydroxide ions)',options:['H⁺ (hydrogen ions)','OH⁻ (hydroxide ions)','Na⁺ (sodium ions)','Cl⁻ (chloride ions)']},
+  {id:'ab3',topic:'Acids & Bases',type:'mc',q:'What is the difference between a base and an alkali?',correct:'An alkali is a base that dissolves in water',options:['They are identical','An acid is a base that dissolves in water','An alkali is a base that dissolves in water','A base is an alkali that is insoluble']},
+  {id:'ab4',topic:'Acids & Bases',type:'mc',q:'Which of these is a strong acid?',correct:'Hydrochloric acid (HCl)',options:['Ethanoic acid','Citric acid','Hydrochloric acid (HCl)','Carbonic acid']},
+  {id:'ab5',topic:'Acids & Bases',type:'mc',q:'Which of these is a weak acid?',correct:'Ethanoic acid (CH₃COOH)',options:['Sulfuric acid','Hydrochloric acid','Ethanoic acid (CH₃COOH)','Nitric acid']},
+  {id:'ab6',topic:'Acids & Bases',type:'mc',q:'A strong acid fully ionises in water. A weak acid…',correct:'Only partially ionises in water',options:['Does not ionise at all','Only partially ionises in water','Is more concentrated','Has a higher pH']},
+  {id:'ab7',topic:'Acids & Bases',type:'mc',q:'What is the formula for sulfuric acid?',correct:'H₂SO₄',options:['HCl','H₂SO₄','HNO₃','H₂CO₃']},
+  {id:'ab8',topic:'Acids & Bases',type:'mc',q:'What is the formula for nitric acid?',correct:'HNO₃',options:['HCl','H₂SO₄','HNO₃','H₃PO₄']},
+  // Neutralisation
+  {id:'ne1',topic:'Neutralisation',type:'mc',q:'What is the general word equation for neutralisation?',correct:'Acid + base → salt + water',options:['Acid + metal → salt + hydrogen','Acid + base → salt + water','Base + water → acid + salt','Acid + alkali → base + water']},
+  {id:'ne2',topic:'Neutralisation',type:'mc',q:'In neutralisation, H⁺ ions react with OH⁻ ions to form…',correct:'Water (H₂O)',options:['Salt','Water (H₂O)','Carbon dioxide','Hydrogen gas']},
+  {id:'ne3',topic:'Neutralisation',type:'mc',q:'What type of process is neutralisation?',correct:'Exothermic',options:['Endothermic','Exothermic','Reversible','Catalytic']},
+  {id:'ne4',topic:'Neutralisation',type:'mc',q:'Acid + metal carbonate produces…',correct:'Salt + water + carbon dioxide',options:['Salt + water only','Salt + hydrogen','Salt + water + carbon dioxide','Salt + oxygen']},
+  {id:'ne5',topic:'Neutralisation',type:'mc',q:'Acid + metal oxide produces…',correct:'Salt + water',options:['Salt + water + CO₂','Salt + hydrogen','Salt + water','Salt + oxygen']},
+  {id:'ne6',topic:'Neutralisation',type:'mc',q:'Acid + metal produces…',correct:'Salt + hydrogen',options:['Salt + water','Salt + hydrogen','Salt + water + CO₂','Salt + oxygen']},
+  {id:'ne7',topic:'Neutralisation',type:'mc',q:'Which gas is produced when an acid reacts with a metal carbonate?',correct:'Carbon dioxide',options:['Hydrogen','Oxygen','Carbon dioxide','Nitrogen']},
+  {id:'ne8',topic:'Neutralisation',type:'mc',q:'How is carbon dioxide tested for?',correct:'Bubble through limewater — turns milky',options:['Burns with a squeaky pop','Relights a glowing splint','Bubble through limewater — turns milky','Turns litmus red']},
+  // Salt Formation
+  {id:'sf1',topic:'Salt Formation',type:'mc',q:'What salt is formed when hydrochloric acid reacts with sodium hydroxide?',correct:'Sodium chloride (NaCl)',options:['Sodium sulfate','Sodium chloride (NaCl)','Sodium nitrate','Sodium carbonate']},
+  {id:'sf2',topic:'Salt Formation',type:'mc',q:'What salt is formed when sulfuric acid reacts with potassium hydroxide?',correct:'Potassium sulfate (K₂SO₄)',options:['Potassium chloride','Potassium sulfate (K₂SO₄)','Potassium nitrate','Potassium carbonate']},
+  {id:'sf3',topic:'Salt Formation',type:'mc',q:'What salt is formed when nitric acid reacts with calcium hydroxide?',correct:'Calcium nitrate',options:['Calcium chloride','Calcium sulfate','Calcium nitrate','Calcium carbonate']},
+  {id:'sf4',topic:'Salt Formation',type:'mc',q:'Salts from hydrochloric acid always end in…',correct:'…chloride',options:['…sulfate','…nitrate','…chloride','…carbonate']},
+  {id:'sf5',topic:'Salt Formation',type:'mc',q:'Salts from sulfuric acid always end in…',correct:'…sulfate',options:['…chloride','…sulfate','…nitrate','…oxide']},
+  {id:'sf6',topic:'Salt Formation',type:'mc',q:'What technique is used to make a pure, dry salt from an acid and an insoluble base?',correct:'Filtration, evaporation and crystallisation',options:['Distillation','Filtration, evaporation and crystallisation','Chromatography','Electrolysis']},
+  {id:'sf7',topic:'Salt Formation',type:'mc',q:'In a titration, the exact volume of acid needed to neutralise an alkali is found using…',correct:'A burette and an indicator',options:['A measuring cylinder','A burette and an indicator','A thermometer','A pH meter alone']},
+  {id:'sf8',topic:'Salt Formation',type:'mc',q:'Why is the salt solution obtained from a titration heated gently to evaporate water?',correct:'To crystallise the pure salt',options:['To destroy the indicator colour','To decompose the salt','To crystallise the pure salt','To increase the pH']},
+];
+
+const STORAGE_KEY='acidsforge_v1';
+function loadState(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}return null;}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({enabledTopics,mastered:[...mastered],stats,streaks}));}
+const saved=loadState();
+let enabledTopics=saved?.enabledTopics||Object.fromEntries(TOPICS.map(t=>[t,true]));
+let mastered=new Set(Array.isArray(saved?.mastered)?saved.mastered:[]);
+let stats=(saved?.stats&&typeof saved.stats==='object')?saved.stats:{correct:0,total:0,sessionStreak:0};
+let streaks=(saved?.streaks&&typeof saved.streaks==='object'&&!Array.isArray(saved.streaks))?saved.streaks:{};
+TOPICS.forEach(t=>{if(enabledTopics[t]===undefined)enabledTopics[t]=true;});
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function getPool(){return QUESTIONS.filter(q=>enabledTopics[q.topic]&&!mastered.has(q.id));}
+function buildQuestion(prev){const pool=getPool();if(!pool.length)return null;const f=prev?pool.filter(q=>q.id!==prev.id):pool;return(f.length?f:pool)[Math.floor(Math.random()*(f.length||pool.length))];}
+
+const topicBadge=document.getElementById('topicBadge'),questionText=document.getElementById('questionText'),questionSub=document.getElementById('questionSub'),mcGrid=document.getElementById('mcGrid'),inputRow=document.getElementById('inputRow'),answerInput=document.getElementById('answerInput'),submitBtn=document.getElementById('submitBtn'),feedbackMsg=document.getElementById('feedbackMsg'),timerBarEl=document.getElementById('timerBar'),streakDotsEl=document.getElementById('streakDots'),statCorrect=document.getElementById('statCorrect'),statTotal=document.getElementById('statTotal'),statPct=document.getElementById('statPct'),pctBar=document.getElementById('pctBar'),statStreak=document.getElementById('statStreak'),masteredList=document.getElementById('masteredList'),masteredCount=document.getElementById('masteredCount'),sbCorrect=document.getElementById('sbCorrect'),sbTotal=document.getElementById('sbTotal'),sbPct=document.getElementById('sbPct'),sbPctBar=document.getElementById('sbPctBar'),sbMastered=document.getElementById('sbMastered'),lgD=document.getElementById('levelGridDesktop'),lgM=document.getElementById('levelGridMobile'),toast=document.getElementById('toast'),drawerToggle=document.getElementById('drawerToggle'),mobileDrawer=document.getElementById('mobileDrawer');
+
+function renderLevelGrid(g){g.innerHTML='';TOPICS.forEach(topic=>{const hM=QUESTIONS.some(q=>q.topic===topic&&mastered.has(q.id));const w=document.createElement('label');w.className='lv-toggle'+(hM?' has-mastered':'');const inp=document.createElement('input');inp.type='checkbox';inp.checked=enabledTopics[topic];inp.addEventListener('change',()=>{enabledTopics[topic]=inp.checked;[lgD,lgM].forEach(gr=>{const idx=TOPICS.indexOf(topic);const ins=gr.querySelectorAll('input[type=checkbox]');if(ins[idx])ins[idx].checked=inp.checked;});saveState();nextQuestion();});const p=document.createElement('div');p.className='pill';p.textContent=topic;const b=document.createElement('div');b.className='mastered-badge';w.appendChild(inp);w.appendChild(p);w.appendChild(b);g.appendChild(w);});}
+function renderToggles(){renderLevelGrid(lgD);renderLevelGrid(lgM);}
+function renderStreakDots(n){streakDotsEl.innerHTML='';for(let i=0;i<6;i++){const d=document.createElement('div');d.className='streak-dot'+(i<n?' filled':'');streakDotsEl.appendChild(d);}}
+
+const TIME_LIMIT=8000;
+let currentQ=null,answered=false,timerInterval=null,timerStart=null;
+function startTimer(){timerStart=Date.now();timerBarEl.style.transition='none';timerBarEl.style.width='100%';timerBarEl.className='timer-bar';clearInterval(timerInterval);timerInterval=setInterval(()=>{const pct=Math.max(0,100-((Date.now()-timerStart)/TIME_LIMIT)*100);timerBarEl.style.transition='width 0.1s linear,background 0.3s';timerBarEl.style.width=pct+'%';if(pct<=16)timerBarEl.className='timer-bar urgent';else if(pct<=33)timerBarEl.className='timer-bar warning-orange';else if(pct<=55)timerBarEl.className='timer-bar warning';else timerBarEl.className='timer-bar';},100);}
+function stopTimer(){clearInterval(timerInterval);}
+function getElapsed(){return Date.now()-(timerStart||Date.now());}
+
+function nextQuestion(){
+  stopTimer();answered=false;feedbackMsg.textContent='';feedbackMsg.className='feedback-msg';
+  mcGrid.innerHTML='';inputRow.style.display='none';if(answerInput){answerInput.value='';answerInput.className='answer-input';answerInput.disabled=false;}
+  if(!TOPICS.some(t=>enabledTopics[t])){topicBadge.textContent='—';questionText.textContent='Enable a topic to begin.';questionSub.textContent='';renderStreakDots(0);return;}
+  const q=buildQuestion(currentQ);
+  if(!q){topicBadge.textContent='🎉 DONE';questionText.textContent='All questions mastered!';questionSub.textContent='Enable more topics or reset progress.';renderStreakDots(0);return;}
+  currentQ=q;topicBadge.textContent=q.topic;questionText.textContent=q.q;
+  const streak=streaks[q.id]||0;renderStreakDots(streak);
+  questionSub.textContent=streak>0?`${streak}/6 mastery streak`:q.sub||'';
+  if(q.type==='typed'){
+    inputRow.style.display='flex';
+    if(!('ontouchstart' in window))answerInput.focus();
+  } else {
+    shuffle(q.options).forEach(opt=>{const btn=document.createElement('button');btn.className='mc-btn';btn.textContent=opt;btn.onclick=()=>handleMC(opt,btn);mcGrid.appendChild(btn);});
+  }
+  startTimer();
+}
+
+function handleMC(chosen,btn){
+  if(answered)return;answered=true;stopTimer();stats.total++;
+  document.querySelectorAll('.mc-btn').forEach(b=>b.disabled=true);
+  const elapsed=getElapsed();
+  if(chosen===currentQ.correct){
+    btn.classList.add('correct-flash');stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    btn.classList.add('wrong-flash');
+    document.querySelectorAll('.mc-btn').forEach(b=>{if(b.textContent===currentQ.correct)b.classList.add('correct-flash');});
+    stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  '+currentQ.correct;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+function handleTyped(){
+  if(answered||answerInput.disabled)return;
+  const raw=answerInput.value.trim();if(!raw){answerInput.focus();return;}
+  answered=true;stopTimer();stats.total++;answerInput.disabled=true;
+  const elapsed=getElapsed();
+  const ok=raw.toLowerCase()===currentQ.answer.toLowerCase()||(currentQ.accept&&currentQ.accept.some(a=>raw.toLowerCase()===a.toLowerCase()));
+  if(ok){
+    answerInput.className='answer-input correct-flash';stats.correct++;stats.sessionStreak=(stats.sessionStreak||0)+1;
+    streaks[currentQ.id]=elapsed<=TIME_LIMIT?(streaks[currentQ.id]||0)+1:0;
+    const streak=streaks[currentQ.id];renderStreakDots(streak);
+    if(streak>=6){mastered.add(currentQ.id);streaks[currentQ.id]=0;feedbackMsg.textContent='★ MASTERED!';feedbackMsg.className='feedback-msg mastered';showToast('Question mastered! 🔥',true);renderToggles();renderMastered();}
+    else{feedbackMsg.textContent=pick(['Correct!','Nice!','Spot on!','Yes!','✓ Right!']);feedbackMsg.className='feedback-msg correct';}
+  } else {
+    answerInput.className='answer-input wrong-flash';stats.sessionStreak=0;streaks[currentQ.id]=0;renderStreakDots(0);
+    feedbackMsg.textContent='✗  Answer: '+currentQ.answer;feedbackMsg.className='feedback-msg wrong';
+  }
+  updateStats();saveState();setTimeout(nextQuestion,1400);
+}
+
+document.getElementById('submitBtn').addEventListener('click',handleTyped);
+document.getElementById('answerInput').addEventListener('keydown',e=>{if(e.key==='Enter')handleTyped();});
+
+function updateStats(){
+  const c=stats.correct,t=stats.total,ss=stats.sessionStreak||0;
+  const pct=t>0?Math.round((c/t)*100):null,pctStr=pct!==null?pct+'%':'—',pctW=pct!==null?pct+'%':'0%';
+  statCorrect.textContent=c;statTotal.textContent=t;statPct.textContent=pctStr;pctBar.style.width=pctW;
+  sbCorrect.textContent=c;sbTotal.textContent=t;sbPct.textContent=pctStr;sbPctBar.style.width=pctW;sbMastered.textContent=mastered.size;
+  const fires=Math.floor(ss/5);statStreak.textContent=ss>0?(fires>0?'🔥'.repeat(fires)+' ':'')+ss+' in a row':'';
+  const col=pct===null?'var(--correct)':pct<=25?'#e84c1e':pct<=50?'#f07d20':pct<=70?'#f5c518':'var(--correct)';
+  pctBar.style.background=col;sbPctBar.style.background=col;
+}
+function renderMastered(){
+  masteredCount.textContent=mastered.size;sbMastered.textContent=mastered.size;
+  if(!mastered.size){masteredList.innerHTML='<div style="font-size:12px;color:var(--text-muted)">None yet</div>';return;}
+  masteredList.innerHTML=[...mastered].sort().map(id=>{const q=QUESTIONS.find(x=>x.id===id);return`<div class="mastered-item">★ ${q?q.q.slice(0,34)+'…':id}</div>`;}).join('');
+}
+let toastTimeout;
+function showToast(msg,isMastered=false){toast.textContent=msg;toast.className='toast'+(isMastered?' mastered-toast':'')+' show';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{toast.className='toast'+(isMastered?' mastered-toast':'');},2500);}
+let allOn=true;
+function toggleAll(){allOn=!allOn;TOPICS.forEach(t=>enabledTopics[t]=allOn);saveState();renderToggles();nextQuestion();}
+function doReset(){if(!confirm('Reset all mastery progress and stats?'))return;mastered=new Set();streaks={};stats={correct:0,total:0,sessionStreak:0};allOn=true;TOPICS.forEach(t=>enabledTopics[t]=true);saveState();renderToggles();renderMastered();updateStats();nextQuestion();showToast('Progress reset.');}
+document.getElementById('toggleAllBtnDesktop').addEventListener('click',toggleAll);
+document.getElementById('toggleAllBtnMobile').addEventListener('click',toggleAll);
+document.getElementById('resetBtnDesktop').addEventListener('click',doReset);
+document.getElementById('resetBtnMobile').addEventListener('click',doReset);
+drawerToggle.addEventListener('click',()=>{const o=mobileDrawer.classList.toggle('open');drawerToggle.classList.toggle('open',o);});
+renderToggles();renderMastered();updateStats();nextQuestion();
+</script>
+</body>
+</html>
