@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elements Through Time — Discovery Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f8f4ff;
+  --surface2: #ede9fe;
+  --border: #ddd6fe;
+  --text: #1e0a3e;
+  --text-muted: #6b45a0;
+  --accent: #7c3aed;
+  --accent2: #f5a623;
+}
+body.dark {
+  --bg: #0f0f14;
+  --surface: #16161f;
+  --surface2: #1e1e2a;
+  --border: #2a2a3d;
+  --text: #e8e6f0;
+  --text-muted: #7a7a9a;
+  --accent: #a78bfa;
+  --accent2: #f5a623;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s}
+
+header{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;text-decoration:none;line-height:1}
+.logo .lm{color:var(--text)}.logo .lf{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:12px}
+.byline{font-size:11px;color:var(--text-muted);text-align:right}
+.byline strong{color:var(--accent);font-weight:700}
+.theme-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border:1.5px solid var(--border);border-radius:6px;background:none;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.theme-btn:hover{border-color:var(--accent);color:var(--text)}
+
+/* TIMELINE CONTROLS */
+.timeline-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;flex-shrink:0}
+.tl-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tl-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--text-muted);white-space:nowrap}
+.tl-year{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;color:var(--accent);line-height:1;min-width:80px;text-align:right}
+.tl-era{font-size:11px;color:var(--text-muted);font-style:italic;margin-left:2px}
+#yearSlider{flex:1;min-width:180px;height:4px;accent-color:var(--accent);cursor:pointer}
+.play-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 16px;border:1.5px solid var(--border);border-radius:20px;background:none;color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.play-btn:hover{border-color:var(--accent);color:var(--accent)}
+.play-btn.playing{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.stats-row{display:flex;gap:18px;margin-top:8px;flex-wrap:wrap}
+.stat{font-size:12px;color:var(--text-muted)}
+.stat strong{color:var(--text);font-weight:600}
+
+/* LEGEND */
+.legend-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap}
+.leg-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1.5px solid rgba(0,0,0,.15)}
+
+/* TABLE */
+.table-outer{flex:1;overflow-x:auto;padding:12px 16px 20px}
+.table-grid{display:grid;grid-template-columns:repeat(18,minmax(46px,54px));grid-auto-rows:minmax(46px,52px);gap:3px;width:max-content;margin:0 auto}
+
+/* ELEMENT CELLS */
+.el{border-radius:5px;border:1.5px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .12s,box-shadow .12s,opacity .4s,filter .4s,border-color .4s,background .4s;padding:2px;overflow:hidden}
+.el:hover{transform:scale(1.18);z-index:10;box-shadow:0 6px 24px rgba(124,58,237,.25)}
+.el-z{font-family:'DM Mono',monospace;font-size:7.5px;line-height:1;opacity:.65}
+.el-sym{font-family:'Bebas Neue',sans-serif;font-size:clamp(13px,1.7vw,19px);letter-spacing:.5px;line-height:1}
+.el-sub{font-size:6.5px;font-weight:500;opacity:.75;line-height:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px}
+
+/* STATES */
+.el.state-known{opacity:1;filter:none}
+.el.state-theorised{opacity:.2;filter:saturate(0.2) brightness(1.1);border-style:dashed !important;cursor:help}
+.el.state-unknown{opacity:0;pointer-events:none}
+
+.gap{background:transparent;border:none;pointer-events:none}
+.period-label{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--text-muted)}
+
+/* TOOLTIP */
+.tooltip{position:fixed;z-index:200;pointer-events:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;min-width:240px;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.25);opacity:0;transition:opacity .15s}
+.tooltip.visible{opacity:1}
+.tt-header{display:flex;align-items:flex-end;gap:10px;margin-bottom:8px}
+.tt-sym{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;line-height:1;color:var(--accent)}
+.tt-names{display:flex;flex-direction:column}
+.tt-name{font-size:14px;font-weight:600;color:var(--text)}
+.tt-z{font-size:11px;color:var(--text-muted)}
+.tt-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;margin-top:4px;border-top:1px solid var(--border);padding-top:4px}
+.tt-lbl{color:var(--text-muted);flex-shrink:0}
+.tt-val{font-family:'DM Mono',monospace;font-weight:500;color:var(--text);text-align:right}
+.tt-state-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
+.badge-known{background:#d1fae5;color:#065f46}
+.badge-theorised{background:#fef3c7;color:#92400e}
+.badge-unknown{background:#fee2e2;color:#991b1b}
+.tt-story{font-size:11px;color:var(--text-muted);font-style:italic;margin-top:6px;line-height:1.5;border-top:1px solid var(--border);padding-top:6px}
+
+/* TYPE COLORS */
+.t-AM  {background:#fce7f3;border-color:#db2777;color:#831843}
+.t-AEM {background:#fef3c7;border-color:#d97706;color:#78350f}
+.t-TM  {background:#dbeafe;border-color:#2563eb;color:#1e3a8a}
+.t-PTM {background:#e0e7ff;border-color:#4f46e5;color:#312e81}
+.t-MET {background:#d1fae5;border-color:#059669;color:#064e3b}
+.t-NM  {background:#fef9c3;border-color:#ca8a04;color:#713f12}
+.t-HAL {background:#ffe4e6;border-color:#e11d48;color:#881337}
+.t-NG  {background:#f3e8ff;border-color:#9333ea;color:#581c87}
+.t-LAN {background:#ccfbf1;border-color:#0d9488;color:#134e4a}
+.t-ACT {background:#fde8d8;border-color:#ea580c;color:#7c2d12}
+
+body.dark .t-AM  {background:#4a0a2e;border-color:#db2777;color:#fbcfe8}
+body.dark .t-AEM {background:#3d2600;border-color:#d97706;color:#fde68a}
+body.dark .t-TM  {background:#0a1f3d;border-color:#3b82f6;color:#bfdbfe}
+body.dark .t-PTM {background:#1a1050;border-color:#6366f1;color:#c7d2fe}
+body.dark .t-MET {background:#052e16;border-color:#22c55e;color:#bbf7d0}
+body.dark .t-NM  {background:#2d1c00;border-color:#eab308;color:#fef08a}
+body.dark .t-HAL {background:#3d0010;border-color:#f43f5e;color:#fecdd3}
+body.dark .t-NG  {background:#2e0a4a;border-color:#a855f7;color:#e9d5ff}
+body.dark .t-LAN {background:#012e28;border-color:#14b8a6;color:#99f6e4}
+body.dark .t-ACT {background:#3d1200;border-color:#f97316;color:#fed7aa}
+
+footer{border-top:1px solid var(--border);padding:10px 24px;font-size:11px;color:var(--text-muted);background:var(--surface);line-height:1.6;flex-shrink:0}
+.footer-label{font-weight:700;letter-spacing:1px;color:var(--accent);margin-right:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo"><span class="lm">PeriodicTable</span><span class="lf">Forge</span><span style="font-size:18px;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:1px;"> — Elements Through Time</span></a>
+  <div class="header-right">
+    <div class="byline">A tool by <strong>Leon Dudhill</strong></div>
+    <button class="theme-btn" id="themeBtn">🌙 Dark Mode</button>
+  </div>
+</header>
+
+<div class="timeline-bar">
+  <div class="tl-row">
+    <span class="tl-label">Year</span>
+    <div>
+      <div class="tl-year" id="yearDisplay">1800</div>
+      <div class="tl-era" id="eraDisplay"></div>
+    </div>
+    <input type="range" id="yearSlider" min="1600" max="2010" step="1" value="1800">
+    <button class="play-btn" id="playBtn">▶ Play</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat">Known elements: <strong id="statKnown">0</strong></div>
+    <div class="stat">Theorised / predicted: <strong id="statTheo">0</strong></div>
+    <div class="stat">Undiscovered: <strong id="statUnknown">0</strong></div>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <div class="leg"><div class="leg-swatch" style="background:#dbeafe;border-color:#2563eb"></div>Transition Metal</div>
+  <div class="leg"><div class="leg-swatch" style="background:#fce7f3;border-color:#db2777"></div>Alkali Metal</div>
+  <div class="leg"><div class="leg-swatch" style="background:#fef3c7;border-color:#d97706"></div>Alkaline Earth</div>
+  <div class="leg"><div class="leg-swatch" style="background:#fef9c3;border-color:#ca8a04"></div>Non-metal</div>
+  <div class="leg"><div class="leg-swatch" style="background:#ffe4e6;border-color:#e11d48"></div>Halogen</div>
+  <div class="leg"><div class="leg-swatch" style="background:#f3e8ff;border-color:#9333ea"></div>Noble Gas</div>
+  <div class="leg"><div class="leg-swatch" style="background:#d1fae5;border-color:#059669"></div>Metalloid</div>
+  <div class="leg" style="margin-left:auto"><div class="leg-swatch" style="background:#e0e7ff;border-color:#4f46e5;border-style:dashed"></div>Theorised (ghost)</div>
+</div>
+
+<div class="table-outer">
+  <div class="table-grid" id="periodicTable"></div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-header">
+    <div class="tt-sym" id="ttSym"></div>
+    <div class="tt-names">
+      <div class="tt-name" id="ttName"></div>
+      <div class="tt-z" id="ttZ"></div>
+    </div>
+  </div>
+  <div id="ttBadge"></div>
+  <div id="ttRows"></div>
+  <div class="tt-story" id="ttStory"></div>
+</div>
+
+<footer>
+  <span class="footer-label">DISCLAIMER</span>
+  This tool was built for my own personal GCSE revision. You're welcome to use it, but it may contain errors and shouldn't be solely relied upon. Consider this a beta test. — <span style="color:var(--accent);font-weight:700;">Leon Dudhill</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════════
+// ELEMENT DATA: z, sym, name, row, col, type,
+// disc=year discovered, theo=year theorised (null if none),
+// who, country, how
+// ══════════════════════════════════════════
+const E = [
+  {z:1,  s:'H',  n:'Hydrogen',      r:1, c:1,  t:'NM',  disc:1766, theo:null, who:'Henry Cavendish', country:'Britain', how:'Isolated by reacting zinc with sulfuric acid; recognised as a distinct inflammable air'},
+  {z:2,  s:'He', n:'Helium',        r:1, c:18, t:'NG',  disc:1895, theo:1868, who:'William Ramsay (isolation) / Janssen & Lockyer (solar)', country:'Britain / France', how:'First detected as unknown line in solar spectrum during 1868 eclipse; isolated from uranium ore in 1895'},
+  {z:3,  s:'Li', n:'Lithium',       r:2, c:1,  t:'AM',  disc:1817, theo:null, who:'Johan August Arfwedson', country:'Sweden', how:'Found while analysing petalite ore; name from Greek lithos (stone)'},
+  {z:4,  s:'Be', n:'Beryllium',     r:2, c:2,  t:'AEM', disc:1798, theo:null, who:'Louis-Nicolas Vauquelin', country:'France', how:'Identified in beryl and emerald minerals; isolated as metal by Wöhler & Bussy in 1828'},
+  {z:5,  s:'B',  n:'Boron',         r:2, c:13, t:'MET', disc:1808, theo:null, who:'Gay-Lussac & Thénard / Humphry Davy', country:'France / Britain', how:'Two teams independently reduced boric acid to produce impure boron in 1808'},
+  {z:6,  s:'C',  n:'Carbon',        r:2, c:14, t:'NM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Although charcoal and diamond were known since antiquity, carbon was first formally identified as a chemical element by Lavoisier in 1789'},
+  {z:7,  s:'N',  n:'Nitrogen',      r:2, c:15, t:'NM',  disc:1772, theo:null, who:'Daniel Rutherford', country:'Scotland', how:'Isolated as "noxious air" — the non-reactive residue after removing oxygen and CO₂ from air'},
+  {z:8,  s:'O',  n:'Oxygen',        r:2, c:16, t:'NM',  disc:1774, theo:null, who:'Carl Wilhelm Scheele / Joseph Priestley', country:'Sweden / Britain', how:'Scheele produced it first (1772) but Priestley published first (1774) by heating mercuric oxide'},
+  {z:9,  s:'F',  n:'Fluorine',      r:2, c:17, t:'HAL', disc:1886, theo:1813, who:'Henri Moissan', country:'France', how:'Long known in fluorspar; isolation resisted chemists for decades — finally achieved by electrolysis of anhydrous HF'},
+  {z:10, s:'Ne', n:'Neon',          r:2, c:18, t:'NG',  disc:1898, theo:null, who:'William Ramsay & Morris Travers', country:'Britain', how:'Discovered by fractional distillation of liquid air; name from Greek neos (new)'},
+  {z:11, s:'Na', n:'Sodium',        r:3, c:1,  t:'AM',  disc:1807, theo:null, who:'Humphry Davy', country:'Britain', how:'First isolated by electrolysis of molten sodium hydroxide using a voltaic pile'},
+  {z:12, s:'Mg', n:'Magnesium',     r:3, c:2,  t:'AEM', disc:1808, theo:null, who:'Humphry Davy', country:'Britain', how:'Isolated by electrolysis of magnesia; recognised as distinct from calcium'},
+  {z:13, s:'Al', n:'Aluminium',     r:3, c:13, t:'PTM', disc:1825, theo:null, who:'Hans Christian Ørsted', country:'Denmark', how:'First produced as an impure metal; Wöhler produced purer form in 1827 by reducing AlCl₃ with potassium'},
+  {z:14, s:'Si', n:'Silicon',       r:3, c:14, t:'MET', disc:1824, theo:null, who:'Jöns Jacob Berzelius', country:'Sweden', how:'Isolated by reducing silicon tetrafluoride with potassium; named from Latin silex (flint)'},
+  {z:15, s:'P',  n:'Phosphorus',    r:3, c:15, t:'NM',  disc:1669, theo:null, who:'Hennig Brand', country:'Germany', how:'Discovered accidentally while distilling urine; first element discovered by a known individual'},
+  {z:16, s:'S',  n:'Sulfur',        r:3, c:16, t:'NM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Sulfur was known and used since antiquity, but was only formally recognised as a chemical element (not a compound) by Lavoisier in 1789'},
+  {z:17, s:'Cl', n:'Chlorine',      r:3, c:17, t:'HAL', disc:1774, theo:null, who:'Carl Wilhelm Scheele', country:'Sweden', how:'Produced by reacting manganese dioxide with hydrochloric acid; identified as an element by Davy in 1810'},
+  {z:18, s:'Ar', n:'Argon',         r:3, c:18, t:'NG',  disc:1894, theo:null, who:'Lord Rayleigh & William Ramsay', country:'Britain', how:'Noticed as denser residue in nitrogen from air vs nitrogen from compounds; first noble gas discovered'},
+  {z:19, s:'K',  n:'Potassium',     r:4, c:1,  t:'AM',  disc:1807, theo:null, who:'Humphry Davy', country:'Britain', how:'First metal isolated by electrolysis (of molten potassium hydroxide); spectacularly burns on water'},
+  {z:20, s:'Ca', n:'Calcium',       r:4, c:2,  t:'AEM', disc:1808, theo:null, who:'Humphry Davy', country:'Britain', how:'Isolated by electrolysis of lime mixed with mercuric oxide; named from Latin calx (lime)'},
+  {z:21, s:'Sc', n:'Scandium',      r:4, c:3,  t:'TM',  disc:1879, theo:1871, who:'Lars Fredrik Nilson', country:'Sweden', how:'Predicted by Mendeleev as "eka-boron" in 1871; discovered in rare earth minerals euxenite and gadolinite'},
+  {z:22, s:'Ti', n:'Titanium',      r:4, c:4,  t:'TM',  disc:1791, theo:null, who:'William Gregor', country:'Britain', how:'Found in ilmenite sand in Cornwall; independently rediscovered by Klaproth in 1795 who named it titanium'},
+  {z:23, s:'V',  n:'Vanadium',      r:4, c:5,  t:'TM',  disc:1830, theo:null, who:'Nils Gabriel Sefström', country:'Sweden', how:'Rediscovered in iron ore from a Swedish mine; named for Vanadis (Norse goddess of beauty) for its vivid compounds'},
+  {z:24, s:'Cr', n:'Chromium',      r:4, c:6,  t:'TM',  disc:1798, theo:null, who:'Louis-Nicolas Vauquelin', country:'France', how:'Isolated from crocoite (lead chromate); named from Greek chroma (colour) for its vivid compounds'},
+  {z:25, s:'Mn', n:'Manganese',     r:4, c:7,  t:'TM',  disc:1774, theo:null, who:'Johan Gottlieb Gahn', country:'Sweden', how:'Isolated by reducing pyrolusite (MnO₂) with carbon; Scheele had recognised it as a distinct element earlier'},
+  {z:26, s:'Fe', n:'Iron',          r:4, c:8,  t:'TM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Iron has been smelted since antiquity, but was first formally classified as a chemical element by Lavoisier in 1789'},
+  {z:27, s:'Co', n:'Cobalt',        r:4, c:9,  t:'TM',  disc:1735, theo:null, who:'Georg Brandt', country:'Sweden', how:'Isolated from cobaltite ore; first metal discovered since antiquity. Named after Kobold (German mine goblin)'},
+  {z:28, s:'Ni', n:'Nickel',        r:4, c:10, t:'TM',  disc:1751, theo:null, who:'Axel Fredrik Cronstedt', country:'Sweden', how:'Isolated from nickeline ore (NiAs); miners called it Kupfernickel (devil\'s copper) as it looked like copper ore'},
+  {z:29, s:'Cu', n:'Copper',        r:4, c:11, t:'TM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Copper has been used by humans for over 10,000 years, but was only formally recognised as a chemical element by Lavoisier in 1789'},
+  {z:30, s:'Zn', n:'Zinc',          r:4, c:12, t:'PTM', disc:1746, theo:null, who:'Andreas Marggraf', country:'Germany', how:'Isolated by distillation of calamine with carbon; used in brass alloys for millennia before isolation'},
+  {z:31, s:'Ga', n:'Gallium',       r:4, c:13, t:'PTM', disc:1875, theo:1871, who:'Paul Emile Lecoq de Boisbaudran', country:'France', how:'Predicted by Mendeleev as "eka-aluminium"; discovered spectroscopically in zinc ore sphalerite'},
+  {z:32, s:'Ge', n:'Germanium',     r:4, c:14, t:'MET', disc:1886, theo:1871, who:'Clemens Winkler', country:'Germany', how:'The most dramatic confirmation of Mendeleev\'s periodic table — predicted as "eka-silicon" 15 years before discovery'},
+  {z:33, s:'As', n:'Arsenic',       r:4, c:15, t:'MET', disc:1649, theo:null, who:'Johann Schröder', country:'Germany', how:'The element was formally described and its preparation documented by Johann Schröder in 1649, who reduced arsenic trioxide with charcoal'},
+  {z:34, s:'Se', n:'Selenium',      r:4, c:16, t:'NM',  disc:1817, theo:null, who:'Jöns Jacob Berzelius & Johan Gahn', country:'Sweden', how:'Found as a byproduct of sulfuric acid production; named after Selene (Greek goddess of the Moon)'},
+  {z:35, s:'Br', n:'Bromine',       r:4, c:17, t:'HAL', disc:1826, theo:null, who:'Antoine Jérôme Balard', country:'France', how:'Isolated from seawater brines; one of two elements liquid at room temperature. Named from Greek bromos (stench)'},
+  {z:36, s:'Kr', n:'Krypton',       r:4, c:18, t:'NG',  disc:1898, theo:null, who:'William Ramsay & Morris Travers', country:'Britain', how:'Discovered days after neon and xenon by fractional distillation of liquid air; named from Greek kryptos (hidden)'},
+  {z:37, s:'Rb', n:'Rubidium',      r:5, c:1,  t:'AM',  disc:1861, theo:null, who:'Robert Bunsen & Gustav Kirchhoff', country:'Germany', how:'Discovered spectroscopically in lepidolite; among the first elements found by spectral analysis'},
+  {z:38, s:'Sr', n:'Strontium',     r:5, c:2,  t:'AEM', disc:1790, theo:null, who:'Adair Crawford', country:'Britain', how:'Recognised as distinct element in strontianite mineral from Strontian, Scotland; isolated by Davy in 1808'},
+  {z:39, s:'Y',  n:'Yttrium',       r:5, c:3,  t:'TM',  disc:1794, theo:null, who:'Johan Gadolin', country:'Finland', how:'Found in gadolinite from Ytterby, Sweden — a quarry that would yield four element discoveries'},
+  {z:40, s:'Zr', n:'Zirconium',     r:5, c:4,  t:'TM',  disc:1789, theo:null, who:'Martin Heinrich Klaproth', country:'Germany', how:'Found in zircon gemstones; metallic form isolated by Berzelius in 1824'},
+  {z:41, s:'Nb', n:'Niobium',       r:5, c:5,  t:'TM',  disc:1801, theo:null, who:'Charles Hatchett', country:'Britain', how:'Discovered in a mineral specimen from Massachusetts; named after Niobe, daughter of Tantalus'},
+  {z:42, s:'Mo', n:'Molybdenum',    r:5, c:6,  t:'TM',  disc:1781, theo:null, who:'Carl Wilhelm Scheele / Peter Jacob Hjelm', country:'Sweden', how:'Scheele recognised the oxide; Hjelm isolated the metal in 1781 by reducing it with carbon'},
+  {z:43, s:'Tc', n:'Technetium',    r:5, c:7,  t:'TM',  disc:1937, theo:1871, who:'Carlo Perrier & Emilio Segrè', country:'Italy', how:'First element made artificially; predicted by Mendeleev, produced by bombarding molybdenum with deuterons'},
+  {z:44, s:'Ru', n:'Ruthenium',     r:5, c:8,  t:'TM',  disc:1844, theo:null, who:'Karl Ernst Claus', country:'Russia', how:'Found in platinum ore residues; named after Ruthenia, the Latin name for Russia'},
+  {z:45, s:'Rh', n:'Rhodium',       r:5, c:9,  t:'TM',  disc:1803, theo:null, who:'William Hyde Wollaston', country:'Britain', how:'Isolated from crude platinum ore; named from Greek rhodon (rose) for the rose colour of its salts'},
+  {z:46, s:'Pd', n:'Palladium',     r:5, c:10, t:'TM',  disc:1803, theo:null, who:'William Hyde Wollaston', country:'Britain', how:'Isolated from platinum ore; named after the asteroid Pallas, discovered the same year'},
+  {z:47, s:'Ag', n:'Silver',        r:5, c:11, t:'TM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Silver has been used for coinage and jewellery since antiquity, but was first formally classified as a chemical element by Lavoisier in 1789'},
+  {z:48, s:'Cd', n:'Cadmium',       r:5, c:12, t:'PTM', disc:1817, theo:null, who:'Karl Samuel Leberecht Hermann & Friedrich Stromeyer', country:'Germany', how:'Found as an impurity in zinc carbonate; named after the Latin for calamine (cadmia)'},
+  {z:49, s:'In', n:'Indium',        r:5, c:13, t:'PTM', disc:1863, theo:null, who:'Ferdinand Reich & Hieronymous Richter', country:'Germany', how:'Discovered spectroscopically by its bright indigo spectral line in zinc ores'},
+  {z:50, s:'Sn', n:'Tin',           r:5, c:14, t:'PTM', disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Tin has been used since the Bronze Age (~3000 BC), but was formally recognised as a chemical element by Lavoisier in 1789'},
+  {z:51, s:'Sb', n:'Antimony',      r:5, c:15, t:'MET', disc:1707, theo:null, who:'Nicolas Lémery', country:'France', how:'Although stibnite (Sb₂S₃) was known in antiquity, antimony was first formally characterised as a distinct element by Nicolas Lémery in his 1707 treatise'},
+  {z:52, s:'Te', n:'Tellurium',     r:5, c:16, t:'MET', disc:1782, theo:null, who:'Franz-Joseph Müller von Reichenstein', country:'Austria', how:'Found in Transylvanian gold ore; isolated and named by Klaproth in 1798. From Latin tellus (Earth)'},
+  {z:53, s:'I',  n:'Iodine',        r:5, c:17, t:'HAL', disc:1811, theo:null, who:'Bernard Courtois', country:'France', how:'Discovered accidentally when adding excess sulfuric acid to seaweed ash; the violet vapour led to its name'},
+  {z:54, s:'Xe', n:'Xenon',         r:5, c:18, t:'NG',  disc:1898, theo:null, who:'William Ramsay & Morris Travers', country:'Britain', how:'Discovered from residues of liquid air after removal of nitrogen, oxygen, argon, krypton and neon'},
+  {z:55, s:'Cs', n:'Caesium',       r:6, c:1,  t:'AM',  disc:1860, theo:null, who:'Robert Bunsen & Gustav Kirchhoff', country:'Germany', how:'First element discovered by spectroscopy; its two bright blue lines gave it the name (Latin caesius, sky-blue)'},
+  {z:56, s:'Ba', n:'Barium',        r:6, c:2,  t:'AEM', disc:1808, theo:null, who:'Humphry Davy', country:'Britain', how:'Isolated by electrolysis of barium hydroxide; barite (BaSO₄) had long been known as a heavy spar'},
+  {z:57, s:'La', n:'Lanthanum',     r:8, c:4,  t:'LAN', disc:1838, theo:null, who:'Carl Gustaf Mosander', country:'Sweden', how:'Found hidden within cerium; name from Greek lanthanein (to lie hidden)'},
+  {z:58, s:'Ce', n:'Cerium',        r:8, c:5,  t:'LAN', disc:1803, theo:null, who:'Berzelius & Hisinger / Klaproth', country:'Sweden / Germany', how:'Discovered simultaneously and independently; named after the dwarf planet Ceres, found the same year'},
+  {z:59, s:'Pr', n:'Praseodymium',  r:8, c:6,  t:'LAN', disc:1885, theo:null, who:'Carl Auer von Welsbach', country:'Austria', how:'Separated from didymium (once thought a single element); name means "green twin" in Greek'},
+  {z:60, s:'Nd', n:'Neodymium',     r:8, c:7,  t:'LAN', disc:1885, theo:null, who:'Carl Auer von Welsbach', country:'Austria', how:'Separated from didymium alongside praseodymium; name means "new twin" in Greek'},
+  {z:61, s:'Pm', n:'Promethium',    r:8, c:8,  t:'LAN', disc:1945, theo:1902, who:'Marinsky, Glendenin & Coryell', country:'USA', how:'Predicted as missing lanthanide; first confirmed from fission products of uranium in the Manhattan Project'},
+  {z:62, s:'Sm', n:'Samarium',      r:8, c:9,  t:'LAN', disc:1879, theo:null, who:'Paul-Émile Lecoq de Boisbaudran', country:'France', how:'Discovered spectroscopically in the mineral samarskite, itself named after Russian mine official Samarsky'},
+  {z:63, s:'Eu', n:'Europium',      r:8, c:10, t:'LAN', disc:1901, theo:null, who:'Eugène-Anatole Demarçay', country:'France', how:'Isolated after Demarçay noticed unexpected spectral lines in samarium samples'},
+  {z:64, s:'Gd', n:'Gadolinium',    r:8, c:11, t:'LAN', disc:1880, theo:null, who:'Jean Charles Galissard de Marignac', country:'Switzerland', how:'Detected spectroscopically; named after Johan Gadolin. Has the highest neutron absorption cross-section of all elements'},
+  {z:65, s:'Tb', n:'Terbium',       r:8, c:12, t:'LAN', disc:1843, theo:null, who:'Carl Gustaf Mosander', country:'Sweden', how:'Separated from yttria along with erbium; named after Ytterby, Sweden — the famous rare earth quarry'},
+  {z:66, s:'Dy', n:'Dysprosium',    r:8, c:13, t:'LAN', disc:1886, theo:null, who:'Paul-Émile Lecoq de Boisbaudran', country:'France', how:'Extremely difficult to separate; name from Greek dysprositos (hard to get)'},
+  {z:67, s:'Ho', n:'Holmium',       r:8, c:14, t:'LAN', disc:1878, theo:null, who:'Marc Delafontaine & Louis Soret', country:'Switzerland', how:'Found spectroscopically; Per Teodor Cleve also independently isolated it. Named for Stockholm (Holmia in Latin)'},
+  {z:68, s:'Er', n:'Erbium',        r:8, c:15, t:'LAN', disc:1843, theo:null, who:'Carl Gustaf Mosander', country:'Sweden', how:'Separated from yttria along with terbium; another of the Ytterby quartet of elements'},
+  {z:69, s:'Tm', n:'Thulium',       r:8, c:16, t:'LAN', disc:1879, theo:null, who:'Per Teodor Cleve', country:'Sweden', how:'Found in erbia; named after Thule, the mythical northernmost region of the ancient world'},
+  {z:70, s:'Yb', n:'Ytterbium',     r:8, c:17, t:'LAN', disc:1878, theo:null, who:'Jean Charles Galissard de Marignac', country:'Switzerland', how:'Separated from erbia; another element named after Ytterby, giving the village a unique four-element legacy'},
+  {z:71, s:'Lu', n:'Lutetium',      r:8, c:18, t:'LAN', disc:1907, theo:null, who:'Georges Urbain', country:'France', how:'Last stable lanthanide to be discovered; named after Lutetia (Latin for Paris)'},
+  {z:72, s:'Hf', n:'Hafnium',       r:6, c:4,  t:'TM',  disc:1923, theo:1871, who:'Dirk Coster & Georg von Hevesy', country:'Denmark', how:'Long predicted but hidden by its similarity to zirconium; discovered in Copenhagen (Hafnia in Latin) using X-ray spectroscopy'},
+  {z:73, s:'Ta', n:'Tantalum',      r:6, c:5,  t:'TM',  disc:1802, theo:null, who:'Anders Gustaf Ekeberg', country:'Sweden', how:'Found in yttrotantalite; named after Tantalus from Greek myth (was tormented by things just out of reach — like isolating pure Ta)'},
+  {z:74, s:'W',  n:'Tungsten',      r:6, c:6,  t:'TM',  disc:1783, theo:null, who:'Juan & Fausto Elhuyar', country:'Spain', how:'Isolated from wolframite; name tungsten from Swedish tung sten (heavy stone), symbol W from wolfram'},
+  {z:75, s:'Re', n:'Rhenium',       r:6, c:7,  t:'TM',  disc:1925, theo:1871, who:'Walter Noddack, Ida Tacke & Otto Berg', country:'Germany', how:'One of the last stable elements discovered; predicted by Mendeleev. Named after the Rhine river'},
+  {z:76, s:'Os', n:'Osmium',        r:6, c:8,  t:'TM',  disc:1803, theo:null, who:'Smithson Tennant', country:'Britain', how:'Found in platinum ore residues; named from Greek osme (smell) for its pungent tetroxide. Densest natural element'},
+  {z:77, s:'Ir', n:'Iridium',       r:6, c:9,  t:'TM',  disc:1803, theo:null, who:'Smithson Tennant', country:'Britain', how:'Discovered alongside osmium; named after Iris (rainbow goddess) for the variety of colours of its salts'},
+  {z:78, s:'Pt', n:'Platinum',      r:6, c:10, t:'TM',  disc:1735, theo:null, who:'Antonio de Ulloa', country:'Spain', how:'Encountered by Spanish in South America (pre-Columbian use by indigenous peoples); name from Spanish platina (little silver)'},
+  {z:79, s:'Au', n:'Gold',          r:6, c:11, t:'TM',  disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Gold has been prized since antiquity for its lustre and resistance to corrosion, but was formally classified as a chemical element by Lavoisier in 1789'},
+  {z:80, s:'Hg', n:'Mercury',       r:6, c:12, t:'PTM', disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Known in ancient China and found in Egyptian tombs, but formally recognised as a chemical element by Lavoisier in 1789'},
+  {z:81, s:'Tl', n:'Thallium',      r:6, c:13, t:'PTM', disc:1861, theo:null, who:'William Crookes', country:'Britain', how:'Discovered spectroscopically; the bright green spectral line gave it the name (Greek thallos, green shoot)'},
+  {z:82, s:'Pb', n:'Lead',          r:6, c:14, t:'PTM', disc:1789, theo:null, who:'Antoine Lavoisier', country:'France', how:'Lead has been smelted since Roman times and used extensively in pipes and vessels, but was formally classified as a chemical element by Lavoisier in 1789'},
+  {z:83, s:'Bi', n:'Bismuth',       r:6, c:15, t:'PTM', disc:1753, theo:null, who:'Claude François Geoffroy', country:'France', how:'Shown to be distinct from tin and lead in 1753; had long been confused with both. Name origin uncertain'},
+  {z:84, s:'Po', n:'Polonium',      r:6, c:16, t:'PTM', disc:1898, theo:null, who:'Marie & Pierre Curie', country:'France', how:'First element discovered by the Curies during their investigation of radioactivity; named after Marie\'s homeland Poland'},
+  {z:85, s:'At', n:'Astatine',      r:6, c:17, t:'HAL', disc:1940, theo:1871, who:'Corson, MacKenzie & Segrè', country:'USA', how:'Most rare naturally-occurring element; synthesised by bombarding bismuth with alpha particles. From Greek astatos (unstable)'},
+  {z:86, s:'Rn', n:'Radon',         r:6, c:18, t:'NG',  disc:1900, theo:null, who:'Friedrich Ernst Dorn', country:'Germany', how:'Discovered as a radioactive decay product of radium; originally called radium emanation'},
+  {z:87, s:'Fr', n:'Francium',      r:7, c:1,  t:'AM',  disc:1939, theo:1871, who:'Marguerite Perey', country:'France', how:'Discovered by Marguerite Perey (Curie\'s assistant) as a decay product of actinium; rarest naturally-occurring element. Named after France'},
+  {z:88, s:'Ra', n:'Radium',        r:7, c:2,  t:'AEM', disc:1898, theo:null, who:'Marie & Pierre Curie', country:'France', how:'Isolated from pitchblende after processing tonnes of ore; glowed faintly in the dark. Named from Latin radius (ray)'},
+  {z:89, s:'Ac', n:'Actinium',      r:9, c:4,  t:'ACT', disc:1899, theo:null, who:'André-Louis Debierne', country:'France', how:'Found in uranium ore residues; named from Greek aktinos (ray) for its radioactive glow'},
+  {z:90, s:'Th', n:'Thorium',       r:9, c:5,  t:'ACT', disc:1829, theo:null, who:'Jöns Jacob Berzelius', country:'Sweden', how:'Found in the mineral thorite; named after Thor, the Norse god of thunder'},
+  {z:91, s:'Pa', n:'Protactinium',  r:9, c:6,  t:'ACT', disc:1917, theo:null, who:'Otto Hahn & Lise Meitner', country:'Germany', how:'Found as a decay product of uranium; the name means "parent of actinium" (proto-actinium)'},
+  {z:92, s:'U',  n:'Uranium',       r:9, c:7,  t:'ACT', disc:1789, theo:null, who:'Martin Heinrich Klaproth', country:'Germany', how:'Found in pitchblende; named after the newly discovered planet Uranus. Radioactivity discovered by Becquerel in 1896'},
+  {z:93, s:'Np', n:'Neptunium',     r:9, c:8,  t:'ACT', disc:1940, theo:null, who:'Edwin McMillan & Philip Abelson', country:'USA', how:'First transuranic element; produced by bombarding uranium with neutrons. Named after Neptune, next planet after Uranus'},
+  {z:94, s:'Pu', n:'Plutonium',     r:9, c:9,  t:'ACT', disc:1940, theo:null, who:'Glenn Seaborg et al.', country:'USA', how:'Produced at Berkeley cyclotron; became crucial to the Manhattan Project. Named after Pluto (then a planet)'},
+  {z:95, s:'Am', n:'Americium',     r:9, c:10, t:'ACT', disc:1944, theo:null, who:'Glenn Seaborg et al.', country:'USA', how:'Produced in a nuclear reactor; named after the Americas. Used today in household smoke detectors'},
+  {z:96, s:'Cm', n:'Curium',        r:9, c:11, t:'ACT', disc:1944, theo:null, who:'Glenn Seaborg et al.', country:'USA', how:'Named in honour of Marie and Pierre Curie, pioneers of radioactivity research'},
+  {z:97, s:'Bk', n:'Berkelium',     r:9, c:12, t:'ACT', disc:1949, theo:null, who:'Thompson, Ghiorso & Seaborg', country:'USA', how:'Produced at Lawrence Berkeley National Laboratory; named after Berkeley, California'},
+  {z:98, s:'Cf', n:'Californium',   r:9, c:13, t:'ACT', disc:1950, theo:null, who:'Thompson, Street, Ghiorso & Seaborg', country:'USA', how:'Named after California and the University of California; produced by bombarding curium with alpha particles'},
+  {z:99, s:'Es', n:'Einsteinium',   r:9, c:14, t:'ACT', disc:1952, theo:null, who:'Ghiorso et al.', country:'USA', how:'Discovered in fallout from the first hydrogen bomb test (Ivy Mike, 1952); named after Albert Einstein'},
+  {z:100,s:'Fm', n:'Fermium',       r:9, c:15, t:'ACT', disc:1952, theo:null, who:'Ghiorso et al.', country:'USA', how:'Also found in Ivy Mike test fallout; named after Enrico Fermi, who built the first nuclear reactor'},
+  {z:101,s:'Md', n:'Mendelevium',   r:9, c:16, t:'ACT', disc:1955, theo:null, who:'Ghiorso, Harvey, Choppin, Thompson & Seaborg', country:'USA', how:'First element made one atom at a time; named after Dmitri Mendeleev who created the periodic table'},
+  {z:102,s:'No', n:'Nobelium',      r:9, c:17, t:'ACT', disc:1966, theo:null, who:'Dubna team (confirmed)', country:'USSR', how:'Named after Alfred Nobel; discovery claim disputed between Soviet and American teams for years'},
+  {z:103,s:'Lr', n:'Lawrencium',    r:9, c:18, t:'ACT', disc:1961, theo:null, who:'Ghiorso, Sikkeland, Larsh & Latimer', country:'USA', how:'Last actinide; named after Ernest Lawrence, inventor of the cyclotron and founder of Berkeley Lab'},
+  {z:104,s:'Rf', n:'Rutherfordium', r:7, c:4,  t:'TM',  disc:1964, theo:null, who:'Dubna team / Berkeley team', country:'USSR / USA', how:'Disputed discovery between Soviet and American teams; named after Ernest Rutherford'},
+  {z:105,s:'Db', n:'Dubnium',       r:7, c:5,  t:'TM',  disc:1967, theo:null, who:'Dubna team / Berkeley team', country:'USSR / USA', how:'Another disputed discovery; named after Dubna, Russia (home of the Joint Institute for Nuclear Research)'},
+  {z:106,s:'Sg', n:'Seaborgium',    r:7, c:6,  t:'TM',  disc:1974, theo:null, who:'Ghiorso et al.', country:'USA', how:'Named after Glenn T. Seaborg, who helped discover 10 elements — the only person to have an element named after them in their lifetime'},
+  {z:107,s:'Bh', n:'Bohrium',       r:7, c:7,  t:'TM',  disc:1981, theo:null, who:'GSI Darmstadt team', country:'Germany', how:'Named after Niels Bohr; produced by bombarding bismuth-209 with chromium-54 ions'},
+  {z:108,s:'Hs', n:'Hassium',       r:7, c:8,  t:'TM',  disc:1984, theo:null, who:'GSI Darmstadt team', country:'Germany', how:'Named after Hesse (Hassia in Latin), the German state where GSI is located'},
+  {z:109,s:'Mt', n:'Meitnerium',    r:7, c:9,  t:'TM',  disc:1982, theo:null, who:'GSI Darmstadt team', country:'Germany', how:'Named after Lise Meitner, co-discoverer of nuclear fission; one of few elements named after a woman'},
+  {z:110,s:'Ds', n:'Darmstadtium',  r:7, c:10, t:'TM',  disc:1994, theo:null, who:'GSI Darmstadt team', country:'Germany', how:'Named after Darmstadt, where it was synthesised'},
+  {z:111,s:'Rg', n:'Roentgenium',   r:7, c:11, t:'TM',  disc:1994, theo:null, who:'GSI Darmstadt team', country:'Germany', how:'Named after Wilhelm Röntgen, discoverer of X-rays'},
+  {z:112,s:'Cn', n:'Copernicium',   r:7, c:12, t:'PTM', disc:1996, theo:null, who:'Hofmann et al., GSI', country:'Germany', how:'Named after Nicolaus Copernicus; synthesised by fusion of zinc-70 with lead-208'},
+  {z:113,s:'Nh', n:'Nihonium',      r:7, c:13, t:'PTM', disc:2004, theo:null, who:'RIKEN team', country:'Japan', how:'First element discovered in Asia; name from Nihon (Japanese name for Japan)'},
+  {z:114,s:'Fl', n:'Flerovium',     r:7, c:14, t:'PTM', disc:1999, theo:null, who:'Dubna / Livermore teams', country:'Russia / USA', how:'Named after Flerov Laboratory of Nuclear Reactions; synthesised from plutonium-244 and calcium-48'},
+  {z:115,s:'Mc', n:'Moscovium',     r:7, c:15, t:'PTM', disc:2003, theo:null, who:'Dubna / Livermore teams', country:'Russia / USA', how:'Named after Moscow Oblast, where Dubna is located'},
+  {z:116,s:'Lv', n:'Livermorium',   r:7, c:16, t:'PTM', disc:2000, theo:null, who:'Dubna / Livermore teams', country:'Russia / USA', how:'Named after Lawrence Livermore National Laboratory'},
+  {z:117,s:'Ts', n:'Tennessine',    r:7, c:17, t:'HAL', disc:2010, theo:null, who:'Dubna / Livermore / ORNL teams', country:'Russia / USA', how:'Named after Tennessee, home of Oak Ridge National Lab and Vanderbilt University'},
+  {z:118,s:'Og', n:'Oganesson',     r:7, c:18, t:'NG',  disc:2002, theo:null, who:'Dubna / Livermore teams', country:'Russia / USA', how:'Heaviest known element; named after Yuri Oganessian — only living person (as of naming) to have an element named after them'},
+];
+
+// ══════════════════════════════════════
+// BUILD TABLE
+// ══════════════════════════════════════
+const tableEl = document.getElementById('periodicTable');
+const elMap = {};
+E.forEach(e => elMap[`${e.r},${e.c}`] = e);
+const cells = {};
+
+function fmtSym(s) {
+  if (s.length === 1) return s;
+  const rest = s.slice(1).split('').map(ch => `<span style="font-size:0.62em;vertical-align:0.05em">${ch.toLowerCase()}</span>`).join('');
+  return s[0] + rest;
+}
+
+function buildTable() {
+  tableEl.innerHTML = '';
+  for (let r = 1; r <= 7; r++) {
+    for (let c = 1; c <= 18; c++) {
+      const e = elMap[`${r},${c}`];
+      if (e) {
+        const d = makeCell(e); tableEl.appendChild(d); cells[e.z] = d;
+      } else if ((r === 6 && c === 3) || (r === 7 && c === 3)) {
+        const ph = document.createElement('div'); ph.className = 'el';
+        ph.style.cssText = 'background:#f1f0f5;border-color:#c4b5fd;opacity:0.4;pointer-events:none;';
+        ph.innerHTML = `<div class="el-sub" style="font-size:7px;color:#6b7280">${r===6?'57–71':'89–103'}</div>`;
+        tableEl.appendChild(ph);
+      } else {
+        const g = document.createElement('div'); g.className = 'gap'; tableEl.appendChild(g);
+      }
+    }
+  }
+  for (let i = 0; i < 18; i++) { const g = document.createElement('div'); g.className = 'gap'; g.style.height = '8px'; tableEl.appendChild(g); }
+  for (let series = 8; series <= 9; series++) {
+    const g1 = document.createElement('div'); g1.className = 'gap'; tableEl.appendChild(g1);
+    const g2 = document.createElement('div'); g2.className = 'gap'; tableEl.appendChild(g2);
+    const lbl = document.createElement('div'); lbl.className = 'period-label';
+    lbl.style.cssText = 'font-size:8px;color:var(--text-muted);text-align:center;line-height:1.2;';
+    lbl.textContent = series === 8 ? 'Lantha\u00adnides' : 'Acti\u00adnides';
+    tableEl.appendChild(lbl);
+    for (let c = 4; c <= 18; c++) {
+      const e = elMap[`${series},${c}`];
+      if (e) { const d = makeCell(e); tableEl.appendChild(d); cells[e.z] = d; }
+      else { const g = document.createElement('div'); g.className = 'gap'; tableEl.appendChild(g); }
+    }
+  }
+}
+
+function makeCell(e) {
+  const d = document.createElement('div');
+  d.className = `el t-${e.t} state-unknown`;
+  d.innerHTML = `<div class="el-z">${e.z}</div><div class="el-sym">${fmtSym(e.s)}</div><div class="el-sub"></div>`;
+  d.addEventListener('mouseenter', ev => showTT(e, ev));
+  d.addEventListener('mousemove', moveTT);
+  d.addEventListener('mouseleave', hideTT);
+  return d;
+}
+
+// ══════════════════════════════════════
+// TOOLTIP
+// ══════════════════════════════════════
+const tooltip = document.getElementById('tooltip');
+
+function showTT(e, ev) {
+  const year = parseInt(document.getElementById('yearSlider').value);
+  const state = getState(e, year);
+  document.getElementById('ttSym').innerHTML = fmtSym(e.s);
+  document.getElementById('ttName').textContent = e.n;
+  document.getElementById('ttZ').textContent = `Atomic number ${e.z} · ${e.t}`;
+  const badge = document.getElementById('ttBadge');
+  if (state === 'known') badge.innerHTML = '<span class="tt-state-badge badge-known">Discovered</span>';
+  else if (state === 'theorised') badge.innerHTML = '<span class="tt-state-badge badge-theorised">Theorised / Predicted</span>';
+  else badge.innerHTML = '<span class="tt-state-badge badge-unknown">Not yet known</span>';
+
+  const discYear = e.disc;
+  const theoYear = e.theo ? e.theo : null;
+
+  const rows = [
+    ['Discovered', discYear + (e.disc < 0 ? ' (approx.)' : '')],
+    ['Discoverer', e.who],
+    ['Country', e.country],
+  ];
+  if (theoYear) rows.splice(1, 0, ['Theorised', theoYear]);
+
+  document.getElementById('ttRows').innerHTML = rows.map(([l, v]) =>
+    `<div class="tt-row"><span class="tt-lbl">${l}</span><span class="tt-val">${v}</span></div>`).join('');
+  document.getElementById('ttStory').textContent = e.how;
+  tooltip.classList.add('visible');
+  moveTT(ev);
+}
+
+function moveTT(ev) {
+  let l = ev.clientX + 16, t = ev.clientY + 16;
+  if (l + 300 > window.innerWidth - 10) l = ev.clientX - 300 - 16;
+  if (t + 320 > window.innerHeight - 10) t = ev.clientY - 320 - 16;
+  tooltip.style.left = l + 'px';
+  tooltip.style.top = t + 'px';
+}
+function hideTT() { tooltip.classList.remove('visible'); }
+
+// ══════════════════════════════════════
+// YEAR LOGIC
+// ══════════════════════════════════════
+function getState(e, year) {
+  if (year >= e.disc) return 'known';
+  if (e.theo !== null && year >= e.theo) return 'theorised';
+  return 'unknown';
+}
+
+function getEraLabel(year) {
+  if (year < 1700) return 'Early modern chemistry';
+  if (year < 1750) return 'Pre-Lavoisier era';
+  if (year < 1789) return 'Phlogiston era';
+  if (year < 1800) return 'Chemical revolution';
+  if (year < 1830) return 'Davy & electrochemistry';
+  if (year < 1860) return 'Classical chemistry';
+  if (year < 1870) return 'Spectroscopic discoveries';
+  if (year < 1890) return 'Mendeleev\'s periodic table';
+  if (year < 1900) return 'Noble gas discoveries';
+  if (year < 1920) return 'Radioactivity era';
+  if (year < 1940) return 'Modern atomic theory';
+  if (year < 1960) return 'Nuclear age';
+  if (year < 1980) return 'Accelerator era';
+  return 'Particle physics era';
+}
+
+function updateYear(year) {
+  const display = year.toString();
+  document.getElementById('yearDisplay').textContent = display;
+  document.getElementById('eraDisplay').textContent = getEraLabel(year);
+
+  let known = 0, theo = 0, unknown = 0;
+  E.forEach(e => {
+    const cell = cells[e.z]; if (!cell) return;
+    const state = getState(e, year);
+    cell.className = `el t-${e.t} state-${state}`;
+    const sub = cell.querySelector('.el-sub');
+    if (sub) {
+      if (state === 'known') sub.textContent = e.disc;
+      else if (state === 'theorised') sub.textContent = '~predicted';
+      else sub.textContent = '';
+    }
+    if (state === 'known') known++;
+    else if (state === 'theorised') theo++;
+    else unknown++;
+  });
+
+  document.getElementById('statKnown').textContent = known;
+  document.getElementById('statTheo').textContent = theo;
+  document.getElementById('statUnknown').textContent = 118 - known - theo;
+}
+
+document.getElementById('yearSlider').addEventListener('input', function() {
+  updateYear(parseInt(this.value));
+});
+
+// ══════════════════════════════════════
+// PLAY ANIMATION
+// ══════════════════════════════════════
+let playing = false, playInterval = null;
+const KEYFRAMES = [
+  1600, 1649, 1669, 1700, 1735, 1750, 1766, 1770, 1780, 1789,
+  1800, 1807, 1808, 1810, 1817, 1820, 1824, 1825, 1826, 1830,
+  1838, 1840, 1844, 1850, 1860, 1861, 1863, 1866, 1870, 1875,
+  1878, 1880, 1885, 1886, 1890, 1894, 1895, 1898, 1900,
+  1901, 1903, 1907, 1910, 1917, 1923, 1925, 1930, 1937, 1939, 1940,
+  1944, 1945, 1950, 1952, 1955, 1961, 1966, 1974, 1981, 1984,
+  1990, 1994, 1996, 1999, 2002, 2004, 2010
+];
+let kfIndex = 0;
+
+function startPlay() {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏹ Stop';
+  document.getElementById('playBtn').classList.add('playing');
+  const slider = document.getElementById('yearSlider');
+  const currentYear = parseInt(slider.value);
+  kfIndex = KEYFRAMES.findIndex(y => y >= currentYear);
+  if (kfIndex < 0) kfIndex = 0;
+
+  playInterval = setInterval(() => {
+    if (kfIndex >= KEYFRAMES.length) { stopPlay(); return; }
+    const y = KEYFRAMES[kfIndex];
+    slider.value = y;
+    updateYear(y);
+    kfIndex++;
+  }, 300);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(playInterval);
+  document.getElementById('playBtn').textContent = '▶ Play';
+  document.getElementById('playBtn').classList.remove('playing');
+}
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (playing) stopPlay(); else startPlay();
+});
+
+// ══════════════════════════════════════
+// DARK MODE
+// ══════════════════════════════════════
+let isDark = false;
+document.getElementById('themeBtn').addEventListener('click', () => {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('themeBtn').textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
+});
+
+// INIT
+buildTable();
+updateYear(1800);
+</script>
+</body>
+</html>
