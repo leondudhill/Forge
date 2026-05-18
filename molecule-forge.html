@@ -147,6 +147,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="topbar-sub">Hover for electron shell · click or drag element onto the molecule bar below</div>
     </div>
     <div class="topbar-right">
+      <div class="byline" style="font-size:11px;color:var(--muted);text-align:right;">A tool by <strong style="color:var(--accent);font-weight:700;">Leon Dudhill</strong></div>
       <button class="theme-btn" id="themeBtn">🌙 Dark Mode</button>
     </div>
   </div>
@@ -447,6 +448,62 @@ const C={
  'ZnCO3':{n:'Zinc Carbonate (ZnCO₃)',t:'Ionic — carbonate',L:null},
  'FeCO3':{n:'Iron(II) Carbonate (FeCO₃)',t:'Ionic — carbonate',L:null},
  'K2CO3':{n:'Potassium Carbonate (K₂CO₃)',t:'Ionic — carbonate',L:null},
+ // ── ADDED: missing GCSE / A-level compounds ──
+ // Nitrogen oxides
+ 'H2O2':{n:'Hydrogen Peroxide (H₂O₂)',t:'Covalent — simple molecular',L:[[-0.74,0,0],[0,0,0],[0.74,0,0],[0,0,1.0]]},
+ 'NO':{n:'Nitrogen Monoxide (NO)',t:'Covalent — diatomic',L:[[-0.54,0,0],[0.54,0,0]]},
+ 'NO2':{n:'Nitrogen Dioxide (NO₂)',t:'Covalent — simple molecular',L:[[0,0,0],[-1,-0.5,0],[1,-0.5,0]]},
+ 'N2O':{n:'Dinitrogen Oxide (N₂O)',t:'Covalent — simple molecular',L:[[-1.13,0,0],[0,0,0],[1.13,0,0]]},
+ 'HNO2':{n:'Nitrous Acid (HNO₂)',t:'Covalent — simple molecular',L:null},
+ // Sulfur / silicon / carbon compounds
+ 'H2S':{n:'Hydrogen Sulfide (H₂S)',t:'Covalent — simple molecular',L:[[0,0,0],[-0.96,-0.93,0],[0.96,-0.93,0]]},
+ 'SiO2':{n:'Silicon Dioxide (SiO₂)',t:'Covalent — giant molecular',L:[[-1.6,0,0],[0,0,0],[1.6,0,0]]},
+ 'SiCl4':{n:'Silicon Tetrachloride (SiCl₄)',t:'Covalent — simple molecular',L:[[0,0,0],[1.02,1.02,1.02],[-1.02,-1.02,1.02],[-1.02,1.02,-1.02],[1.02,-1.02,-1.02]]},
+ 'CCl4':{n:'Tetrachloromethane (CCl₄)',t:'Covalent — simple molecular',L:[[0,0,0],[1.02,1.02,1.02],[-1.02,-1.02,1.02],[-1.02,1.02,-1.02],[1.02,-1.02,-1.02]]},
+ 'CS2':{n:'Carbon Disulfide (CS₂)',t:'Covalent — simple molecular',L:[[-1.55,0,0],[0,0,0],[1.55,0,0]]},
+ 'N2H4':{n:'Hydrazine (N₂H₄)',t:'Covalent — simple molecular',L:[[0,0,0],[1.45,0,0],[0,1,0],[0,-1,0],[1.45,1,0],[1.45,-1,0]]},
+ // Organic — additional
+ 'C3H6':{n:'Propene (C₃H₆)',t:'Organic — alkene',L:null},
+ 'C3H8O':{n:'Propan-1-ol (C₃H₇OH)',t:'Organic — alcohol',L:null},
+ 'C3H6O':{n:'Propanone (C₃H₆O)',t:'Organic — ketone',L:null},
+ 'C4H8O2':{n:'Ethyl Ethanoate (C₄H₈O₂)',t:'Organic — ester',L:null},
+ 'CH5N':{n:'Methylamine (CH₃NH₂)',t:'Organic — amine',L:[[0,0,0],[1,0,0],[0,1,0],[0,-1,0],[0,0,1],[-1,0,0],[0,0,-1]]},
+ 'C6H6O':{n:'Phenol (C₆H₅OH)',t:'Organic — phenol',L:null},
+ 'C7H8':{n:'Methylbenzene (C₇H₈)',t:'Organic — aromatic',L:null},
+ 'C5H10O':{n:'Cyclopentanone (C₅H₁₀O)',t:'Organic — ketone',L:null},
+ // Transition metal reagents (A-level common)
+ 'KMnO4':{n:'Potassium Permanganate (KMnO₄)',t:'Ionic — permanganate',L:null},
+ 'K2Cr2O7':{n:'Potassium Dichromate (K₂Cr₂O₇)',t:'Ionic — dichromate',L:null},
+ // Iron(II) chloride
+ 'Cl2Fe':{n:'Iron(II) Chloride (FeCl₂)',t:'Ionic — chloride',L:[[0,0,0],[-1.2,-0.6,0],[1.2,-0.6,0]]},
+ // Calcium sulfate (gypsum / plaster of paris)
+ 'CaSO4':{n:'Calcium Sulfate (CaSO₄)',t:'Ionic — sulfate',L:null},
+ // Sodium thiosulfate (rate of reaction experiments)
+ 'Na2S2O3':{n:'Sodium Thiosulfate (Na₂S₂O₃)',t:'Ionic — thiosulfate',L:null},
+ // More halide salts
+ 'IK':{n:'Potassium Iodide (KI)',t:'Ionic — iodide',L:[[0,-1,0],[0,1,0]]},
+ 'BrK':{n:'Potassium Bromide (KBr)',t:'Ionic — bromide',L:[[0,-1,0],[0,1,0]]},
+ 'Cl2Zn':{n:'Zinc Chloride (ZnCl₂)',t:'Ionic — chloride',L:[[0,0,0],[-1.2,-0.6,0],[1.2,-0.6,0]]},
+ // Copper(II) carbonate
+ 'CCuO3':{n:'Copper(II) Carbonate (CuCO₃)',t:'Ionic — carbonate',L:null},
+ // Barium compounds
+ 'BaCl2':{n:'Barium Chloride (BaCl₂)',t:'Ionic — chloride',L:[[0,0,0],[-1.2,-0.6,0],[1.2,-0.6,0]]},
+ 'BaH2O2':{n:'Barium Hydroxide (Ba(OH)₂)',t:'Ionic — hydroxide',L:null},
+ // Lithium compounds
+ 'HLiO':{n:'Lithium Hydroxide (LiOH)',t:'Ionic — hydroxide',L:[[0,0,0],[0,-1.2,0],[0,-1.2,-0.9]]},
+ 'ClLi':{n:'Lithium Chloride (LiCl)',t:'Ionic — chloride',L:[[0,-1,0],[0,1,0]]},
+ 'Li2O':{n:'Lithium Oxide (Li₂O)',t:'Ionic — oxide',L:[[0,0,0],[-1.1,-1,0],[1.1,-1,0]]},
+ // Lead compounds
+ 'OPb':{n:'Lead(II) Oxide (PbO)',t:'Ionic — oxide',L:[[0,-1,0],[0,1,0]]},
+ 'N2O6Pb':{n:'Lead(II) Nitrate (Pb(NO₃)₂)',t:'Ionic — nitrate',L:null},
+ // Sodium hydrogensulfate
+ 'HNaO4S':{n:'Sodium Hydrogensulfate (NaHSO₄)',t:'Ionic — sulfate',L:null},
+ // Ammonium hydroxide
+ 'H5NO':{n:'Ammonium Hydroxide (NH₄OH)',t:'Ionic — hydroxide',L:null},
+ // Ammonium sulfate
+ 'H8N2O4S':{n:'Ammonium Sulfate ((NH₄)₂SO₄)',t:'Ionic — ammonium salt',L:null},
+ // Phosphoric acid variants
+ 'H3PO3':{n:'Phosphorous Acid (H₃PO₃)',t:'Covalent — simple molecular',L:null},
 };
 
 // ── FORMULA HELPERS ───────────────────────────────────────────────────────────
